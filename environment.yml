@@ -1,0 +1,9 @@
+channels:
+- conda-forge
+- nodefaults
+dependencies:
+- make
+- mypy
+- pre-commit
+- pytest
+- pytest-cov

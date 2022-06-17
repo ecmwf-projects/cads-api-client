@@ -1,0 +1,16 @@
+{
+  "template": "https://github.com/ecmwf-projects/cookiecutter-conda-package",
+  "commit": "ce878352ce95b8830f324989df5308f5be53fd77",
+  "checkout": null,
+  "context": {
+    "cookiecutter": {
+      "project_name": "cads-api-client",
+      "project_slug": "cads_api_client",
+      "project_short_description": "CADS API Python client",
+      "copyright_holder": "European Centre for Medium-Range Weather Forecasts (ECMWF)",
+      "copyright_year": "2022",
+      "_template": "https://github.com/ecmwf-projects/cookiecutter-conda-package"
+    }
+  },
+  "directory": null
+}
