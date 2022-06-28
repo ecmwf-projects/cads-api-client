@@ -22,6 +22,7 @@ jobs:
     - uses: actions/setup-python@v4
       with:
         python-version: 3.x
+    - uses: pre-commit/action@v3.0.0
 
   unit-tests:
     name: unit-tests (3.10)
@@ -33,7 +34,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Install Conda environment with Micromamba
-      uses: mamba-org/provision-with-micromamba@main
+      uses: mamba-org/provision-with-micromamba@v12
       with:
         environment-file: environment.yml
         environment-name: DEVELOP
@@ -59,7 +60,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Install Conda environment with Micromamba
-      uses: mamba-org/provision-with-micromamba@main
+      uses: mamba-org/provision-with-micromamba@v12
       with:
         environment-file: environment.yml
         environment-name: DEVELOP
@@ -91,7 +92,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Install Conda environment with Micromamba
-      uses: mamba-org/provision-with-micromamba@main
+      uses: mamba-org/provision-with-micromamba@v12
       with:
         environment-file: environment${{ matrix.extra }}.yml
         environment-name: DEVELOP${{ matrix.extra }}
