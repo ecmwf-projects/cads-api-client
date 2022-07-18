@@ -5,6 +5,10 @@ dependencies:
 - owslib
 - make
 - mypy
+- myst-parser
 - pre-commit
+- pydata-sphinx-theme
 - pytest
 - pytest-cov
+- sphinx
+- sphinxcontrib-apidoc

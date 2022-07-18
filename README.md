@@ -19,11 +19,12 @@ Before pushing to GitHub, run the following commands:
 1. Run quality assurance checks: `make qa`
 1. Run tests: `make test`
 1. Run the static type checker: `make type-check`
+1. Build the documentation (see [Sphinx tutorial](https://www.sphinx-doc.org/en/master/tutorial/)): `make build-docs`
 
 ## License
 
 ```
-Copyright 2022, European Centre for Medium-Range Weather Forecasts (ECMWF).
+Copyright 2022, European Union.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
