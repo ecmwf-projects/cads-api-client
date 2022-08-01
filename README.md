@@ -40,7 +40,7 @@ Adanced usage:
 ...
 
 >>> remote_unkown = processing.make_remote("ffffffff-e89b-12d3-a456-426614174000")
-ValueError: request_uid is unkown
+ValueError: request_uid="ffffffff-e89b-12d3-a456-426614174000" is unknown
 ```
 
 ## Workflow for developers/contributors
