@@ -22,7 +22,7 @@ Draft Python API:
 
 ```
 
-Adanced usage:
+Advanced usage:
 
 ```python
 >>> processing = cads_api_client.Processing("http://localhost:8080/api/processing")
@@ -34,13 +34,14 @@ Adanced usage:
 >>> remote.status  # the request is in the CADS cache
 "success"
 >>> del remote
->>> remote_repica = processing.make_remote("123e4567-e89b-12d3-a456-426614174000")
->>> remote_repica.to_dataset()  # uses locally cached data
+>>> remote_replica = processing.make_remote("123e4567-e89b-12d3-a456-426614174000")
+>>> remote_replica.to_dataset()  # uses locally cached data
 <Dataset>
 ...
 
->>> remote_unkown = processing.make_remote("ffffffff-e89b-12d3-a456-426614174000")
+>>> remote_unknown = processing.make_remote("ffffffff-e89b-12d3-a456-426614174000")
 ValueError: request_uid="ffffffff-e89b-12d3-a456-426614174000" is unknown
+
 ```
 
 ## Workflow for developers/contributors
