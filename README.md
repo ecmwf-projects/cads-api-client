@@ -12,7 +12,7 @@ Draft Python API:
 <datetime64("2022-07-20T23:00:00")>
 >>> remote = collection.retrieve(variable='2m_temperature', date='2022-07-01')  # doesn't block
 >>> remote.request_uid
-"123e4567-e89b-12d3-a456-426614174000"
+"00112233-4455-6677-8899-aabbccddeeff"
 >>> remote.status
 "queued"
 >>> remote.to_grib("data.grib")  # blocks until the file can be downloaded
@@ -30,17 +30,17 @@ Advanced usage:
 ...     collection_id="reanalysis-era5-single-levels", variable='2m_temperature', date='2022-07-01'
 ... )  # doesn't block
 >>> remote.request_uid
-"123e4567-e89b-12d3-a456-426614174000"
+"00112233-4455-6677-8899-aabbccddeeff"
 >>> remote.status  # the request is in the CADS cache
 "success"
 >>> del remote
->>> remote_replica = processing.make_remote("123e4567-e89b-12d3-a456-426614174000")
+>>> remote_replica = processing.make_remote("00112233-4455-6677-8899-aabbccddeeff")
 >>> remote_replica.to_dataset()  # uses locally cached data
 <Dataset>
 ...
 
->>> remote_unknown = processing.make_remote("ffffffff-e89b-12d3-a456-426614174000")
-ValueError: request_uid="ffffffff-e89b-12d3-a456-426614174000" is unknown
+>>> remote_unknown = processing.make_remote("ffffffff-4455-6677-8899-aabbccddeeff")
+ValueError: request_uid="ffffffff-4455-6677-8899-aabbccddeeff" is unknown
 
 ```
 
