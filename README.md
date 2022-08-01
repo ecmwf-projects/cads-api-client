@@ -2,6 +2,47 @@
 
 CADS API Python client
 
+Draft Python API:
+
+```python
+>>> import cads_api_client
+>>> catalogue = cads_api_client.Catalogue("http://localhost:8080/api/catalogue")
+>>> collection = catalogue.collection("reanalysis-era5-single-levels")
+>>> collection.end_datetime()
+<datetime64("2022-07-20T23:00:00")>
+>>> remote = collection.retrieve(variable='2m_temperature', date='2022-07-01')  # doesn't block
+>>> remote.request_uid
+"123e4567-e89b-12d3-a456-426614174000"
+>>> remote.status
+"queued"
+>>> remote.to_grib("data.grib")  # blocks until the file can be downloaded
+>>> remote.to_dataset()  # uses locally cached data
+<Dataset>
+...
+
+```
+
+Adanced usage:
+
+```python
+>>> processing = cads_api_client.Processing("http://localhost:8080/api/processing")
+>>> remote = processing.retrieve(
+...     collection_id="reanalysis-era5-single-levels", variable='2m_temperature', date='2022-07-01'
+... )  # doesn't block
+>>> remote.request_uid
+"123e4567-e89b-12d3-a456-426614174000"
+>>> remote.status  # the request is in the CADS cache
+"success"
+>>> del remote
+>>> remote_repica = processing.make_remote("123e4567-e89b-12d3-a456-426614174000")
+>>> remote_repica.to_dataset()  # uses locally cached data
+<Dataset>
+...
+
+>>> remote_unkown = processing.make_remote("ffffffff-e89b-12d3-a456-426614174000")
+ValueError: request_uid is unkown
+```
+
 ## Workflow for developers/contributors
 
 For best experience create a new conda environment (e.g. DEVELOP) with Python 3.10:
