@@ -66,11 +66,17 @@ class Process(ApiResponse):
         resp = ApiResponse(requests.post(url, json={"inputs": inputs}))
         hrefs = resp.get_links_hrefs(rel="monitor")
         if len(hrefs) != 1:
-            raise ValueError("monitor URL not found or not unique")
+            raise RuntimeError("monitor URL not found or not unique")
         return Remote(hrefs[0])
 
 
 class Processing(ogcapi.API):  # type: ignore
+    supported_api_version = "v1"
+
+    def __init__(self, url, *args, **kwargs):
+        url = f"{url}/{self.supported_api_version}"
+        return super().__init__(url, *args, **kwargs)
+
     def processes(self) -> Dict[str, Any]:
         path = "processes"
         processes = self._request(path)
