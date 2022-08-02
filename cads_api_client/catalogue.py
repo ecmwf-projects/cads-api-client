@@ -7,7 +7,7 @@ from owslib import ogcapi
 from . import processing
 
 
-@attrs.define(slots=False)
+@attrs.define
 class Collection(processing.ApiResponse):
     def end_datetime(self) -> np.datetime64:
         try:

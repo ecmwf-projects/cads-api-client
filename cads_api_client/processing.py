@@ -9,7 +9,7 @@ import xarray as xr
 from owslib import ogcapi
 
 
-@attrs.define
+@attrs.define(slots=False)
 class ApiResponse:
     response: requests.Response
 
@@ -59,7 +59,7 @@ class Remote:
         return xr.Dataset()
 
 
-@attrs.define(slots=False)
+@attrs.define
 class Process(ApiResponse):
     def execute(self, **inputs) -> Remote:
         url = f"{self.response.request.url}/execute"
