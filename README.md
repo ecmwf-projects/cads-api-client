@@ -7,18 +7,20 @@ Draft Python API:
 ```python
 >>> import cads_api_client
 >>> catalogue = cads_api_client.Catalogue("http://localhost:8080/api/catalogue")
->>> collection = catalogue.collection("reanalysis-era5-single-levels")
+>>> collection = catalogue.collection("reanalysis-era5-pressure-levels")
 >>> collection.end_datetime()
-<datetime64("2022-07-20T23:00:00")>
->>> remote = collection.retrieve(variable='2m_temperature', date='2022-07-01')  # doesn't block
+numpy.datetime64('2022-07-20T23:00:00')
+>>> remote = collection.retrieve(variable='temperature', year='2022')  # doesn't block
 >>> remote.request_uid
-"00112233-4455-6677-8899-aabbccddeeff"
+'...'
 >>> remote.status
-"queued"
+'running'
 >>> remote.to_grib("data.grib")  # blocks until the file can be downloaded
 >>> remote.to_dataset()  # uses locally cached data
-<Dataset>
-...
+<xarray.Dataset>
+Dimensions:  ()
+Data variables:
+    *empty*
 
 ```
 
@@ -26,19 +28,22 @@ Advanced usage:
 
 ```python
 >>> processing = cads_api_client.Processing("http://localhost:8080/api/processing")
->>> remote = processing.retrieve(
-...     collection_id="reanalysis-era5-single-levels", variable='2m_temperature', date='2022-07-01'
+>>> process = processing.process("retrieve-reanalysis-era5-pressure-levels")
+>>> remote = process.execute(
+...     variable='temperature', year='2022',
 ... )  # doesn't block
+>>> remote_url = remote.url
 >>> remote.request_uid
-"00112233-4455-6677-8899-aabbccddeeff"
+'...'
 >>> remote.status  # the request is in the CADS cache
-"success"
+'...'
 >>> del remote
->>> remote_replica = processing.make_remote("00112233-4455-6677-8899-aabbccddeeff")
+>>> remote_replica = cads_api_client.Remote(remote_url)
 >>> remote_replica.to_dataset()  # uses locally cached data
-<Dataset>
-...
-
+<xarray.Dataset>
+Dimensions:  ()
+Data variables:
+    *empty*
 >>> remote_unknown = processing.make_remote("ffffffff-4455-6677-8899-aabbccddeeff")
 ValueError: request_uid="ffffffff-4455-6677-8899-aabbccddeeff" is unknown
 
