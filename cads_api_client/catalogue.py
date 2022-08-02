@@ -28,6 +28,12 @@ class Collection(processing.ApiResponse):
 
 
 class Catalogue(ogcapi.Collections):  # type: ignore
+    supported_api_version = "v1"
+
+    def __init__(self, url, *args, **kwargs):
+        url = f"{url}/{self.supported_api_version}"
+        return super().__init__(url, *args, **kwargs)
+
     def collection_ids(self) -> List[str]:
         collections = self.collections()
         ids = [co["id"] for co in collections["collections"]]

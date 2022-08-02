@@ -71,6 +71,12 @@ class Process(ApiResponse):
 
 
 class Processing(ogcapi.API):  # type: ignore
+    supported_api_version = "v1"
+
+    def __init__(self, url, *args, **kwargs):
+        url = f"{url}/{self.supported_api_version}"
+        return super().__init__(url, *args, **kwargs)
+
     def processes(self) -> Dict[str, Any]:
         path = "processes"
         processes = self._request(path)
