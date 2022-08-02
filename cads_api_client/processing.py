@@ -21,6 +21,16 @@ class ApiResponse:
     def json(self) -> Dict[str, Any]:
         return self.response.json()
 
+    def get_links(self, rel=None) -> List[Dict[str, str]]:
+        links = []
+        for link in self.json.get("links", []):
+            if rel is not None and link.get("rel") == rel:
+                links.append(link)
+        return links
+
+    def get_links_hrefs(self, **kwargs) -> List[str]:
+        return [link["href"] for link in self.get_links(**kwargs) if "href" in link]
+
 
 @attrs.define(slots=False)
 class Remote:
@@ -53,14 +63,11 @@ class Remote:
 class Process(ApiResponse):
     def execute(self, **inputs) -> Remote:
         url = f"{self.response.request.url}/execute"
-        resp = requests.post(url, json={"inputs": inputs})
-        json = resp.json()
-        if "links" not in json:
-            raise ValueError(json)
-        for link in json["links"]:
-            if link.get("rel") == "monitor":
-                return Remote(link["href"])
-        raise ValueError
+        resp = ApiResponse(requests.post(url, json={"inputs": inputs}))
+        hrefs = resp.get_links_hrefs(rel="monitor")
+        if len(hrefs) != 1:
+            raise ValueError("monitor URL not found or not unique")
+        return Remote(hrefs[0])
 
 
 class Processing(ogcapi.API):  # type: ignore
@@ -80,15 +87,5 @@ class Processing(ogcapi.API):  # type: ignore
         return Process.from_request("get", url)
 
     def make_remote(self, request_uid: str) -> Remote:
-        return Remote(self, request_uid)
-
-
-def get_process_id_from_links(links: List[Dict[str, str]]) -> str:
-    for link in links:
-        if link.get("rel") == "retrieve-process":
-            href = link.get("href", "")
-            api_url, _, process_id = href.rpartition("/processes/")
-            if process_id == "":
-                raise RuntimeError(f"Can not parse link href {href}")
-            return process_id
-    raise RuntimeError('No link with rel="retrieve-process"')
+        url = f"{self.url}/jobs/{request_uid}"
+        return Remote(url)
