@@ -2,7 +2,7 @@ from cads_api_client import catalogue, processing
 
 
 def test_processes(dev_env_api_url: str) -> None:
-    proc = processing.Processing(f"{dev_env_api_url}/processing")
+    proc = processing.Processing(f"{dev_env_api_url}/retrieve")
 
     res = proc.processes()
 
@@ -14,8 +14,8 @@ def test_processes(dev_env_api_url: str) -> None:
 
 
 def test_process_ids(dev_env_api_url: str) -> None:
-    process_id = "retrieve-reanalysis-era5-land-monthly-means"
-    proc = processing.Processing(f"{dev_env_api_url}/processing")
+    process_id = "reanalysis-era5-land-monthly-means"
+    proc = processing.Processing(f"{dev_env_api_url}/retrieve")
 
     res = proc.process_ids()
 
@@ -24,8 +24,8 @@ def test_process_ids(dev_env_api_url: str) -> None:
 
 
 def test_process(dev_env_api_url: str) -> None:
-    process_id = "retrieve-reanalysis-era5-land-monthly-means"
-    proc = processing.Processing(f"{dev_env_api_url}/processing")
+    process_id = "reanalysis-era5-land-monthly-means"
+    proc = processing.Processing(f"{dev_env_api_url}/retrieve")
 
     res = proc.process(process_id)
 
