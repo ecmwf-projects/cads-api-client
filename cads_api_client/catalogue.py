@@ -22,7 +22,7 @@ class Collection(processing.ApiResponse):
         raise RuntimeError('No link with rel="retrieve-process"')
 
     def retrieve(self, **request) -> processing.Remote:
-        return self.retrieve_process().retrieve(**request)
+        return self.retrieve_process().execute(**request)
 
 
 class Catalogue(ogcapi.Collections):  # type: ignore

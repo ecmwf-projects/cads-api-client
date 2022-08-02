@@ -14,24 +14,44 @@ class ApiResponse:
 
     @classmethod
     def from_request(cls, *args, **kwargs):
-        return cls(response=requests.request(*args, **kwargs))
+        return cls(requests.request(*args, **kwargs))
 
     @functools.cached_property
     def json(self) -> Dict[str, Any]:
         return self.response.json()
 
 
-@attrs.define
+@attrs.define(slots=False)
 class Remote:
     url: str
+
+    @functools.cached_property
+    def request_uid(self) -> str:
+        return self.url.rpartition("/")[2]
+
+    @property
+    def status(self) -> str:
+        # TODO: cache responses for a timeout (possibly reported nby the server)
+        json = requests.get(self.url).json()
+        return json["status"]
+
+    def wait_on_result_ready(self):
+        pass
+
+    def download_result(self):
+        pass
 
 
 @attrs.define
 class Process(ApiResponse):
-    def retrieve(self, **request) -> Remote:
+    def execute(self, **inputs) -> Remote:
         url = f"{self.response.request.url}/execute"
-        resp = requests.post(url, data={"inputs": request})
-        print(resp.json())
+        resp = requests.post(url, json={"inputs": [{k: v} for k, v in inputs.items()]})
+        json = resp.json()
+        for link in json["links"]:
+            if link.get("rel") == "monitor":
+                return Remote(link["href"])
+        raise ValueError
 
 
 class Processing(ogcapi.API):  # type: ignore
