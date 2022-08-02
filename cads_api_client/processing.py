@@ -5,6 +5,7 @@ from typing import Any, Dict, List
 
 import attrs
 import requests
+import xarray as xr
 from owslib import ogcapi
 
 
@@ -41,6 +42,12 @@ class Remote:
     def download_result(self):
         pass
 
+    def to_grib(self, path) -> None:
+        pass
+
+    def to_dataset(self) -> xr.Dataset:
+        return xr.Dataset()
+
 
 @attrs.define
 class Process(ApiResponse):
@@ -48,6 +55,8 @@ class Process(ApiResponse):
         url = f"{self.response.request.url}/execute"
         resp = requests.post(url, json={"inputs": inputs})
         json = resp.json()
+        if "links" not in json:
+            raise ValueError(json)
         for link in json["links"]:
             if link.get("rel") == "monitor":
                 return Remote(link["href"])

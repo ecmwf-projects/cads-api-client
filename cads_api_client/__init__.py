@@ -23,6 +23,6 @@ except ImportError:  # pragma: no cover
     __version__ = "999"
 
 from .catalogue import Catalogue
-from .processing import Processing
+from .processing import Processing, Remote
 
-__all__ = ["__version__", "Catalogue", "Processing"]
+__all__ = ["__version__", "Catalogue", "Processing", "Remote"]
