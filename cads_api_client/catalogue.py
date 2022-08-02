@@ -1,11 +1,13 @@
 from typing import List
 
+import attrs
 import numpy as np
 from owslib import ogcapi
 
 from . import processing
 
 
+@attrs.define(slots=False)
 class Collection(processing.ApiResponse):
     def end_datetime(self) -> np.datetime64:
         try:

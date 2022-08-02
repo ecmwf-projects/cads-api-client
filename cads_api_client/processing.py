@@ -49,7 +49,7 @@ class Remote:
         return xr.Dataset()
 
 
-@attrs.define
+@attrs.define(slots=False)
 class Process(ApiResponse):
     def execute(self, **inputs) -> Remote:
         url = f"{self.response.request.url}/execute"
