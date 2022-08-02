@@ -27,8 +27,8 @@ Data variables:
 Advanced usage:
 
 ```python
->>> processing = cads_api_client.Processing("http://localhost:8080/api/processing")
->>> process = processing.process("retrieve-reanalysis-era5-pressure-levels")
+>>> processing = cads_api_client.Processing("http://localhost:8080/api/retrieve")
+>>> process = processing.process("reanalysis-era5-pressure-levels")
 >>> remote = process.execute(
 ...     variable='temperature', year='2022',
 ... )  # doesn't block
