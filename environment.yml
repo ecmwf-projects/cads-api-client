@@ -11,7 +11,8 @@ dependencies:
 - pytest-cov
 - sphinx
 - sphinx-autoapi
-    # DO NOT EDIT ABOVE THIS LINE, ADD DEPENDENCIES BELOW
+      # DO NOT EDIT ABOVE THIS LINE, ADD DEPENDENCIES BELOW
 - owslib
 - requests
 - types-requests
+- xarray
