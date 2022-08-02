@@ -7,10 +7,10 @@ Draft Python API:
 ```python
 >>> import cads_api_client
 >>> catalogue = cads_api_client.Catalogue("http://localhost:8080/api/catalogue")
->>> collection = catalogue.collection("reanalysis-era5-single-levels")
+>>> collection = catalogue.collection("reanalysis-era5-pressure-levels")
 >>> collection.end_datetime()
-<datetime64("2022-07-20T23:00:00")>
->>> remote = collection.retrieve(variable='2m_temperature', date='2022-07-01')  # doesn't block
+numpy.datetime64('2022-07-20T23:00:00')
+>>> remote = collection.retrieve(variable='temperature', year='2022')  # doesn't block
 >>> remote.request_uid
 "00112233-4455-6677-8899-aabbccddeeff"
 >>> remote.status

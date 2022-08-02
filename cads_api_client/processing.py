@@ -1,6 +1,37 @@
+from __future__ import annotations
+
+import functools
 from typing import Any, Dict, List
 
+import attrs
+import requests
 from owslib import ogcapi
+
+
+@attrs.define
+class ApiResponse:
+    response: requests.Response
+
+    @classmethod
+    def from_request(cls, *args, **kwargs):
+        return cls(response=requests.request(*args, **kwargs))
+
+    @functools.cached_property
+    def json(self) -> Dict[str, Any]:
+        return self.response.json()
+
+
+@attrs.define
+class Remote:
+    url: str
+
+
+@attrs.define
+class Process(ApiResponse):
+    def retrieve(self, **request) -> Remote:
+        url = f"{self.response.request.url}/execute"
+        resp = requests.post(url, data={"inputs": request})
+        print(resp.json())
 
 
 class Processing(ogcapi.API):  # type: ignore
@@ -16,10 +47,11 @@ class Processing(ogcapi.API):  # type: ignore
         return ids
 
     def process(self, process_id: str) -> Dict[str, Any]:
-        path = f"processes/{process_id}"
-        process = self._request(path)
-        assert isinstance(process, dict)
-        return process
+        url = self._build_url(f"processes/{process_id}")
+        return Process.from_request("get", url)
+
+    def make_remote(self, request_uid: str) -> Remote:
+        return Remote(self, request_uid)
 
 
 def get_process_id_from_links(links: List[Dict[str, str]]) -> str:
