@@ -46,7 +46,7 @@ class Remote:
 class Process(ApiResponse):
     def execute(self, **inputs) -> Remote:
         url = f"{self.response.request.url}/execute"
-        resp = requests.post(url, json={"inputs": [{k: v} for k, v in inputs.items()]})
+        resp = requests.post(url, json={"inputs": inputs})
         json = resp.json()
         for link in json["links"]:
             if link.get("rel") == "monitor":
