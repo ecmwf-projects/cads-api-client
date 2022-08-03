@@ -32,6 +32,23 @@ class ApiResponse:
         return [link["href"] for link in self.get_links(**kwargs) if "href" in link]
 
 
+@attrs.define
+class ProcessList(ApiResponse):
+    def process_ids(self) -> List[str]:
+        return [proc["id"] for proc in self.json["processes"]]
+
+
+@attrs.define
+class Process(ApiResponse):
+    def execute(self, **inputs) -> Remote:
+        url = f"{self.response.request.url}/execute"
+        resp = ApiResponse(requests.post(url, json={"inputs": inputs}))
+        hrefs = resp.get_links_hrefs(rel="monitor")
+        if len(hrefs) != 1:
+            raise RuntimeError("monitor URL not found or not unique")
+        return Remote(hrefs[0])
+
+
 @attrs.define(slots=False)
 class Remote:
     url: str
@@ -60,14 +77,8 @@ class Remote:
 
 
 @attrs.define
-class Process(ApiResponse):
-    def execute(self, **inputs) -> Remote:
-        url = f"{self.response.request.url}/execute"
-        resp = ApiResponse(requests.post(url, json={"inputs": inputs}))
-        hrefs = resp.get_links_hrefs(rel="monitor")
-        if len(hrefs) != 1:
-            raise RuntimeError("monitor URL not found or not unique")
-        return Remote(hrefs[0])
+class JobStatus(ApiResponse):
+    pass
 
 
 class Processing(ogcapi.API):  # type: ignore
@@ -77,16 +88,9 @@ class Processing(ogcapi.API):  # type: ignore
         url = f"{url}/{self.supported_api_version}"
         return super().__init__(url, *args, **kwargs)
 
-    def processes(self) -> Dict[str, Any]:
-        path = "processes"
-        processes = self._request(path)
-        assert isinstance(processes, dict)
-        return processes
-
-    def process_ids(self) -> List[str]:
-        processes = self.processes()
-        ids = [proc["id"] for proc in processes["processes"]]
-        return ids
+    def processes(self) -> ProcessList:
+        url = self._build_url("processes")
+        return ProcessList.from_request("get", url)
 
     def process(self, process_id: str) -> Dict[str, Any]:
         url = self._build_url(f"processes/{process_id}")
@@ -95,3 +99,7 @@ class Processing(ogcapi.API):  # type: ignore
     def make_remote(self, request_uid: str) -> Remote:
         url = f"{self.url}/jobs/{request_uid}"
         return Remote(url)
+
+    def job(self, job_id: str) -> Dict[str, Any]:
+        url = self._build_url(f"jobs/{job_id}")
+        return JobStatus.from_request("get", url)
