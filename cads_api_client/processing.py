@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import functools
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Type, TypeVar
 
 import attrs
 import requests
 import xarray as xr
 from owslib import ogcapi
+
+T_ApiResponse = TypeVar("T_ApiResponse", bound="ApiResponse")
 
 
 @attrs.define(slots=False)
@@ -14,21 +16,23 @@ class ApiResponse:
     response: requests.Response
 
     @classmethod
-    def from_request(cls, *args, **kwargs):
+    def from_request(
+        cls: Type[T_ApiResponse], *args: Any, **kwargs: Any
+    ) -> T_ApiResponse:
         return cls(requests.request(*args, **kwargs))
 
     @functools.cached_property
     def json(self) -> Dict[str, Any]:
-        return self.response.json()
+        return self.response.json()  # type: ignore
 
-    def get_links(self, rel=None) -> List[Dict[str, str]]:
+    def get_links(self, rel: Optional[str] = None) -> List[Dict[str, str]]:
         links = []
         for link in self.json.get("links", []):
             if rel is not None and link.get("rel") == rel:
                 links.append(link)
         return links
 
-    def get_links_hrefs(self, **kwargs) -> List[str]:
+    def get_links_hrefs(self, **kwargs: str) -> List[str]:
         return [link["href"] for link in self.get_links(**kwargs) if "href" in link]
 
 
@@ -40,7 +44,7 @@ class ProcessList(ApiResponse):
 
 @attrs.define
 class Process(ApiResponse):
-    def execute(self, **inputs) -> Remote:
+    def execute(self, **inputs: Any) -> Remote:
         url = f"{self.response.request.url}/execute"
         resp = ApiResponse(requests.post(url, json={"inputs": inputs}))
         hrefs = resp.get_links_hrefs(rel="monitor")
@@ -61,15 +65,15 @@ class Remote:
     def status(self) -> str:
         # TODO: cache responses for a timeout (possibly reported nby the server)
         json = requests.get(self.url).json()
-        return json["status"]
+        return json["status"]  # type: ignore
 
-    def wait_on_result_ready(self):
+    def wait_on_result_ready(self) -> None:
         pass
 
-    def download_result(self):
+    def download_result(self) -> None:
         pass
 
-    def to_grib(self, path) -> None:
+    def to_grib(self, path: str) -> None:
         pass
 
     def to_dataset(self) -> xr.Dataset:
@@ -77,29 +81,48 @@ class Remote:
 
 
 @attrs.define
-class JobStatus(ApiResponse):
+class StatusInfo(ApiResponse):
+    pass
+
+
+@attrs.define
+class JobList(ApiResponse):
+    def job_ids(self) -> List[str]:
+        return [job["id"] for job in self.json["jobs"]]
+
+
+@attrs.define
+class Results(ApiResponse):
     pass
 
 
 class Processing(ogcapi.API):  # type: ignore
     supported_api_version = "v1"
 
-    def __init__(self, url, *args, **kwargs):
+    def __init__(self, url: str, *args: Any, **kwargs: Any) -> None:
         url = f"{url}/{self.supported_api_version}"
-        return super().__init__(url, *args, **kwargs)
+        super().__init__(url, *args, **kwargs)
 
     def processes(self) -> ProcessList:
         url = self._build_url("processes")
         return ProcessList.from_request("get", url)
 
-    def process(self, process_id: str) -> Dict[str, Any]:
+    def process(self, process_id: str) -> Process:
         url = self._build_url(f"processes/{process_id}")
         return Process.from_request("get", url)
 
-    def make_remote(self, request_uid: str) -> Remote:
-        url = f"{self.url}/jobs/{request_uid}"
-        return Remote(url)
+    def process_execute(self, process_id: str, **inputs: Any) -> StatusInfo:
+        url = self._build_url(f"processes/{process_id}/execute")
+        return StatusInfo.from_request("post", url, json={"inputs": inputs})
 
-    def job(self, job_id: str) -> Dict[str, Any]:
+    def jobs(self) -> JobList:
+        url = self._build_url("jobs")
+        return JobList.from_request("get", url)
+
+    def job(self, job_id: str) -> StatusInfo:
         url = self._build_url(f"jobs/{job_id}")
-        return JobStatus.from_request("get", url)
+        return StatusInfo.from_request("get", url)
+
+    def job_results(self, job_id: str) -> Results:
+        url = self._build_url(f"jobs/{job_id}/results")
+        return Results.from_request("get", url)

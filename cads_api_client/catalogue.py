@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, List
 
 import attrs
 import numpy as np
@@ -22,16 +22,16 @@ class Collection(processing.ApiResponse):
             raise RuntimeError("retrieve URL not found or not unique")
         return processing.Process.from_request("get", hrefs[0])
 
-    def retrieve(self, **request) -> processing.Remote:
+    def retrieve(self, **request: Any) -> processing.Remote:
         return self.retrieve_process().execute(**request)
 
 
 class Catalogue(ogcapi.Collections):  # type: ignore
     supported_api_version = "v1"
 
-    def __init__(self, url, *args, **kwargs):
+    def __init__(self, url: str, *args: Any, **kwargs: Any) -> None:
         url = f"{url}/{self.supported_api_version}"
-        return super().__init__(url, *args, **kwargs)
+        super().__init__(url, *args, **kwargs)
 
     def collection_ids(self) -> List[str]:
         collections = self.collections()
