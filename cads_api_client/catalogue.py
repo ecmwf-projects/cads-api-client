@@ -8,6 +8,12 @@ from . import processing
 
 
 @attrs.define
+class Collections(processing.ApiResponse):
+    def collection_ids(self) -> List[str]:
+        return [collection["id"] for collection in self.json["collections"]]
+
+
+@attrs.define
 class Collection(processing.ApiResponse):
     def end_datetime(self) -> np.datetime64:
         try:
@@ -24,19 +30,17 @@ class Collection(processing.ApiResponse):
         return self.retrieve_process().execute(**request).make_remote()
 
 
-class Catalogue(ogcapi.Collections):  # type: ignore
+class Catalogue(ogcapi.API):  # type: ignore
     supported_api_version = "v1"
 
     def __init__(self, url: str, *args: Any, **kwargs: Any) -> None:
         url = f"{url}/{self.supported_api_version}"
         super().__init__(url, *args, **kwargs)
 
-    def collection_ids(self) -> List[str]:
-        collections = self.collections()
-        ids = [co["id"] for co in collections["collections"]]
-        return ids
+    def collections(self) -> Collections:
+        url = self._build_url("collections")
+        return Collections.from_request("get", url)
 
     def collection(self, collection_id: str) -> Collection:
         url = self._build_url(f"collections/{collection_id}")
-        collection = Collection.from_request("get", url)
-        return collection
+        return Collection.from_request("get", url)
