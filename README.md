@@ -29,9 +29,10 @@ Advanced usage:
 ```python
 >>> processing = cads_api_client.Processing("http://localhost:8080/api/retrieve")
 >>> process = processing.process("reanalysis-era5-pressure-levels")
->>> remote = process.execute(
+>>> status_info = process.execute(
 ...     variable='temperature', year='2022',
 ... )  # doesn't block
+>>> remote = status_info.make_remote()
 >>> remote_url = remote.url
 >>> remote.request_uid
 '...'
@@ -44,8 +45,10 @@ Advanced usage:
 Dimensions:  ()
 Data variables:
     *empty*
->>> remote_unknown = processing.make_remote("ffffffff-4455-6677-8899-aabbccddeeff")
-ValueError: request_uid="ffffffff-4455-6677-8899-aabbccddeeff" is unknown
+>>> remote_unknown = processing.job("ffffffff-4455-6677-8899-aabbccddeeff").make_remote()
+Traceback (most recent call last):
+...
+requests.exceptions.HTTPError: 404 ...
 
 ```
 

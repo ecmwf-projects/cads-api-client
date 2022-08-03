@@ -19,7 +19,9 @@ class ApiResponse:
     def from_request(
         cls: Type[T_ApiResponse], *args: Any, **kwargs: Any
     ) -> T_ApiResponse:
-        return cls(requests.request(*args, **kwargs))
+        self = cls(requests.request(*args, **kwargs))
+        self.response.raise_for_status()
+        return self
 
     @functools.cached_property
     def json(self) -> Dict[str, Any]:
@@ -32,8 +34,11 @@ class ApiResponse:
                 links.append(link)
         return links
 
-    def get_links_hrefs(self, **kwargs: str) -> List[str]:
-        return [link["href"] for link in self.get_links(**kwargs) if "href" in link]
+    def get_link_href(self, **kwargs: str) -> str:
+        links = self.get_links(**kwargs)
+        if len(links) != 1:
+            raise RuntimeError(f"link not found or not unique {kwargs}")
+        return links[0]["href"]
 
 
 @attrs.define
@@ -44,13 +49,9 @@ class ProcessList(ApiResponse):
 
 @attrs.define
 class Process(ApiResponse):
-    def execute(self, **inputs: Any) -> Remote:
+    def execute(self, **inputs: Any) -> StatusInfo:
         url = f"{self.response.request.url}/execute"
-        resp = ApiResponse(requests.post(url, json={"inputs": inputs}))
-        hrefs = resp.get_links_hrefs(rel="monitor")
-        if len(hrefs) != 1:
-            raise RuntimeError("monitor URL not found or not unique")
-        return Remote(hrefs[0])
+        return StatusInfo.from_request("post", url, json={"inputs": inputs})
 
 
 @attrs.define(slots=False)
@@ -82,7 +83,12 @@ class Remote:
 
 @attrs.define
 class StatusInfo(ApiResponse):
-    pass
+    def make_remote(self) -> Remote:
+        if self.response.request.method == "POST":
+            url = self.get_link_href(rel="monitor")
+        else:
+            url = self.get_link_href(rel="self")
+        return Remote(url)
 
 
 @attrs.define

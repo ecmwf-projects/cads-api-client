@@ -17,13 +17,11 @@ class Collection(processing.ApiResponse):
         return np.datetime64(end)
 
     def retrieve_process(self) -> processing.Process:
-        hrefs = self.get_links_hrefs(rel="retrieve")
-        if len(hrefs) != 1:
-            raise RuntimeError("retrieve URL not found or not unique")
-        return processing.Process.from_request("get", hrefs[0])
+        url = self.get_link_href(rel="retrieve")
+        return processing.Process.from_request("get", url)
 
     def retrieve(self, **request: Any) -> processing.Remote:
-        return self.retrieve_process().execute(**request)
+        return self.retrieve_process().execute(**request).make_remote()
 
 
 class Catalogue(ogcapi.Collections):  # type: ignore
