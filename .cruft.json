@@ -9,7 +9,7 @@
       "project_short_description": "CADS API Python client",
       "copyright_holder": "European Union",
       "copyright_year": "2022",
-      "mypy_strict": "False",
+      "mypy_strict": "True",
       "_template": "https://github.com/ecmwf-projects/cookiecutter-conda-package"
     }
   },

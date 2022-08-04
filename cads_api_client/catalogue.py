@@ -1,10 +1,16 @@
-from typing import List
+from typing import Any, List
 
 import attrs
 import numpy as np
 from owslib import ogcapi
 
 from . import processing
+
+
+@attrs.define
+class Collections(processing.ApiResponse):
+    def collection_ids(self) -> List[str]:
+        return [collection["id"] for collection in self.json["collections"]]
 
 
 @attrs.define
@@ -17,28 +23,24 @@ class Collection(processing.ApiResponse):
         return np.datetime64(end)
 
     def retrieve_process(self) -> processing.Process:
-        hrefs = self.get_links_hrefs(rel="retrieve")
-        if len(hrefs) != 1:
-            raise RuntimeError("retrieve URL not found or not unique")
-        return processing.Process.from_request("get", hrefs[0])
+        url = self.get_link_href(rel="retrieve")
+        return processing.Process.from_request("get", url)
 
-    def retrieve(self, **request) -> processing.Remote:
-        return self.retrieve_process().execute(**request)
+    def retrieve(self, **request: Any) -> processing.Remote:
+        return self.retrieve_process().execute(**request).make_remote()
 
 
-class Catalogue(ogcapi.Collections):  # type: ignore
+class Catalogue(ogcapi.API):  # type: ignore
     supported_api_version = "v1"
 
-    def __init__(self, url, *args, **kwargs):
+    def __init__(self, url: str, *args: Any, **kwargs: Any) -> None:
         url = f"{url}/{self.supported_api_version}"
-        return super().__init__(url, *args, **kwargs)
+        super().__init__(url, *args, **kwargs)
 
-    def collection_ids(self) -> List[str]:
-        collections = self.collections()
-        ids = [co["id"] for co in collections["collections"]]
-        return ids
+    def collections(self) -> Collections:
+        url = self._build_url("collections")
+        return Collections.from_request("get", url)
 
     def collection(self, collection_id: str) -> Collection:
         url = self._build_url(f"collections/{collection_id}")
-        collection = Collection.from_request("get", url)
-        return collection
+        return Collection.from_request("get", url)

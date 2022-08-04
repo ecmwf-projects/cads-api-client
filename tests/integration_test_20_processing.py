@@ -6,21 +6,15 @@ def test_processes(dev_env_api_url: str) -> None:
 
     res = proc.processes()
 
-    assert isinstance(res, dict)
-    assert "processes" in res
-    assert isinstance(res["processes"], list)
-    assert "links" in res
-    assert isinstance(res["links"], list)
+    assert isinstance(res, processing.ProcessList)
+    assert "processes" in res.json
+    assert isinstance(res.json["processes"], list)
+    assert "links" in res.json
+    assert isinstance(res.json["links"], list)
 
+    expected_process_id = "reanalysis-era5-land-monthly-means"
 
-def test_process_ids(dev_env_api_url: str) -> None:
-    process_id = "reanalysis-era5-land-monthly-means"
-    proc = processing.Processing(f"{dev_env_api_url}/retrieve")
-
-    res = proc.process_ids()
-
-    assert isinstance(res, list)
-    assert process_id in res
+    assert expected_process_id in res.process_ids()
 
 
 def test_process(dev_env_api_url: str) -> None:
