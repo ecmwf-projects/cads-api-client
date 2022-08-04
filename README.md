@@ -14,7 +14,7 @@ numpy.datetime64('2022-07-20T23:00:00')
 >>> remote.request_uid
 '...'
 >>> remote.status
-'running'
+'...'
 >>> remote.to_grib("data.grib")  # blocks until the file can be downloaded
 >>> remote.to_dataset()  # uses locally cached data
 <xarray.Dataset>
