@@ -106,8 +106,11 @@ class Results(ApiResponse):
 class Processing(ogcapi.API):  # type: ignore
     supported_api_version = "v1"
 
-    def __init__(self, url: str, *args: Any, **kwargs: Any) -> None:
-        url = f"{url}/{self.supported_api_version}"
+    def __init__(
+        self, url: str, force_exact_url: bool = False, *args: Any, **kwargs: Any
+    ) -> None:
+        if not force_exact_url:
+            url = f"{url}/{self.supported_api_version}"
         super().__init__(url, *args, **kwargs)
 
     def processes(self) -> ProcessList:
