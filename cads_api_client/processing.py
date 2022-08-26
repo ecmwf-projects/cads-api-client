@@ -49,9 +49,10 @@ class ProcessList(ApiResponse):
 
 @attrs.define
 class Process(ApiResponse):
-    def execute(self, **inputs: Any) -> StatusInfo:
+    def execute(self, inputs: Dict[str, Any], **kwargs: Any) -> StatusInfo:
+        assert "json" not in kwargs
         url = f"{self.response.request.url}/execute"
-        return StatusInfo.from_request("post", url, json={"inputs": inputs})
+        return StatusInfo.from_request("post", url, json={"inputs": inputs}, **kwargs)
 
 
 @attrs.define(slots=False)
@@ -117,9 +118,12 @@ class Processing(ogcapi.API):  # type: ignore
         url = self._build_url(f"processes/{process_id}")
         return Process.from_request("get", url)
 
-    def process_execute(self, process_id: str, **inputs: Any) -> StatusInfo:
+    def process_execute(
+        self, process_id: str, inputs: Dict[str, Any], **kwargs: Any
+    ) -> StatusInfo:
+        assert "json" not in kwargs
         url = self._build_url(f"processes/{process_id}/execute")
-        return StatusInfo.from_request("post", url, json={"inputs": inputs})
+        return StatusInfo.from_request("post", url, json={"inputs": inputs}, **kwargs)
 
     def jobs(self) -> JobList:
         url = self._build_url("jobs")
