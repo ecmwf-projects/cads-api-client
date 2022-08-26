@@ -29,9 +29,9 @@ Advanced usage:
 ```python
 >>> processing = cads_api_client.Processing("http://localhost:8080/api/retrieve")
 >>> process = processing.process("reanalysis-era5-pressure-levels")
->>> status_info = process.execute(
-...     variable='temperature', year='2022',
-... )  # doesn't block
+>>> status_info = process.execute(inputs={
+...     "variable": "temperature", "year": "2022",
+... })  # doesn't block
 >>> remote = status_info.make_remote()
 >>> remote_url = remote.url
 >>> remote.request_uid

@@ -27,7 +27,7 @@ class Collection(processing.ApiResponse):
         return processing.Process.from_request("get", url)
 
     def retrieve(self, **request: Any) -> processing.Remote:
-        return self.retrieve_process().execute(**request).make_remote()
+        return self.retrieve_process().execute(inputs=request).make_remote()
 
 
 class Catalogue(ogcapi.API):  # type: ignore
