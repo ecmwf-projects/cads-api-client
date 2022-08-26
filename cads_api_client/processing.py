@@ -111,7 +111,11 @@ class Processing(ogcapi.API):  # type: ignore
     ) -> None:
         if not force_exact_url:
             url = f"{url}/{self.supported_api_version}"
-        super().__init__(url, *args, **kwargs)
+        # FIXME: ogcapi.API crashes if the landing page is non compliant!
+        try:
+            super().__init__(url, *args, **kwargs)
+        except Exception:
+            pass
 
     def processes(self) -> ProcessList:
         url = self._build_url("processes")
