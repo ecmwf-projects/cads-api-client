@@ -76,8 +76,15 @@ class Remote:
     def wait_on_result_ready(self) -> None:
         pass
 
-    def download_result(self) -> None:
-        pass
+    def _download_result(self, target=None) -> str:
+        # TODO: get the results URL from link if it exist
+        results_url = f"{self.url}/results"
+        results = Results(results_url)
+        return results.download(target)
+
+    def download(self, target=None) -> str:
+        self.wait_on_result_ready()
+        return self._download_result(target)
 
 
 @attrs.define
@@ -98,7 +105,12 @@ class JobList(ApiResponse):
 
 @attrs.define
 class Results(ApiResponse):
-    pass
+    def get_result_href(self) -> Optional[str]:
+        asset = self.json().get("value", {})
+        return asset.get("href")
+
+    def download(self, target=None) -> str:
+        pass
 
 
 class Processing(ogcapi.API):  # type: ignore
