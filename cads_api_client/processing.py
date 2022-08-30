@@ -19,8 +19,13 @@ class ApiResponse:
     def from_request(
         cls: Type[T_ApiResponse], *args: Any, **kwargs: Any
     ) -> T_ApiResponse:
-        self = cls(requests.request(*args, **kwargs))
-        self.response.raise_for_status()
+        # TODO:
+        # - add retry on idempotent calls
+        # - use HTTP session
+        response = requests.request(*args, **kwargs)
+        response.raise_for_status()
+
+        self = cls(response)
         return self
 
     @functools.cached_property
