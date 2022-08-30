@@ -5,7 +5,6 @@ from typing import Any, Dict, List, Optional, Type, TypeVar
 
 import attrs
 import requests
-import xarray as xr
 from owslib import ogcapi
 
 T_ApiResponse = TypeVar("T_ApiResponse", bound="ApiResponse")
@@ -79,12 +78,6 @@ class Remote:
 
     def download_result(self) -> None:
         pass
-
-    def to_grib(self, path: str) -> None:
-        pass
-
-    def to_dataset(self) -> xr.Dataset:
-        return xr.Dataset()
 
 
 @attrs.define
