@@ -142,7 +142,7 @@ class Results(ApiResponse):
 
     def get_result_size(self) -> Optional[int]:
         asset = self.json.get("asset", {}).get("value", {})
-        size = asset.get("'file:size'", "")
+        size = asset.get("file:size", None)
         return int(size) if size else size
 
     def download(self, target: Optional[str] = None, timeout: int = 60) -> str:
@@ -153,7 +153,7 @@ class Results(ApiResponse):
             target = parts.path.strip("/").split("/")[-1]
 
         # FIXME add retry and progress bar
-        total = 0
+        total_size = 0
         with requests.get(url, stream=True, timeout=timeout) as r:
             try:
                 r.raise_for_status()
@@ -161,16 +161,17 @@ class Results(ApiResponse):
                     for chunk in r.iter_content(chunk_size=1024):
                         if chunk:
                             f.write(chunk)
-                            total += len(chunk)
+                            total_size += len(chunk)
 
             except requests.exceptions.ConnectionError as e:
                 raise Exception("Download interrupted: %s" % (e,))
 
         size = self.get_result_size()
         if size:
-            if total != size:
+            if total_size != size:
                 raise Exception(
-                    "Download failed: downloaded %s byte(s) out of %s" % (total, size)
+                    "Download failed: downloaded %s byte(s) out of %s"
+                    % (total_size, size)
                 )
         return target
 
