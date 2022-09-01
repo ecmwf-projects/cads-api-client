@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import functools
+import urllib
 from typing import Any, Dict, List, Optional, Type, TypeVar
 
 import attrs
@@ -8,6 +9,16 @@ import requests
 from owslib import ogcapi
 
 T_ApiResponse = TypeVar("T_ApiResponse", bound="ApiResponse")
+
+
+@attrs.define()
+class ProcessingFailedError(Exception):
+    message: Optional[str] = None
+
+
+@attrs.define()
+class DownloadError(Exception):
+    message: Optional[str] = None
 
 
 @attrs.define(slots=False)
@@ -62,6 +73,7 @@ class Process(ApiResponse):
 @attrs.define(slots=False)
 class Remote:
     url: str
+    sleep_max: int = 120
 
     @functools.cached_property
     def request_uid(self) -> str:
@@ -74,15 +86,34 @@ class Remote:
         return json["status"]  # type: ignore
 
     def wait_on_result_ready(self) -> None:
-        pass
+        sleep = 1.0
+        last_status = self.status
+        while True:
+            status = self.status
+            if last_status != status:
+                print(status)
+            if status == "successful":
+                break
+            elif status == "failed":
+                raise ProcessingFailedError()
+            elif status in ("accepted", "running"):
+                sleep *= 1.5
+                if sleep > self.sleep_max:
+                    sleep = self.sleep_max
+            else:
+                raise Exception(f"Unknown API state {status!r}")
 
-    def _download_result(self, target=None) -> str:
+    def _download_result(self, target: Optional[str] = None) -> str:
         # TODO: get the results URL from link if it exist
-        results_url = f"{self.url}/results"
-        results = Results(results_url)
+        response = ApiResponse(requests.get(self.url))
+        try:
+            results_url = response.get_link_href(rel="results")
+        except RuntimeError:
+            results_url = f"{self.url}/results"
+        results = Results(requests.get(results_url))
         return results.download(target)
 
-    def download(self, target=None) -> str:
+    def download(self, target: Optional[str]) -> str:
         self.wait_on_result_ready()
         return self._download_result(target)
 
@@ -106,11 +137,42 @@ class JobList(ApiResponse):
 @attrs.define
 class Results(ApiResponse):
     def get_result_href(self) -> Optional[str]:
-        asset = self.json().get("value", {})
+        asset = self.json.get("asset", {}).get("value", {})
         return asset.get("href")
 
-    def download(self, target=None) -> str:
-        pass
+    def get_result_size(self) -> Optional[int]:
+        asset = self.json.get("asset", {}).get("value", {})
+        size = asset.get("'file:size'", "")
+        return int(size) if size else size
+
+    def download(self, target: Optional[str] = None, timeout: int = 60) -> str:
+        result_href = self.get_result_href()
+        url = urllib.parse.urljoin(self.response.url, result_href)
+        if target is None:
+            parts = urllib.parse.urlparse(url)
+            target = parts.path.strip("/").split("/")[-1]
+
+        # FIXME add retry and progress bar
+        total = 0
+        with requests.get(url, stream=True, timeout=timeout) as r:
+            try:
+                r.raise_for_status()
+                with open(target, "wb") as f:
+                    for chunk in r.iter_content(chunk_size=1024):
+                        if chunk:
+                            f.write(chunk)
+                            total += len(chunk)
+
+            except requests.exceptions.ConnectionError as e:
+                raise Exception("Download interrupted: %s" % (e,))
+
+        size = self.get_result_size()
+        if size:
+            if total != size:
+                raise Exception(
+                    "Download failed: downloaded %s byte(s) out of %s" % (total, size)
+                )
+        return target
 
 
 class Processing(ogcapi.API):  # type: ignore
