@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import functools
+import os
 import urllib
 from typing import Any, Dict, List, Optional, Type, TypeVar
 
@@ -153,7 +154,6 @@ class Results(ApiResponse):
             target = parts.path.strip("/").split("/")[-1]
 
         # FIXME add retry and progress bar
-        total_size = 0
         with requests.get(url, stream=True, timeout=timeout) as r:
             try:
                 r.raise_for_status()
@@ -161,11 +161,11 @@ class Results(ApiResponse):
                     for chunk in r.iter_content(chunk_size=1024):
                         if chunk:
                             f.write(chunk)
-                            total_size += len(chunk)
 
             except requests.exceptions.ConnectionError as e:
                 raise Exception("Download interrupted: %s" % (e,))
 
+        total_size = os.path.getsize(target)
         size = self.get_result_size()
         if size:
             if total_size != size:
