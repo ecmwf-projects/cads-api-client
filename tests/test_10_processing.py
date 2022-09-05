@@ -186,7 +186,7 @@ JOB_SUCCESSFUL_JSON = {
             "rel": "results",
         },
         {
-            "href": f"{JOB_SUCCESSFUL_ID}",
+            "href": f"{JOB_SUCCESSFUL_URL}",
             "rel": "monitor",
             "type": "application/json",
             "title": "job status info",
@@ -221,17 +221,13 @@ RESULT_RUNNING_JSON = {
 }
 
 
-@responses.activate
-def test_catalogue_collections() -> None:
+def responses_add() -> None:
     responses.add(
         responses.GET,
         url=f"{CATALOGUE_URL}/v1/",
         json=CATALOGUE_JSON,
         content_type="application/json",
     )
-    catalogue = cads_api_client.Catalogue(CATALOGUE_URL)
-
-    assert catalogue.response == CATALOGUE_JSON
 
     responses.add(
         responses.GET,
@@ -239,9 +235,6 @@ def test_catalogue_collections() -> None:
         json=COLLECTIONS_JSON,
         content_type="application/json",
     )
-    collections = catalogue.collections()
-
-    assert collections.response.json() == COLLECTIONS_JSON
 
     responses.add(
         responses.GET,
@@ -249,65 +242,59 @@ def test_catalogue_collections() -> None:
         json=COLLECTION_JSON,
         content_type="application/json",
     )
-    collection = catalogue.collection(COLLECTION_ID)
 
+    responses.add(
+        responses.GET,
+        url=PROCESS_URL,
+        json=PROCESS_JSON,
+        content_type="application/json",
+    )
+
+    responses.add(
+        responses.POST,
+        url=EXECUTE_URL,
+        json=JOB_SUCCESSFUL_JSON,
+        match=[
+            json_params_matcher({"inputs": {"variable": "temperature", "year": "2022"}})
+        ],
+        content_type="application/json",
+    )
+
+    responses.add(
+        responses.GET,
+        url=JOB_SUCCESSFUL_URL,
+        json=JOB_SUCCESSFUL_JSON,
+        content_type="application/json",
+    )
+
+
+@responses.activate
+def test_catalogue_collections() -> None:
+    responses_add()
+
+    catalogue = cads_api_client.Catalogue(CATALOGUE_URL)
+    assert catalogue.response == CATALOGUE_JSON
+
+    collections = catalogue.collections()
+    assert collections.response.json() == COLLECTIONS_JSON
+
+    collection = catalogue.collection(COLLECTION_ID)
     assert collection.response.json() == COLLECTION_JSON
 
 
 @responses.activate
 def test_retrieve() -> None:
-    responses.add(
-        responses.GET,
-        url=f"{CATALOGUE_URL}/v1/",
-        json=CATALOGUE_JSON,
-        content_type="application/json",
-    )
+    responses_add()
+
     catalogue = cads_api_client.Catalogue(CATALOGUE_URL)
-    responses.add(
-        responses.GET,
-        url=f"{COLLECTION_URL}",
-        json=COLLECTION_JSON,
-        content_type="application/json",
-    )
     collection = catalogue.collection(COLLECTION_ID)
-    responses.add(
-        responses.GET,
-        url=PROCESS_URL,
-        json=PROCESS_JSON,
-        content_type="application/json",
-    )
     process = collection.retrieve_process()
 
     assert process.response.json() == PROCESS_JSON
 
-    responses.add(
-        responses.POST,
-        url=EXECUTE_URL,
-        json=JOB_SUCCESSFUL_JSON,
-        match=[
-            json_params_matcher({"inputs": {"variable": "temperature", "year": "2022"}})
-        ],
-        content_type="application/json",
-    )
     job = process.execute(inputs={"variable": "temperature", "year": "2022"})
-
     assert job.response.json() == JOB_SUCCESSFUL_JSON
 
-    responses.add(
-        responses.GET,
-        url=PROCESS_URL,
-        json=PROCESS_JSON,
-        content_type="application/json",
-    )
-
-    responses.add(
-        responses.POST,
-        url=EXECUTE_URL,
-        json=JOB_SUCCESSFUL_JSON,
-        match=[
-            json_params_matcher({"inputs": {"variable": "temperature", "year": "2022"}})
-        ],
-        content_type="application/json",
-    )
-    remote = collection.retrieve()
-    remote.json == JOB_SUCCESSFUL_JSON
+    remote = collection.retrieve(variable="temperature", year="2022")
+    assert remote.url == JOB_SUCCESSFUL_URL
+    assert remote.status == "successful"
