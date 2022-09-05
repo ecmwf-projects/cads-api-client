@@ -6,20 +6,19 @@ import urllib
 from typing import Any, Dict, List, Optional, Type, TypeVar
 
 import attrs
+import multiurl
 import requests
 from owslib import ogcapi
 
 T_ApiResponse = TypeVar("T_ApiResponse", bound="ApiResponse")
 
 
-@attrs.define()
-class ProcessingFailedError(Exception):
-    message: Optional[str] = None
+class ProcessingFailedError(RuntimeError):
+    pass
 
 
-@attrs.define()
-class DownloadError(Exception):
-    message: Optional[str] = None
+class DownloadError(RuntimeError):
+    pass
 
 
 @attrs.define(slots=False)
@@ -33,7 +32,7 @@ class ApiResponse:
         # TODO:
         # - add retry on idempotent calls
         # - use HTTP session
-        response = requests.request(*args, **kwargs)
+        response = multiurl.robust(requests.request)(*args, **kwargs)
         response.raise_for_status()
 
         self = cls(response)
@@ -83,7 +82,7 @@ class Remote:
     @property
     def status(self) -> str:
         # TODO: cache responses for a timeout (possibly reported nby the server)
-        json = requests.get(self.url).json()
+        json = multiurl.robust(requests.get)(self.url).json()
         return json["status"]  # type: ignore
 
     def wait_on_result_ready(self) -> None:
@@ -106,12 +105,14 @@ class Remote:
 
     def _download_result(self, target: Optional[str] = None) -> str:
         # TODO: get the results URL from link if it exist
-        response = ApiResponse(requests.get(self.url))
+        request_response = multiurl.robust(requests.get)(self.url)
+        response = ApiResponse(request_response)
         try:
             results_url = response.get_link_href(rel="results")
         except RuntimeError:
             results_url = f"{self.url}/results"
-        results = Results(requests.get(results_url))
+        request_result = multiurl.robust(requests.get)(results_url)
+        results = Results(request_result)
         return results.download(target)
 
     def download(self, target: Optional[str]) -> str:
@@ -141,10 +142,14 @@ class Results(ApiResponse):
         asset = self.json.get("asset", {}).get("value", {})
         return asset.get("href")
 
+    def get_result_checksum(self) -> Optional[str]:
+        asset = self.json.get("asset", {}).get("value", {})
+        return asset.get("file:checksum")
+
     def get_result_size(self) -> Optional[int]:
         asset = self.json.get("asset", {}).get("value", {})
-        size = asset.get("file:size", None)
-        return int(size) if size else size
+        size = asset["file:size"]
+        return int(size)
 
     def download(self, target: Optional[str] = None, timeout: int = 60) -> str:
         result_href = self.get_result_href()
@@ -154,24 +159,14 @@ class Results(ApiResponse):
             target = parts.path.strip("/").split("/")[-1]
 
         # FIXME add retry and progress bar
-        with requests.get(url, stream=True, timeout=timeout) as r:
-            try:
-                r.raise_for_status()
-                with open(target, "wb") as f:
-                    for chunk in r.iter_content(chunk_size=1024):
-                        if chunk:
-                            f.write(chunk)
-
-            except requests.exceptions.ConnectionError as e:
-                raise Exception("Download interrupted: %s" % (e,))
-
-        total_size = os.path.getsize(target)
+        multiurl.download(url, stream=True, timeout=timeout)
+        target_size = os.path.getsize(target)
         size = self.get_result_size()
         if size:
-            if total_size != size:
+            if target_size != size:
                 raise Exception(
                     "Download failed: downloaded %s byte(s) out of %s"
-                    % (total_size, size)
+                    % (target_size, size)
                 )
         return target
 

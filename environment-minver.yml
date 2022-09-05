@@ -3,9 +3,13 @@ channels:
 - nodefaults
 dependencies:
 - make
+- pip
 - pytest
 - pytest-cov
     # DO NOT EDIT ABOVE THIS LINE, ADD DEPENDENCIES BELOW
 - owslib
 - requests
 - xarray
+- pip:
+  - multiurl
+  - responses
