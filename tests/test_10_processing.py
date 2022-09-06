@@ -182,7 +182,7 @@ JOB_SUCCESSFUL_JSON = {
     "links": [
         {"href": f"{JOB_SUCCESSFUL_ID}", "rel": "self", "type": "application/json"},
         {
-            "href": "http://localhost:8080/api/retrieve/v1/jobs/9bfc1362-2832-48e1-a235-359267420bb4/results",
+            "href": f"http://localhost:8080/api/retrieve/v1/jobs/{JOB_SUCCESSFUL_ID}/results",
             "rel": "results",
         },
         {
@@ -194,12 +194,11 @@ JOB_SUCCESSFUL_JSON = {
     ],
 }
 
-
 RESULT_SUCCESSFUL_JSON = {
     "asset": {
         "value": {
             "type": "application/netcdf",
-            "href": "./e7d452a747061ab880887d88814bfb0c27593a73cb7736d2dc340852.nc",
+            "href": "./e7d452a747061ab880887d88814bfb0c27593a73cb7736d2dc340852",
             "file:checksum": "e7d452a747061ab880887d88814bfb0c27593a73cb7736d2dc340852",
             "file:size": 8,
             "file:local_path": [
@@ -298,3 +297,13 @@ def test_retrieve() -> None:
     remote = collection.retrieve(variable="temperature", year="2022")
     assert remote.url == JOB_SUCCESSFUL_URL
     assert remote.status == "successful"
+
+
+@responses.activate
+def test_wait_on_result_ready() -> None:
+    responses_add()
+
+    catalogue = cads_api_client.Catalogue(CATALOGUE_URL)
+    collection = catalogue.collection(COLLECTION_ID)
+    remote = collection.retrieve(variable="temperature", year="2022")
+    remote.wait_on_result_ready()
