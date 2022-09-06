@@ -159,7 +159,7 @@ class Results(ApiResponse):
             target = parts.path.strip("/").split("/")[-1]
 
         # FIXME add retry and progress bar
-        multiurl.download(url, stream=True, timeout=timeout)
+        multiurl.download(url, stream=True, target=target, timeout=timeout)
         target_size = os.path.getsize(target)
         size = self.get_result_size()
         if size:
