@@ -15,12 +15,7 @@ numpy.datetime64('2022-07-20T23:00:00')
 '...'
 >>> remote.status
 '...'
->>> remote.to_grib("data.grib")  # blocks until the file can be downloaded
->>> remote.to_dataset()  # uses locally cached data
-<xarray.Dataset>
-Dimensions:  ()
-Data variables:
-    *empty*
+>>> remote.download("tmp-era5.grib")
 
 ```
 
@@ -40,11 +35,6 @@ Advanced usage:
 '...'
 >>> del remote
 >>> remote_replica = cads_api_client.Remote(remote_url)
->>> remote_replica.to_dataset()  # uses locally cached data
-<xarray.Dataset>
-Dimensions:  ()
-Data variables:
-    *empty*
 >>> remote_unknown = processing.job("ffffffff-4455-6677-8899-aabbccddeeff").make_remote()
 Traceback (most recent call last):
 ...

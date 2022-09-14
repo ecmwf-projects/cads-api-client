@@ -6,6 +6,7 @@ dependencies:
 - mypy
 - myst-parser
 - pre-commit
+- pip
 - pydata-sphinx-theme
 - pytest
 - pytest-cov
@@ -16,3 +17,6 @@ dependencies:
 - requests
 - types-requests
 - xarray
+- pip:
+  - multiurl
+  - responses
