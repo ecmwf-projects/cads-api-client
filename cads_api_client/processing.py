@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import functools
 import os
+import time
 import urllib
 from typing import Any, Dict, List, Optional, Type, TypeVar
 
@@ -85,7 +86,7 @@ class Remote:
         json = multiurl.robust(requests.get)(self.url).json()
         return json["status"]  # type: ignore
 
-    def wait_on_result_ready(self) -> None:
+    def wait_on_result(self) -> None:
         sleep = 1.0
         last_status = self.status
         while True:
@@ -101,7 +102,8 @@ class Remote:
                 if sleep > self.sleep_max:
                     sleep = self.sleep_max
             else:
-                raise Exception(f"Unknown API state {status!r}")
+                raise ProcessingFailedError(f"Unknown API state {status!r}")
+            time.sleep(sleep)
 
     def _download_result(self, target: Optional[str] = None) -> str:
         # TODO: get the results URL from link if it exist
@@ -116,7 +118,7 @@ class Remote:
         return results.download(target)
 
     def download(self, target: Optional[str]) -> str:
-        self.wait_on_result_ready()
+        self.wait_on_result()
         return self._download_result(target)
 
 
