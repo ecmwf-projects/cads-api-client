@@ -9,7 +9,6 @@ dependencies:
     # DO NOT EDIT ABOVE THIS LINE, ADD DEPENDENCIES BELOW
 - owslib
 - requests
-- xarray
 - pip:
   - multiurl
   - responses
