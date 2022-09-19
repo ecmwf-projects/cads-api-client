@@ -22,14 +22,6 @@ datetime.datetime(2022, 7, 20, 23, 0)
 >>> remote.status
 '...'
 >>> remote.download("tmp1-era5.grib")  # blocks
->>> collection.download(
-...     variable="temperature",
-...     year="2022",
-...     month="01",
-...     day="01",
-...     level="1000",
-...     target="tmp2-era5.grib"
-... )  # blocks
 
 ```
 
