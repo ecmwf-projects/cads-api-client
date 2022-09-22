@@ -160,7 +160,6 @@ class Results(ApiResponse):
             parts = urllib.parse.urlparse(url)
             target = parts.path.strip("/").split("/")[-1]
 
-        # FIXME add retry and progress bar
         multiurl.download(url, stream=True, target=target, timeout=timeout)
         target_size = os.path.getsize(target)
         size = self.get_result_size()
@@ -213,3 +212,13 @@ class Processing(ogcapi.API):  # type: ignore
     def job_results(self, job_id: str) -> Results:
         url = self._build_url(f"jobs/{job_id}/results")
         return Results.from_request("get", url)
+
+    # convenience methods
+
+    def make_remote(self, job_id: str) -> Remote:
+        url = self._build_url(f"jobs/{job_id}")
+        return Remote(url)
+
+    def download_result(self, job_id: str, target: Optional[str]) -> str:
+        # NOTE: the remote waits for the result to be available
+        return self.make_remote(job_id).download(target)

@@ -1,5 +1,5 @@
 import datetime
-from typing import Any, List
+from typing import Any, List, Optional
 
 import attrs
 from owslib import ogcapi
@@ -26,8 +26,14 @@ class Collection(processing.ApiResponse):
         url = self.get_link_href(rel="retrieve")
         return processing.Process.from_request("get", url)
 
-    def retrieve(self, **request: Any) -> processing.Remote:
-        return self.retrieve_process().execute(inputs=request).make_remote()
+    def submit(self, **request: Any) -> processing.Remote:
+        retrieve_process = self.retrieve_process()
+        status_info = retrieve_process.execute(inputs=request)
+        return status_info.make_remote()
+
+    def retrieve(self, target: Optional[str] = None, **request: Any) -> str:
+        remote = self.submit(**request)
+        return remote.download(target)
 
 
 class Catalogue(ogcapi.API):  # type: ignore
