@@ -142,11 +142,15 @@ class JobList(ApiResponse):
 class Results(ApiResponse):
     def get_result_href(self) -> Optional[str]:
         asset = self.json.get("asset", {}).get("value", {})
-        return asset.get("href")
+        result_href = asset.get("href")
+        assert isinstance(result_href, str) or result_href is None
+        return result_href
 
     def get_result_checksum(self) -> Optional[str]:
         asset = self.json.get("asset", {}).get("value", {})
-        return asset.get("file:checksum")
+        result_checksum = asset.get("file:checksum")
+        assert isinstance(result_checksum, str) or result_checksum is None
+        return result_checksum
 
     def get_result_size(self) -> Optional[int]:
         asset = self.json.get("asset", {}).get("value", {})

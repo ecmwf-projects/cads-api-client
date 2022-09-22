@@ -11,15 +11,15 @@ class ApiClient:
     url: str
 
     @functools.cached_property
-    def catalogue_api(self):
+    def catalogue_api(self) -> catalogue.Catalogue:
         return catalogue.Catalogue(f"{self.url}/catalogue")
 
     @functools.cached_property
-    def retrieve_api(self):
+    def retrieve_api(self) -> processing.Processing:
         return processing.Processing(f"{self.url}/retrieve")
 
     def collections(self) -> catalogue.Collections:
-        return self.catalogue_api.collection()
+        return self.catalogue_api.collections()
 
     def collection(self, collection_id: str) -> catalogue.Collection:
         return self.catalogue_api.collection(collection_id)
