@@ -300,10 +300,10 @@ def test_retrieve() -> None:
 
 
 @responses.activate
-def test_wait_on_result_ready() -> None:
+def test_wait_on_result() -> None:
     responses_add()
 
     catalogue = cads_api_client.Catalogue(CATALOGUE_URL)
     collection = catalogue.collection(COLLECTION_ID)
     remote = collection.retrieve(variable="temperature", year="2022")
-    remote.wait_on_result_ready()
+    remote.wait_on_result()

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import functools
+import logging
 import os
+import time
 import urllib
 from typing import Any, Dict, List, Optional, Type, TypeVar
 
@@ -11,6 +13,8 @@ import requests
 from owslib import ogcapi
 
 T_ApiResponse = TypeVar("T_ApiResponse", bound="ApiResponse")
+
+logger = logging.Logger(__name__)
 
 
 class ProcessingFailedError(RuntimeError):
@@ -27,14 +31,14 @@ class ApiResponse:
 
     @classmethod
     def from_request(
-        cls: Type[T_ApiResponse], *args: Any, **kwargs: Any
+        cls: Type[T_ApiResponse],
+        *args: Any,
+        retry_options: Dict[str, Any] = {},
+        **kwargs: Any,
     ) -> T_ApiResponse:
-        # TODO:
-        # - add retry on idempotent calls
-        # - use HTTP session
-        response = multiurl.robust(requests.request)(*args, **kwargs)
+        # TODO:  use HTTP session
+        response = multiurl.robust(requests.request, **retry_options)(*args, **kwargs)
         response.raise_for_status()
-
         self = cls(response)
         return self
 
@@ -74,6 +78,7 @@ class Process(ApiResponse):
 class Remote:
     url: str
     sleep_max: int = 120
+    retry_options: Dict[str, Any] = {}
 
     @functools.cached_property
     def request_uid(self) -> str:
@@ -82,42 +87,61 @@ class Remote:
     @property
     def status(self) -> str:
         # TODO: cache responses for a timeout (possibly reported nby the server)
-        json = multiurl.robust(requests.get)(self.url).json()
+        requests_response = multiurl.robust(requests.get, **self.retry_options)(
+            self.url
+        )
+        json = requests_response.json()
         return json["status"]  # type: ignore
 
-    def wait_on_result_ready(self) -> None:
+    def wait_on_result(self) -> None:
         sleep = 1.0
         last_status = self.status
         while True:
             status = self.status
             if last_status != status:
-                print(status)
+                logger.debug(f"status has been updated to {status}")
             if status == "successful":
                 break
             elif status == "failed":
-                raise ProcessingFailedError()
+                results = self.build_result()
+                info = results.json
+                error_message = "processing failed"
+                if info.get("title"):
+                    error_message = f'{info["title"]}'
+                if info.get("detail"):
+                    error_message = error_message + f': {info["detail"]}'
+                raise ProcessingFailedError(error_message)
+                break
             elif status in ("accepted", "running"):
                 sleep *= 1.5
                 if sleep > self.sleep_max:
                     sleep = self.sleep_max
             else:
-                raise Exception(f"Unknown API state {status!r}")
+                raise ProcessingFailedError(f"Unknown API state {status!r}")
+            logger.debug(f"result not ready, waiting for {sleep} seconds")
+            time.sleep(sleep)
 
-    def _download_result(self, target: Optional[str] = None) -> str:
-        # TODO: get the results URL from link if it exist
-        request_response = multiurl.robust(requests.get)(self.url)
+    def build_result(self):
+        request_response = multiurl.robust(
+            requests.get,
+            **self.retry_options,
+        )(self.url)
         response = ApiResponse(request_response)
         try:
             results_url = response.get_link_href(rel="results")
         except RuntimeError:
             results_url = f"{self.url}/results"
-        request_result = multiurl.robust(requests.get)(results_url)
+        request_result = multiurl.robust(
+            requests.get,
+            **self.retry_options,
+        )(results_url)
         results = Results(request_result)
-        return results.download(target)
+        return results
 
-    def download(self, target: Optional[str]) -> str:
-        self.wait_on_result_ready()
-        return self._download_result(target)
+    def download(self, target: Optional[str] = None) -> str:
+        self.wait_on_result()
+        results = self.build_result()
+        return results.download(target)
 
 
 @attrs.define
@@ -142,16 +166,17 @@ class Results(ApiResponse):
         asset = self.json.get("asset", {}).get("value", {})
         return asset.get("href")
 
-    def get_result_checksum(self) -> Optional[str]:
-        asset = self.json.get("asset", {}).get("value", {})
-        return asset.get("file:checksum")
-
     def get_result_size(self) -> Optional[int]:
         asset = self.json.get("asset", {}).get("value", {})
         size = asset["file:size"]
         return int(size)
 
-    def download(self, target: Optional[str] = None, timeout: int = 60) -> str:
+    def download(
+        self,
+        target: Optional[str] = None,
+        timeout: int = 60,
+    ) -> str:
+
         result_href = self.get_result_href()
         url = urllib.parse.urljoin(self.response.url, result_href)
         if target is None:
@@ -164,7 +189,7 @@ class Results(ApiResponse):
         size = self.get_result_size()
         if size:
             if target_size != size:
-                raise Exception(
+                raise DownloadError(
                     "Download failed: downloaded %s byte(s) out of %s"
                     % (target_size, size)
                 )
