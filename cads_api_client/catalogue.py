@@ -1,7 +1,7 @@
+import datetime
 from typing import Any, List
 
 import attrs
-import numpy as np
 from owslib import ogcapi
 
 from . import processing
@@ -15,12 +15,12 @@ class Collections(processing.ApiResponse):
 
 @attrs.define
 class Collection(processing.ApiResponse):
-    def end_datetime(self) -> np.datetime64:
+    def end_datetime(self) -> datetime.datetime:
         try:
             end = self.json["extent"]["temporal"]["interval"][1]
         except Exception:
             end = "2022-07-20T23:00:00"
-        return np.datetime64(end)
+        return datetime.datetime.fromisoformat(end)
 
     def retrieve_process(self) -> processing.Process:
         url = self.get_link_href(rel="retrieve")

@@ -9,13 +9,19 @@ Draft Python API:
 >>> catalogue = cads_api_client.Catalogue("http://localhost:8080/api/catalogue")
 >>> collection = catalogue.collection("reanalysis-era5-pressure-levels")
 >>> collection.end_datetime()
-numpy.datetime64('2022-07-20T23:00:00')
->>> remote = collection.retrieve(variable='temperature', year='2022')  # doesn't block
+datetime.datetime(2022, 7, 20, 23, 0)
+>>> remote = collection.retrieve(
+...     variable="temperature",
+...     year="2022",
+...     month="01",
+...     day="01",
+...     level="1000",
+... )  # doesn't block
 >>> remote.request_uid
 '...'
 >>> remote.status
 '...'
->>> remote.download("tmp-era5.grib")
+>>> remote.download("tmp1-era5.grib")  # blocks
 
 ```
 
@@ -25,7 +31,11 @@ Advanced usage:
 >>> processing = cads_api_client.Processing("http://localhost:8080/api/retrieve")
 >>> process = processing.process("reanalysis-era5-pressure-levels")
 >>> status_info = process.execute(inputs={
-...     "variable": "temperature", "year": "2022",
+...     "variable": "temperature",
+...     "year": "2022",
+...     "month": "01",
+...     "day": "01",
+...     "level": "1000",
 ... })  # doesn't block
 >>> remote = status_info.make_remote()
 >>> remote_url = remote.url

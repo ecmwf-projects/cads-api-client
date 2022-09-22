@@ -143,6 +143,10 @@ class Remote:
         results = self.build_result()
         return results.download(target)
 
+    def download(self, target: Optional[str]) -> str:
+        self.wait_on_result()
+        return self._download_result(target)
+
 
 @attrs.define
 class StatusInfo(ApiResponse):
