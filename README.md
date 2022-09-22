@@ -10,7 +10,7 @@ Draft Python API:
 >>> collection = catalogue.collection("reanalysis-era5-pressure-levels")
 >>> collection.end_datetime()
 datetime.datetime(2022, 7, 20, 23, 0)
->>> remote = collection.retrieve(
+>>> remote = collection.submit(
 ...     variable="temperature",
 ...     year="2022",
 ...     month="01",

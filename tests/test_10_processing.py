@@ -282,7 +282,7 @@ def test_catalogue_collections() -> None:
 
 
 @responses.activate
-def test_retrieve() -> None:
+def test_submit() -> None:
     responses_add()
 
     catalogue = cads_api_client.Catalogue(CATALOGUE_URL)
@@ -294,7 +294,7 @@ def test_retrieve() -> None:
     job = process.execute(inputs={"variable": "temperature", "year": "2022"})
     assert job.response.json() == JOB_SUCCESSFUL_JSON
 
-    remote = collection.retrieve(variable="temperature", year="2022")
+    remote = collection.submit(variable="temperature", year="2022")
     assert remote.url == JOB_SUCCESSFUL_URL
     assert remote.status == "successful"
 
@@ -305,5 +305,5 @@ def test_wait_on_result_ready() -> None:
 
     catalogue = cads_api_client.Catalogue(CATALOGUE_URL)
     collection = catalogue.collection(COLLECTION_ID)
-    remote = collection.retrieve(variable="temperature", year="2022")
+    remote = collection.submit(variable="temperature", year="2022")
     remote.wait_on_result()
