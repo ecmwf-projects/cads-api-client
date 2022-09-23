@@ -6,22 +6,33 @@ Draft Python API:
 
 ```python
 >>> import cads_api_client
->>> catalogue = cads_api_client.Catalogue("http://localhost:8080/api/catalogue")
->>> collection = catalogue.collection("reanalysis-era5-pressure-levels")
+>>> client = cads_api_client.ApiClient("http://localhost:8080/api")
+>>> collection = client.collection("reanalysis-era5-pressure-levels")
 >>> collection.end_datetime()
 datetime.datetime(2022, 7, 20, 23, 0)
->>> remote = collection.retrieve(
+>>> remote = client.retrieve(
+...     "reanalysis-era5-pressure-levels",
 ...     variable="temperature",
 ...     year="2022",
 ...     month="01",
 ...     day="01",
 ...     level="1000",
-... )  # doesn't block
+...     target="tmp1-era5.grib",
+... )  # blocks
+'tmp1-era5.grib'
+>>> remote = client.submit(
+...     "reanalysis-era5-pressure-levels",
+...     variable="temperature",
+...     year="2021",
+...     month="01",
+...     day="01",
+...     level="1000",
+... )  # doesn't block
 >>> remote.request_uid
 '...'
 >>> remote.status
 '...'
->>> remote.download("tmp1-era5.grib")  # blocks
+>>> remote.download("tmp2-era5.grib")  # blocks
 
 ```
 

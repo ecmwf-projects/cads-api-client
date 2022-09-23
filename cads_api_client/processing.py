@@ -168,7 +168,15 @@ class JobList(ApiResponse):
 class Results(ApiResponse):
     def get_result_href(self) -> Optional[str]:
         asset = self.json.get("asset", {}).get("value", {})
-        return asset.get("href")
+        result_href = asset.get("href")
+        assert isinstance(result_href, str) or result_href is None
+        return result_href
+
+    def get_result_checksum(self) -> Optional[str]:
+        asset = self.json.get("asset", {}).get("value", {})
+        result_checksum = asset.get("file:checksum")
+        assert isinstance(result_checksum, str) or result_checksum is None
+        return result_checksum
 
     def get_result_size(self) -> Optional[int]:
         asset = self.json.get("asset", {}).get("value", {})
@@ -240,3 +248,13 @@ class Processing(ogcapi.API):  # type: ignore
     def job_results(self, job_id: str) -> Results:
         url = self._build_url(f"jobs/{job_id}/results")
         return Results.from_request("get", url)
+
+    # convenience methods
+
+    def make_remote(self, job_id: str) -> Remote:
+        url = self._build_url(f"jobs/{job_id}")
+        return Remote(url)
+
+    def download_result(self, job_id: str, target: Optional[str]) -> str:
+        # NOTE: the remote waits for the result to be available
+        return self.make_remote(job_id).download(target)
