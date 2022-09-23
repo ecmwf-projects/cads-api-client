@@ -121,7 +121,12 @@ class Remote:
             logger.debug(f"result not ready, waiting for {sleep} seconds")
             time.sleep(sleep)
 
-    def build_result(self):
+    def build_statusinfo(self):
+        pass
+
+    def build_result(self) -> Results:
+        if self.status not in ("successful", "failed"):
+            raise Exception(f"Result not ready, job is {self.status}")
         request_response = multiurl.robust(
             requests.get,
             **self.retry_options,
@@ -208,7 +213,7 @@ class Results(ApiResponse):
         return target
 
 
-class Processing(ogcapi.API):  # type: ignore
+class Processing:
     supported_api_version = "v1"
 
     def __init__(
@@ -216,43 +221,39 @@ class Processing(ogcapi.API):  # type: ignore
     ) -> None:
         if not force_exact_url:
             url = f"{url}/{self.supported_api_version}"
-        # FIXME: ogcapi.API crashes if the landing page is non compliant!
-        try:
-            super().__init__(url, *args, **kwargs)
-        except Exception:
-            pass
+        self.url = url
 
     def processes(self) -> ProcessList:
-        url = self._build_url("processes")
+        url = f"{self.url}/processes"
         return ProcessList.from_request("get", url)
 
     def process(self, process_id: str) -> Process:
-        url = self._build_url(f"processes/{process_id}")
+        url = f"{self.url}/processes/{process_id}"
         return Process.from_request("get", url)
 
     def process_execute(
         self, process_id: str, inputs: Dict[str, Any], **kwargs: Any
     ) -> StatusInfo:
         assert "json" not in kwargs
-        url = self._build_url(f"processes/{process_id}/execute")
+        url = f"{self.url}/processes/{process_id}/execute"
         return StatusInfo.from_request("post", url, json={"inputs": inputs}, **kwargs)
 
     def jobs(self) -> JobList:
-        url = self._build_url("jobs")
+        url = f"{self.url}/jobs"
         return JobList.from_request("get", url)
 
     def job(self, job_id: str) -> StatusInfo:
-        url = self._build_url(f"jobs/{job_id}")
+        url = f"{self.url}/jobs/{job_id}"
         return StatusInfo.from_request("get", url)
 
     def job_results(self, job_id: str) -> Results:
-        url = self._build_url(f"jobs/{job_id}/results")
+        url = f"{self.url}/jobs/{job_id}/results"
         return Results.from_request("get", url)
 
     # convenience methods
 
     def make_remote(self, job_id: str) -> Remote:
-        url = self._build_url(f"jobs/{job_id}")
+        url = f"{self.url}/jobs/{job_id}"
         return Remote(url)
 
     def download_result(self, job_id: str, target: Optional[str]) -> str:
