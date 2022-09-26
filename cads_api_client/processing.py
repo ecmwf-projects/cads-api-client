@@ -79,6 +79,12 @@ class ProcessList(ApiResponse):
 
 @attrs.define
 class Process(ApiResponse):
+    @property
+    def id(self) -> str:
+        process_id = self.json["id"]
+        assert isinstance(process_id, str)
+        return process_id
+
     def execute(self, inputs: Dict[str, Any], **kwargs: Any) -> StatusInfo:
         assert "json" not in kwargs
         url = f"{self.response.request.url}/execute"

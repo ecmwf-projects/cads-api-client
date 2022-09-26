@@ -21,6 +21,7 @@ class Collection(processing.ApiResponse):
             end = "2022-07-20T23:00:00"
         return datetime.datetime.fromisoformat(end)
 
+    @property
     def id(self) -> str:
         collection_id = self.json["id"]
         assert isinstance(collection_id, str)
