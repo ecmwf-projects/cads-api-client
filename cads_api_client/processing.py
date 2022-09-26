@@ -10,7 +10,6 @@ from typing import Any, Dict, List, Optional, Type, TypeVar
 import attrs
 import multiurl
 import requests
-from owslib import ogcapi
 
 T_ApiResponse = TypeVar("T_ApiResponse", bound="ApiResponse")
 
@@ -31,6 +30,18 @@ class ApiResponse:
 
     @classmethod
     def from_request(
+        cls: Type[T_ApiResponse],
+        *args: Any,
+        **kwargs: Any,
+    ) -> T_ApiResponse:
+        # TODO:  use HTTP session
+        response = requests.request(*args, **kwargs)
+        response.raise_for_status()
+        self = cls(response)
+        return self
+
+    @classmethod
+    def from_request_robust(
         cls: Type[T_ApiResponse],
         *args: Any,
         retry_options: Dict[str, Any] = {},
@@ -87,6 +98,13 @@ class Remote:
     @property
     def status(self) -> str:
         # TODO: cache responses for a timeout (possibly reported nby the server)
+        requests_response = requests.get(self.url)
+        json = requests_response.json()
+        return json["status"]  # type: ignore
+
+    @property
+    def robust_status(self) -> str:
+        # TODO: cache responses for a timeout (possibly reported nby the server)
         requests_response = multiurl.robust(requests.get, **self.retry_options)(
             self.url
         )
@@ -95,9 +113,9 @@ class Remote:
 
     def wait_on_result(self) -> None:
         sleep = 1.0
-        last_status = self.status
+        last_status = self.robust_status
         while True:
-            status = self.status
+            status = self.robust_status
             if last_status != status:
                 logger.debug(f"status has been updated to {status}")
             if status == "successful":
@@ -121,8 +139,8 @@ class Remote:
             logger.debug(f"result not ready, waiting for {sleep} seconds")
             time.sleep(sleep)
 
-    def build_statusinfo(self):
-        pass
+    def build_status_info(self):
+        return StatusInfo.from_request("get", self.url)
 
     def build_result(self) -> Results:
         if self.status not in ("successful", "failed"):
@@ -143,12 +161,11 @@ class Remote:
         results = Results(request_result)
         return results
 
-    def download(self, target: Optional[str] = None) -> str:
-        self.wait_on_result()
+    def _download_result(self, target: Optional[str] = None) -> str:
         results = self.build_result()
         return results.download(target)
 
-    def download(self, target: Optional[str]) -> str:
+    def download(self, target: Optional[str] = None) -> str:
         self.wait_on_result()
         return self._download_result(target)
 
@@ -166,7 +183,7 @@ class StatusInfo(ApiResponse):
 @attrs.define
 class JobList(ApiResponse):
     def job_ids(self) -> List[str]:
-        return [job["id"] for job in self.json["jobs"]]
+        return [job["jobID"] for job in self.json["jobs"]]
 
 
 @attrs.define

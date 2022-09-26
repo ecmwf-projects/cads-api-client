@@ -272,7 +272,6 @@ def test_catalogue_collections() -> None:
     responses_add()
 
     catalogue = cads_api_client.Catalogue(CATALOGUE_URL)
-    assert catalogue.response == CATALOGUE_JSON
 
     collections = catalogue.collections()
     assert collections.response.json() == COLLECTIONS_JSON

@@ -1,9 +1,7 @@
 import datetime
 from typing import Any, List, Optional
-import urllib
 
 import attrs
-from owslib import ogcapi
 
 from . import processing
 
@@ -22,6 +20,9 @@ class Collection(processing.ApiResponse):
         except Exception:
             end = "2022-07-20T23:00:00"
         return datetime.datetime.fromisoformat(end)
+
+    def id(self) -> str:
+        return self.json["id"]
 
     def retrieve_process(self) -> processing.Process:
         url = self.get_link_href(rel="retrieve")
