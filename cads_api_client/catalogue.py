@@ -22,7 +22,9 @@ class Collection(processing.ApiResponse):
         return datetime.datetime.fromisoformat(end)
 
     def id(self) -> str:
-        return self.json["id"]
+        collection_id = self.json["id"]
+        assert isinstance(collection_id, str)
+        return collection_id
 
     def retrieve_process(self) -> processing.Process:
         url = self.get_link_href(rel="retrieve")

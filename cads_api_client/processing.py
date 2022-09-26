@@ -139,7 +139,7 @@ class Remote:
             logger.debug(f"result not ready, waiting for {sleep} seconds")
             time.sleep(sleep)
 
-    def build_status_info(self):
+    def build_status_info(self) -> StatusInfo:
         return StatusInfo.from_request("get", self.url)
 
     def build_result(self) -> Results:
