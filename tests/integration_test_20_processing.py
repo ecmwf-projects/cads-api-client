@@ -1,4 +1,4 @@
-from cads_api_client import catalogue, processing
+from cads_api_client import processing
 
 
 def test_processes(dev_env_api_url: str) -> None:
@@ -24,18 +24,6 @@ def test_process(dev_env_api_url: str) -> None:
     res = proc.process(process_id)
 
     assert isinstance(res, processing.Process)
-    assert "id" in res.json
-    assert res.json["id"] == process_id
+    assert res.id == process_id
     assert "links" in res.json
     assert isinstance(res.json["links"], list)
-
-
-def test_from_collection_to_process(dev_env_api_url: str) -> None:
-    collection_id = "reanalysis-era5-land-monthly-means"
-    cat = catalogue.Catalogue(f"{dev_env_api_url}/catalogue")
-
-    dataset = cat.collection(collection_id)
-
-    res = dataset.retrieve_process()
-
-    assert isinstance(res, processing.Process)
