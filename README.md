@@ -20,9 +20,7 @@ datetime.datetime(2022, 7, 20, 23, 0)
 ...     time="00:00",
 ...     target="tmp1-era5.grib",
 ... )  # blocks
-'tmp1-era5.grib'
->>> remote = client.submit(
-...     "reanalysis-era5-pressure-levels",
+>>> remote = collection.submit(
 ...     variable="temperature",
 ...     year="2021",
 ...     month="01",
@@ -35,6 +33,7 @@ datetime.datetime(2022, 7, 20, 23, 0)
 >>> remote.status
 '...'
 >>> remote.download("tmp2-era5.grib")  # blocks
+'tmp2-era5.grib'
 
 ```
 
