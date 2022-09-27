@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import functools
+import logging
 import os
 import time
 import urllib
@@ -9,9 +10,10 @@ from typing import Any, Dict, List, Optional, Type, TypeVar
 import attrs
 import multiurl
 import requests
-from owslib import ogcapi
 
 T_ApiResponse = TypeVar("T_ApiResponse", bound="ApiResponse")
+
+logger = logging.Logger(__name__)
 
 
 class ProcessingFailedError(RuntimeError):
@@ -28,14 +30,26 @@ class ApiResponse:
 
     @classmethod
     def from_request(
-        cls: Type[T_ApiResponse], *args: Any, **kwargs: Any
+        cls: Type[T_ApiResponse],
+        *args: Any,
+        **kwargs: Any,
     ) -> T_ApiResponse:
-        # TODO:
-        # - add retry on idempotent calls
-        # - use HTTP session
-        response = multiurl.robust(requests.request)(*args, **kwargs)
+        # TODO:  use HTTP session
+        response = requests.request(*args, **kwargs)
         response.raise_for_status()
+        self = cls(response)
+        return self
 
+    @classmethod
+    def from_request_robust(
+        cls: Type[T_ApiResponse],
+        *args: Any,
+        retry_options: Dict[str, Any] = {},
+        **kwargs: Any,
+    ) -> T_ApiResponse:
+        # TODO:  use HTTP session
+        response = multiurl.robust(requests.request, **retry_options)(*args, **kwargs)
+        response.raise_for_status()
         self = cls(response)
         return self
 
@@ -65,6 +79,12 @@ class ProcessList(ApiResponse):
 
 @attrs.define
 class Process(ApiResponse):
+    @property
+    def id(self) -> str:
+        process_id = self.json["id"]
+        assert isinstance(process_id, str)
+        return process_id
+
     def execute(self, inputs: Dict[str, Any], **kwargs: Any) -> StatusInfo:
         assert "json" not in kwargs
         url = f"{self.response.request.url}/execute"
@@ -75,6 +95,7 @@ class Process(ApiResponse):
 class Remote:
     url: str
     sleep_max: int = 120
+    retry_options: Dict[str, Any] = {}
 
     @functools.cached_property
     def request_uid(self) -> str:
@@ -83,41 +104,74 @@ class Remote:
     @property
     def status(self) -> str:
         # TODO: cache responses for a timeout (possibly reported nby the server)
-        json = multiurl.robust(requests.get)(self.url).json()
+        requests_response = requests.get(self.url)
+        json = requests_response.json()
+        return json["status"]  # type: ignore
+
+    @property
+    def robust_status(self) -> str:
+        # TODO: cache responses for a timeout (possibly reported nby the server)
+        requests_response = multiurl.robust(requests.get, **self.retry_options)(
+            self.url
+        )
+        json = requests_response.json()
         return json["status"]  # type: ignore
 
     def wait_on_result(self) -> None:
         sleep = 1.0
-        last_status = self.status
+        last_status = self.robust_status
         while True:
-            status = self.status
+            status = self.robust_status
             if last_status != status:
-                print(status)
+                logger.debug(f"status has been updated to {status}")
             if status == "successful":
                 break
             elif status == "failed":
-                raise ProcessingFailedError()
+                results = self.build_result()
+                info = results.json
+                error_message = "processing failed"
+                if info.get("title"):
+                    error_message = f'{info["title"]}'
+                if info.get("detail"):
+                    error_message = error_message + f': {info["detail"]}'
+                raise ProcessingFailedError(error_message)
+                break
             elif status in ("accepted", "running"):
                 sleep *= 1.5
                 if sleep > self.sleep_max:
                     sleep = self.sleep_max
             else:
                 raise ProcessingFailedError(f"Unknown API state {status!r}")
+            logger.debug(f"result not ready, waiting for {sleep} seconds")
             time.sleep(sleep)
 
-    def _download_result(self, target: Optional[str] = None) -> str:
-        # TODO: get the results URL from link if it exist
-        request_response = multiurl.robust(requests.get)(self.url)
+    def build_status_info(self) -> StatusInfo:
+        return StatusInfo.from_request("get", self.url)
+
+    def build_result(self) -> Results:
+        if self.status not in ("successful", "failed"):
+            raise Exception(f"Result not ready, job is {self.status}")
+        request_response = multiurl.robust(
+            requests.get,
+            **self.retry_options,
+        )(self.url)
         response = ApiResponse(request_response)
         try:
             results_url = response.get_link_href(rel="results")
         except RuntimeError:
             results_url = f"{self.url}/results"
-        request_result = multiurl.robust(requests.get)(results_url)
+        request_result = multiurl.robust(
+            requests.get,
+            **self.retry_options,
+        )(results_url)
         results = Results(request_result)
+        return results
+
+    def _download_result(self, target: Optional[str] = None) -> str:
+        results = self.build_result()
         return results.download(target)
 
-    def download(self, target: Optional[str]) -> str:
+    def download(self, target: Optional[str] = None) -> str:
         self.wait_on_result()
         return self._download_result(target)
 
@@ -135,7 +189,7 @@ class StatusInfo(ApiResponse):
 @attrs.define
 class JobList(ApiResponse):
     def job_ids(self) -> List[str]:
-        return [job["id"] for job in self.json["jobs"]]
+        return [job["jobID"] for job in self.json["jobs"]]
 
 
 @attrs.define
@@ -157,26 +211,32 @@ class Results(ApiResponse):
         size = asset["file:size"]
         return int(size)
 
-    def download(self, target: Optional[str] = None, timeout: int = 60) -> str:
+    def download(
+        self,
+        target: Optional[str] = None,
+        timeout: int = 60,
+    ) -> str:
+
         result_href = self.get_result_href()
         url = urllib.parse.urljoin(self.response.url, result_href)
         if target is None:
             parts = urllib.parse.urlparse(url)
             target = parts.path.strip("/").split("/")[-1]
 
+        # FIXME add retry and progress bar
         multiurl.download(url, stream=True, target=target, timeout=timeout)
         target_size = os.path.getsize(target)
         size = self.get_result_size()
         if size:
             if target_size != size:
-                raise Exception(
+                raise DownloadError(
                     "Download failed: downloaded %s byte(s) out of %s"
                     % (target_size, size)
                 )
         return target
 
 
-class Processing(ogcapi.API):  # type: ignore
+class Processing:
     supported_api_version = "v1"
 
     def __init__(
@@ -184,43 +244,39 @@ class Processing(ogcapi.API):  # type: ignore
     ) -> None:
         if not force_exact_url:
             url = f"{url}/{self.supported_api_version}"
-        # FIXME: ogcapi.API crashes if the landing page is non compliant!
-        try:
-            super().__init__(url, *args, **kwargs)
-        except Exception:
-            pass
+        self.url = url
 
     def processes(self) -> ProcessList:
-        url = self._build_url("processes")
+        url = f"{self.url}/processes"
         return ProcessList.from_request("get", url)
 
     def process(self, process_id: str) -> Process:
-        url = self._build_url(f"processes/{process_id}")
+        url = f"{self.url}/processes/{process_id}"
         return Process.from_request("get", url)
 
     def process_execute(
         self, process_id: str, inputs: Dict[str, Any], **kwargs: Any
     ) -> StatusInfo:
         assert "json" not in kwargs
-        url = self._build_url(f"processes/{process_id}/execute")
+        url = f"{self.url}/processes/{process_id}/execute"
         return StatusInfo.from_request("post", url, json={"inputs": inputs}, **kwargs)
 
     def jobs(self) -> JobList:
-        url = self._build_url("jobs")
+        url = f"{self.url}/jobs"
         return JobList.from_request("get", url)
 
     def job(self, job_id: str) -> StatusInfo:
-        url = self._build_url(f"jobs/{job_id}")
+        url = f"{self.url}/jobs/{job_id}"
         return StatusInfo.from_request("get", url)
 
     def job_results(self, job_id: str) -> Results:
-        url = self._build_url(f"jobs/{job_id}/results")
+        url = f"{self.url}/jobs/{job_id}/results"
         return Results.from_request("get", url)
 
     # convenience methods
 
     def make_remote(self, job_id: str) -> Remote:
-        url = self._build_url(f"jobs/{job_id}")
+        url = f"{self.url}/jobs/{job_id}"
         return Remote(url)
 
     def download_result(self, job_id: str, target: Optional[str]) -> str:

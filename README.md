@@ -17,15 +17,15 @@ datetime.datetime(2022, 7, 20, 23, 0)
 ...     month="01",
 ...     day="01",
 ...     level="1000",
+...     time="00:00",
 ...     target="tmp1-era5.grib",
 ... )  # blocks
-'tmp1-era5.grib'
->>> remote = client.submit(
-...     "reanalysis-era5-pressure-levels",
+>>> remote = collection.submit(
 ...     variable="temperature",
 ...     year="2021",
 ...     month="01",
 ...     day="01",
+...     time="00:00",
 ...     level="1000",
 ... )  # doesn't block
 >>> remote.request_uid
@@ -33,6 +33,7 @@ datetime.datetime(2022, 7, 20, 23, 0)
 >>> remote.status
 '...'
 >>> remote.download("tmp2-era5.grib")  # blocks
+'tmp2-era5.grib'
 
 ```
 
@@ -46,6 +47,7 @@ Advanced usage:
 ...     "year": "2022",
 ...     "month": "01",
 ...     "day": "01",
+...     "time":"00:00",
 ...     "level": "1000",
 ... })  # doesn't block
 >>> remote = status_info.make_remote()

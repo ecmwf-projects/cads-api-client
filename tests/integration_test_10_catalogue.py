@@ -25,6 +25,6 @@ def test_collection(dev_env_api_url: str) -> None:
 
     assert isinstance(res, catalogue.Collection)
     assert "id" in res.json
-    assert res.json["id"] == collection_id
+    assert res.id == collection_id
     assert "links" in res.json
     assert isinstance(res.json["links"], list)

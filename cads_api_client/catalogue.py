@@ -2,7 +2,6 @@ import datetime
 from typing import Any, List, Optional
 
 import attrs
-from owslib import ogcapi
 
 from . import processing
 
@@ -22,6 +21,12 @@ class Collection(processing.ApiResponse):
             end = "2022-07-20T23:00:00"
         return datetime.datetime.fromisoformat(end)
 
+    @property
+    def id(self) -> str:
+        collection_id = self.json["id"]
+        assert isinstance(collection_id, str)
+        return collection_id
+
     def retrieve_process(self) -> processing.Process:
         url = self.get_link_href(rel="retrieve")
         return processing.Process.from_request("get", url)
@@ -36,7 +41,7 @@ class Collection(processing.ApiResponse):
         return remote.download(target)
 
 
-class Catalogue(ogcapi.API):  # type: ignore
+class Catalogue:
     supported_api_version = "v1"
 
     def __init__(
@@ -44,12 +49,12 @@ class Catalogue(ogcapi.API):  # type: ignore
     ) -> None:
         if not force_exact_url:
             url = f"{url}/{self.supported_api_version}"
-        super().__init__(url, *args, **kwargs)
+        self.url = url
 
     def collections(self) -> Collections:
-        url = self._build_url("collections")
+        url = f"{self.url}/collections"
         return Collections.from_request("get", url)
 
     def collection(self, collection_id: str) -> Collection:
-        url = self._build_url(f"collections/{collection_id}")
+        url = f"{self.url}/collections/{collection_id}"
         return Collection.from_request("get", url)
