@@ -1,5 +1,5 @@
 import functools
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 import attrs
 
@@ -25,10 +25,14 @@ class ApiClient:
         return self.catalogue_api.collection(collection_id)
 
     def retrieve(
-        self, collection_id: str, target: Optional[str] = None, **request: Any
+        self,
+        collection_id: str,
+        target: Optional[str] = None,
+        retry_options: Dict[str, Any] = {},
+        **request: Any,
     ) -> str:
         collection = self.collection(collection_id)
-        return collection.retrieve(target, **request)
+        return collection.retrieve(target, retry_options=retry_options, **request)
 
     def get_requests(self) -> processing.JobList:
         return self.retrieve_api.jobs()

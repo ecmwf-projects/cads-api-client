@@ -1,5 +1,5 @@
 import datetime
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 import attrs
 
@@ -36,9 +36,14 @@ class Collection(processing.ApiResponse):
         status_info = retrieve_process.execute(inputs=request)
         return status_info.make_remote()
 
-    def retrieve(self, target: Optional[str] = None, **request: Any) -> str:
+    def retrieve(
+        self,
+        target: Optional[str] = None,
+        retry_options: Dict[str, Any] = {},
+        **request: Any,
+    ) -> str:
         remote = self.submit(**request)
-        return remote.download(target)
+        return remote.download(target, retry_options=retry_options)
 
 
 class Catalogue:

@@ -105,6 +105,7 @@ class Remote:
     def status(self) -> str:
         # TODO: cache responses for a timeout (possibly reported nby the server)
         requests_response = requests.get(self.url)
+        requests_response.raise_for_status()
         json = requests_response.json()
         return json["status"]  # type: ignore
 
@@ -127,7 +128,7 @@ class Remote:
             if status == "successful":
                 break
             elif status == "failed":
-                results = self.build_result()
+                results = self.make_results()
                 info = results.json
                 error_message = "processing failed"
                 if info.get("title"):
@@ -148,7 +149,7 @@ class Remote:
     def build_status_info(self) -> StatusInfo:
         return StatusInfo.from_request("get", self.url)
 
-    def build_result(self) -> Results:
+    def make_results(self) -> Results:
         if self.status not in ("successful", "failed"):
             raise Exception(f"Result not ready, job is {self.status}")
         request_response = multiurl.robust(
@@ -168,7 +169,7 @@ class Remote:
         return results
 
     def _download_result(self, target: Optional[str] = None) -> str:
-        results = self.build_result()
+        results = self.make_results()
         return results.download(target)
 
     def download(self, target: Optional[str] = None) -> str:

@@ -1,3 +1,5 @@
+import py
+
 from cads_api_client import catalogue, processing
 
 
@@ -31,7 +33,7 @@ def test_collection_submit(dev_env_api_url: str) -> None:
     assert isinstance(res.status, str)
 
 
-def test_collection_retrieve(dev_env_api_url: str, tmpdir) -> None:
+def test_collection_retrieve(dev_env_api_url: str, tmpdir: py.path.local) -> None:
     collection_id = "reanalysis-era5-pressure-levels"
     cat = catalogue.Catalogue(f"{dev_env_api_url}/catalogue")
     dataset = cat.collection(collection_id)
@@ -45,6 +47,7 @@ def test_collection_retrieve(dev_env_api_url: str, tmpdir) -> None:
         time="00:00",
         level="1000",
         target=target,
+        retry_options={"maximum_retries": 0},
     )
 
     assert isinstance(res, str)
