@@ -172,7 +172,9 @@ class Remote:
         results = self.make_results()
         return results.download(target)
 
-    def download(self, target: Optional[str] = None) -> str:
+    def download(
+        self, target: Optional[str] = None, retry_options: Dict[str, Any] = {}
+    ) -> str:
         self.wait_on_result()
         return self._download_result(target)
 
