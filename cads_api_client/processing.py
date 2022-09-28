@@ -88,6 +88,10 @@ class Process(ApiResponse):
     def execute(self, inputs: Dict[str, Any], **kwargs: Any) -> StatusInfo:
         assert "json" not in kwargs
         url = f"{self.response.request.url}/execute"
+        print("post")
+        print(url)
+        print("json=", {"inputs": inputs})
+        print(kwargs)
         return StatusInfo.from_request("post", url, json={"inputs": inputs}, **kwargs)
 
 
@@ -95,7 +99,6 @@ class Process(ApiResponse):
 class Remote:
     url: str
     sleep_max: int = 120
-    retry_options: Dict[str, Any] = {}
 
     @functools.cached_property
     def request_uid(self) -> str:
@@ -109,26 +112,24 @@ class Remote:
         json = requests_response.json()
         return json["status"]  # type: ignore
 
-    @property
-    def robust_status(self) -> str:
+    def _robust_status(self, retry_options: Dict[str, Any] = {}) -> str:
         # TODO: cache responses for a timeout (possibly reported nby the server)
-        requests_response = multiurl.robust(requests.get, **self.retry_options)(
-            self.url
-        )
+        requests_response = multiurl.robust(requests.get, **retry_options)(self.url)
+        requests_response.raise_for_status()
         json = requests_response.json()
         return json["status"]  # type: ignore
 
-    def wait_on_result(self) -> None:
+    def wait_on_result(self, retry_options: Dict[str, Any] = {}) -> None:
         sleep = 1.0
-        last_status = self.robust_status
+        last_status = self._robust_status(retry_options=retry_options)
         while True:
-            status = self.robust_status
+            status = self._robust_status(retry_options=retry_options)
             if last_status != status:
                 logger.debug(f"status has been updated to {status}")
             if status == "successful":
                 break
             elif status == "failed":
-                results = self.make_results()
+                results = self._make_results_robust(retry_options=retry_options)
                 info = results.json
                 error_message = "processing failed"
                 if info.get("title"):
@@ -152,9 +153,25 @@ class Remote:
     def make_results(self) -> Results:
         if self.status not in ("successful", "failed"):
             raise Exception(f"Result not ready, job is {self.status}")
+        request_response = requests.get(self.url)
+        response = ApiResponse(request_response)
+        try:
+            results_url = response.get_link_href(rel="results")
+        except RuntimeError:
+            results_url = f"{self.url}/results"
+        request_result = requests.get(results_url)
+        results = Results(request_result)
+        return results
+
+    def _make_results_robust(
+        self,
+        retry_options: Dict[str, Any] = {},
+    ) -> Results:
+        if self.status not in ("successful", "failed"):
+            raise Exception(f"Result not ready, job is {self.status}")
         request_response = multiurl.robust(
             requests.get,
-            **self.retry_options,
+            **retry_options,
         )(self.url)
         response = ApiResponse(request_response)
         try:
@@ -163,20 +180,22 @@ class Remote:
             results_url = f"{self.url}/results"
         request_result = multiurl.robust(
             requests.get,
-            **self.retry_options,
+            **retry_options,
         )(results_url)
         results = Results(request_result)
         return results
 
-    def _download_result(self, target: Optional[str] = None) -> str:
-        results = self.make_results()
-        return results.download(target)
+    def _download_result(
+        self, target: Optional[str] = None, retry_options: Dict[str, Any] = {}
+    ) -> str:
+        results = self._make_results_robust(retry_options=retry_options)
+        return results.download(target, retry_options=retry_options)
 
     def download(
         self, target: Optional[str] = None, retry_options: Dict[str, Any] = {}
     ) -> str:
-        self.wait_on_result()
-        return self._download_result(target)
+        self.wait_on_result(retry_options=retry_options)
+        return self._download_result(target, retry_options=retry_options)
 
 
 @attrs.define
@@ -218,6 +237,7 @@ class Results(ApiResponse):
         self,
         target: Optional[str] = None,
         timeout: int = 60,
+        retry_options: Dict[str, Any] = {},
     ) -> str:
 
         result_href = self.get_result_href()
@@ -227,7 +247,13 @@ class Results(ApiResponse):
             target = parts.path.strip("/").split("/")[-1]
 
         # FIXME add retry and progress bar
-        multiurl.download(url, stream=True, target=target, timeout=timeout)
+        retry_options = retry_options.copy()
+        maximum_tries = retry_options.pop("maximum_tries", None)
+        if maximum_tries is not None:
+            retry_options["maximum_retries"] = maximum_tries
+        multiurl.download(
+            url, stream=True, target=target, timeout=timeout, **retry_options
+        )
         target_size = os.path.getsize(target)
         size = self.get_result_size()
         if size:
@@ -282,6 +308,8 @@ class Processing:
         url = f"{self.url}/jobs/{job_id}"
         return Remote(url)
 
-    def download_result(self, job_id: str, target: Optional[str]) -> str:
+    def download_result(
+        self, job_id: str, target: Optional[str], retry_options: Dict[str, Any]
+    ) -> str:
         # NOTE: the remote waits for the result to be available
-        return self.make_remote(job_id).download(target)
+        return self.make_remote(job_id).download(target, retry_options=retry_options)
