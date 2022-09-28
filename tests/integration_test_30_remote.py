@@ -19,6 +19,7 @@ def test_collection_submit(dev_env_api_url: str) -> None:
     dataset = cat.collection(collection_id)
 
     res = dataset.submit(
+        product_type="reanalysis",
         variable="temperature",
         year="2022",
         month="01",
@@ -40,6 +41,7 @@ def test_collection_retrieve(dev_env_api_url: str, tmpdir: py.path.local) -> Non
     target = str(tmpdir.join("era5.grib"))
 
     res = dataset.retrieve(
+        product_type="reanalysis",
         variable="temperature",
         year="2022",
         month="01",
