@@ -47,7 +47,7 @@ def test_collection_retrieve(dev_env_api_url: str, tmpdir: py.path.local) -> Non
         time="00:00",
         level="1000",
         target=target,
-        retry_options={"maximum_retries": 0},
+        retry_options={"maximum_tries": 0},
     )
 
     assert isinstance(res, str)
