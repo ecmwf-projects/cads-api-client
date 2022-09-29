@@ -88,10 +88,6 @@ class Process(ApiResponse):
     def execute(self, inputs: Dict[str, Any], **kwargs: Any) -> StatusInfo:
         assert "json" not in kwargs
         url = f"{self.response.request.url}/execute"
-        print("post")
-        print(url)
-        print("json=", {"inputs": inputs})
-        print(kwargs)
         return StatusInfo.from_request("post", url, json={"inputs": inputs}, **kwargs)
 
 
