@@ -32,24 +32,13 @@ class ApiResponse:
     def from_request(
         cls: Type[T_ApiResponse],
         *args: Any,
+        raise_for_status: bool = True,
         **kwargs: Any,
     ) -> T_ApiResponse:
         # TODO:  use HTTP session
         response = requests.request(*args, **kwargs)
-        response.raise_for_status()
-        self = cls(response)
-        return self
-
-    @classmethod
-    def from_request_robust(
-        cls: Type[T_ApiResponse],
-        *args: Any,
-        retry_options: Dict[str, Any] = {},
-        **kwargs: Any,
-    ) -> T_ApiResponse:
-        # TODO:  use HTTP session
-        response = multiurl.robust(requests.request, **retry_options)(*args, **kwargs)
-        response.raise_for_status()
+        if raise_for_status:
+            response.raise_for_status()
         self = cls(response)
         return self
 
@@ -125,7 +114,7 @@ class Remote:
             if status == "successful":
                 break
             elif status == "failed":
-                results = self._make_results_robust(retry_options=retry_options)
+                results = multiurl.robust(self.make_results, **retry_options)(self.url)
                 info = results.json
                 error_message = "processing failed"
                 if info.get("title"):
@@ -146,45 +135,24 @@ class Remote:
     def build_status_info(self) -> StatusInfo:
         return StatusInfo.from_request("get", self.url)
 
-    def make_results(self) -> Results:
+    def make_results(self, url: Optional[str] = None) -> Results:
+        if url is None:
+            url = self.url
         if self.status not in ("successful", "failed"):
             raise Exception(f"Result not ready, job is {self.status}")
-        request_response = requests.get(self.url)
+        request_response = requests.get(url)
         response = ApiResponse(request_response)
         try:
             results_url = response.get_link_href(rel="results")
         except RuntimeError:
-            results_url = f"{self.url}/results"
-        request_result = requests.get(results_url)
-        results = Results(request_result)
-        return results
-
-    def _make_results_robust(
-        self,
-        retry_options: Dict[str, Any] = {},
-    ) -> Results:
-        if self.status not in ("successful", "failed"):
-            raise Exception(f"Result not ready, job is {self.status}")
-        request_response = multiurl.robust(
-            requests.get,
-            **retry_options,
-        )(self.url)
-        response = ApiResponse(request_response)
-        try:
-            results_url = response.get_link_href(rel="results")
-        except RuntimeError:
-            results_url = f"{self.url}/results"
-        request_result = multiurl.robust(
-            requests.get,
-            **retry_options,
-        )(results_url)
-        results = Results(request_result)
+            results_url = f"{url}/results"
+        results = Results.from_request("get", results_url, raise_for_status=False)
         return results
 
     def _download_result(
         self, target: Optional[str] = None, retry_options: Dict[str, Any] = {}
     ) -> str:
-        results = self._make_results_robust(retry_options=retry_options)
+        results = multiurl.robust(self.make_results, **retry_options)(self.url)
         return results.download(target, retry_options=retry_options)
 
     def download(
@@ -212,17 +180,15 @@ class JobList(ApiResponse):
 
 @attrs.define
 class Results(ApiResponse):
-    def get_result_href(self) -> Optional[str]:
-        asset = self.json.get("asset", {}).get("value", {})
-        result_href = asset.get("href")
-        assert isinstance(result_href, str) or result_href is None
-        return result_href
+    def __init__(self, url: str, *args: Any, **kwargs: Any) -> None:
+        super().__init__(url, *args, **kwargs)
+        self.status_code = self.response.status_code
+        self.reason = self.response.reason
 
-    def get_result_checksum(self) -> Optional[str]:
-        asset = self.json.get("asset", {}).get("value", {})
-        result_checksum = asset.get("file:checksum")
-        assert isinstance(result_checksum, str) or result_checksum is None
-        return result_checksum
+    def get_result_href(self) -> str:
+        if self.status_code != 200:
+            raise KeyError("result_href not available for processing failed results")
+        return self.json["asset"]["value"]["href"]
 
     def get_result_size(self) -> Optional[int]:
         asset = self.json.get("asset", {}).get("value", {})
