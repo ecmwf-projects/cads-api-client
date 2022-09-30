@@ -32,11 +32,13 @@ class ApiResponse:
     def from_request(
         cls: Type[T_ApiResponse],
         *args: Any,
+        raise_for_status: bool = True,
         **kwargs: Any,
     ) -> T_ApiResponse:
         # TODO:  use HTTP session
         response = requests.request(*args, **kwargs)
-        response.raise_for_status()
+        if raise_for_status:
+            response.raise_for_status()
         self = cls(response)
         return self
 
@@ -75,10 +77,6 @@ class Process(ApiResponse):
     def execute(self, inputs: Dict[str, Any], **kwargs: Any) -> StatusInfo:
         assert "json" not in kwargs
         url = f"{self.response.request.url}/execute"
-        print("post")
-        print(url)
-        print("json=", {"inputs": inputs})
-        print(kwargs)
         return StatusInfo.from_request("post", url, json={"inputs": inputs}, **kwargs)
 
 
@@ -148,14 +146,13 @@ class Remote:
             results_url = response.get_link_href(rel="results")
         except RuntimeError:
             results_url = f"{url}/results"
-        request_result = requests.get(results_url)
-        results = Results(request_result)
+        results = Results.from_request("get", results_url, raise_for_status=False)
         return results
 
     def _download_result(
         self, target: Optional[str] = None, retry_options: Dict[str, Any] = {}
     ) -> str:
-        results = self._make_results_robust(retry_options=retry_options)
+        results = multiurl.robust(self.make_results, **retry_options)(self.url)
         return results.download(target, retry_options=retry_options)
 
     def download(
@@ -183,23 +180,15 @@ class JobList(ApiResponse):
 
 @attrs.define
 class Results(ApiResponse):
+    def __init__(self, url: str, *args: Any, **kwargs: Any) -> None:
+        super().__init__(url, *args, **kwargs)
+        self.status_code = self.response.status_code
+        self.reason = self.response.reason
 
-    @property
-    def status_code(self):
-        return self.response.status_code
-
-    @property
-    def get_result_href(self) -> Optional[str]:
-        asset = self.json.get("asset", {}).get("value", {})
-        result_href = asset.get("href")
-        assert isinstance(result_href, str) or result_href is None
-        return result_href
-
-    def get_result_checksum(self) -> Optional[str]:
-        asset = self.json.get("asset", {}).get("value", {})
-        result_checksum = asset.get("file:checksum")
-        assert isinstance(result_checksum, str) or result_checksum is None
-        return result_checksum
+    def get_result_href(self) -> str:
+        if self.status_code != 200:
+            raise KeyError("result_href not available for processing failed results")
+        return self.json["asset"]["value"]["href"]
 
     def get_result_size(self) -> Optional[int]:
         asset = self.json.get("asset", {}).get("value", {})
