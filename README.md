@@ -29,7 +29,7 @@ datetime.datetime(2022, 7, 20, 23, 0)
 ...     product_type="reanalysis",
 ...     year="2021",
 ...     month="01",
-...     day="01",
+...     day="02",
 ...     time="00:00",
 ...     level="1000",
 ... )  # doesn't block
@@ -52,7 +52,7 @@ Advanced usage:
 ...     "product_type": "reanalysis",
 ...     "year": "2022",
 ...     "month": "01",
-...     "day": "01",
+...     "day": "03",
 ...     "time": "00:00",
 ...     "level": "1000",
 ... })  # doesn't block
