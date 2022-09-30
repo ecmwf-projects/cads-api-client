@@ -5,13 +5,17 @@ CADS API Python client
 Draft Python API:
 
 ```python
+>>> import os
+>>> cads_api_root_url = os.getenv("CADS_API_ROOT_URL", "http://localhost:8080/api")
+
 >>> import cads_api_client
->>> client = cads_api_client.ApiClient("http://localhost:8080/api")
+>>> client = cads_api_client.ApiClient(cads_api_root_url)
 >>> collection = client.collection("reanalysis-era5-pressure-levels")
 >>> collection.end_datetime()
 datetime.datetime(2022, 7, 20, 23, 0)
 >>> remote = client.retrieve(
 ...     "reanalysis-era5-pressure-levels",
+...     product_type="reanalysis",
 ...     variable="temperature",
 ...     year="2022",
 ...     month="01",
@@ -22,9 +26,10 @@ datetime.datetime(2022, 7, 20, 23, 0)
 ... )  # blocks
 >>> remote = collection.submit(
 ...     variable="temperature",
+...     product_type="reanalysis",
 ...     year="2021",
 ...     month="01",
-...     day="01",
+...     day="02",
 ...     time="00:00",
 ...     level="1000",
 ... )  # doesn't block
@@ -40,14 +45,15 @@ datetime.datetime(2022, 7, 20, 23, 0)
 Advanced usage:
 
 ```python
->>> processing = cads_api_client.Processing("http://localhost:8080/api/retrieve")
+>>> processing = cads_api_client.Processing(f"{cads_api_root_url}/retrieve")
 >>> process = processing.process("reanalysis-era5-pressure-levels")
 >>> status_info = process.execute(inputs={
 ...     "variable": "temperature",
+...     "product_type": "reanalysis",
 ...     "year": "2022",
 ...     "month": "01",
-...     "day": "01",
-...     "time":"00:00",
+...     "day": "03",
+...     "time": "00:00",
 ...     "level": "1000",
 ... })  # doesn't block
 >>> remote = status_info.make_remote()

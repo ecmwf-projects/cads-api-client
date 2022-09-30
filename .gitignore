@@ -4,6 +4,9 @@ version.py
 # Sphinx automatic generation of API
 docs/_api/
 
+# download tests
+*.grib
+
 # Created by https://www.toptal.com/developers/gitignore/api/python,jupyternotebooks,vim,visualstudiocode,pycharm
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,jupyternotebooks,vim,visualstudiocode,pycharm
 
