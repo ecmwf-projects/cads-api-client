@@ -37,6 +37,9 @@ class ApiClient:
     def get_requests(self) -> processing.JobList:
         return self.retrieve_api.jobs()
 
+    def get_request(self, request_uid: str) -> processing.StatusInfo:
+        return self.retrieve_api.job(request_uid)
+
     def download_result(
         self, request_uid: str, target: Optional[str], retry_options: Dict[str, Any]
     ) -> str:
