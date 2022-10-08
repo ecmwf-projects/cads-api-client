@@ -152,7 +152,7 @@ class Remote:
     def _download_result(
         self, target: Optional[str] = None, retry_options: Dict[str, Any] = {}
     ) -> str:
-        results = multiurl.robust(self.make_results, **retry_options)(self.url)
+        results: Results = multiurl.robust(self.make_results, **retry_options)(self.url)
         return results.download(target, retry_options=retry_options)
 
     def download(
@@ -180,10 +180,22 @@ class JobList(ApiResponse):
 
 @attrs.define
 class Results(ApiResponse):
+    # needed to usr this class in `multiurl.robust`
+    @property
+    def status_code(self) -> int:
+        return self.response.status_code
+
+    # needed to usr this class in `multiurl.robust`
+    @property
+    def reason(self) -> str:
+        return self.response.reason
+
     def get_result_href(self) -> str:
-        if self.response.status_code != 200:
+        if self.status_code != 200:
             raise KeyError("result_href not available for processing failed results")
-        return self.json["asset"]["value"]["href"]
+        href = self.json["asset"]["value"]["href"]
+        assert isinstance(href, str)
+        return href
 
     def get_result_size(self) -> Optional[int]:
         asset = self.json.get("asset", {}).get("value", {})
