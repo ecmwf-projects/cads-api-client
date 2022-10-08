@@ -180,13 +180,8 @@ class JobList(ApiResponse):
 
 @attrs.define
 class Results(ApiResponse):
-    def __init__(self, url: str, *args: Any, **kwargs: Any) -> None:
-        super().__init__(url, *args, **kwargs)
-        self.status_code = self.response.status_code
-        self.reason = self.response.reason
-
     def get_result_href(self) -> str:
-        if self.status_code != 200:
+        if self.response.status_code != 200:
             raise KeyError("result_href not available for processing failed results")
         return self.json["asset"]["value"]["href"]
 
