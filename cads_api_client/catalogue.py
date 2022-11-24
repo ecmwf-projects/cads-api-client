@@ -14,6 +14,8 @@ class Collections(processing.ApiResponse):
 
 @attrs.define
 class Collection(processing.ApiResponse):
+    headers: Dict[str, Any] = {}
+
     def end_datetime(self) -> datetime.datetime:
         try:
             end = self.json["extent"]["temporal"]["interval"][1]
@@ -29,7 +31,7 @@ class Collection(processing.ApiResponse):
 
     def retrieve_process(self) -> processing.Process:
         url = self.get_link_href(rel="retrieve")
-        return processing.Process.from_request("get", url)
+        return processing.Process.from_request("get", url, headers=self.headers)
 
     def submit(self, **request: Any) -> processing.Remote:
         retrieve_process = self.retrieve_process()
@@ -50,11 +52,12 @@ class Catalogue:
     supported_api_version = "v1"
 
     def __init__(
-        self, url: str, force_exact_url: bool = False, *args: Any, **kwargs: Any
+        self, url: str, force_exact_url: bool = False, headers: Dict[str, Any] = {}
     ) -> None:
         if not force_exact_url:
             url = f"{url}/{self.supported_api_version}"
         self.url = url
+        self.headers = headers
 
     def collections(self) -> Collections:
         url = f"{self.url}/collections"
@@ -62,4 +65,4 @@ class Catalogue:
 
     def collection(self, collection_id: str) -> Collection:
         url = f"{self.url}/collections/{collection_id}"
-        return Collection.from_request("get", url)
+        return Collection.from_request("get", url, headers=self.headers)

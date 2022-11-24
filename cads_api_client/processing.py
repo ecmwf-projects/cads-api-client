@@ -27,19 +27,21 @@ class DownloadError(RuntimeError):
 @attrs.define(slots=False)
 class ApiResponse:
     response: requests.Response
+    headers: Dict[str, Any] = {}
 
     @classmethod
     def from_request(
         cls: Type[T_ApiResponse],
         *args: Any,
         raise_for_status: bool = True,
+        headers: Dict[str, Any] = {},
         **kwargs: Any,
     ) -> T_ApiResponse:
         # TODO:  use HTTP session
-        response = requests.request(*args, **kwargs)
+        response = requests.request(*args, **{"headers": headers, **kwargs})
         if raise_for_status:
             response.raise_for_status()
-        self = cls(response)
+        self = cls(response, headers=headers)
         return self
 
     @functools.cached_property
@@ -68,6 +70,8 @@ class ProcessList(ApiResponse):
 
 @attrs.define
 class Process(ApiResponse):
+    headers: dict = {}
+
     @property
     def id(self) -> str:
         process_id = self.json["id"]
@@ -77,13 +81,16 @@ class Process(ApiResponse):
     def execute(self, inputs: Dict[str, Any], **kwargs: Any) -> StatusInfo:
         assert "json" not in kwargs
         url = f"{self.response.request.url}/execute"
-        return StatusInfo.from_request("post", url, json={"inputs": inputs}, **kwargs)
+        return StatusInfo.from_request(
+            "post", url, json={"inputs": inputs}, headers=self.headers, **kwargs
+        )
 
 
-@attrs.define(slots=False)
 class Remote:
-    url: str
-    sleep_max: int = 120
+    def __init__(self, url: str, sleep_max: int = 120, headers: Dict[str, Any] = {}):
+        self.url = url
+        self.sleep_max = sleep_max
+        self.headers = headers
 
     @functools.cached_property
     def request_uid(self) -> str:
@@ -92,14 +99,16 @@ class Remote:
     @property
     def status(self) -> str:
         # TODO: cache responses for a timeout (possibly reported nby the server)
-        requests_response = requests.get(self.url)
+        requests_response = requests.get(self.url, headers=self.headers)
         requests_response.raise_for_status()
         json = requests_response.json()
         return json["status"]  # type: ignore
 
     def _robust_status(self, retry_options: Dict[str, Any] = {}) -> str:
         # TODO: cache responses for a timeout (possibly reported nby the server)
-        requests_response = multiurl.robust(requests.get, **retry_options)(self.url)
+        requests_response = multiurl.robust(requests.get, **retry_options)(
+            self.url, headers=self.headers
+        )
         requests_response.raise_for_status()
         json = requests_response.json()
         return json["status"]  # type: ignore
@@ -133,20 +142,22 @@ class Remote:
             time.sleep(sleep)
 
     def build_status_info(self) -> StatusInfo:
-        return StatusInfo.from_request("get", self.url)
+        return StatusInfo.from_request("get", self.url, headers=self.headers)
 
     def make_results(self, url: Optional[str] = None) -> Results:
         if url is None:
             url = self.url
         if self.status not in ("successful", "failed"):
             raise Exception(f"Result not ready, job is {self.status}")
-        request_response = requests.get(url)
+        request_response = requests.get(url, headers=self.headers)
         response = ApiResponse(request_response)
         try:
             results_url = response.get_link_href(rel="results")
         except RuntimeError:
             results_url = f"{url}/results"
-        results = Results.from_request("get", results_url, raise_for_status=False)
+        results = Results.from_request(
+            "get", results_url, headers=self.headers, raise_for_status=False
+        )
         return results
 
     def _download_result(
@@ -169,7 +180,7 @@ class StatusInfo(ApiResponse):
             url = self.get_link_href(rel="monitor")
         else:
             url = self.get_link_href(rel="self")
-        return Remote(url)
+        return Remote(url, headers=self.headers)
 
 
 @attrs.define
@@ -238,11 +249,12 @@ class Processing:
     supported_api_version = "v1"
 
     def __init__(
-        self, url: str, force_exact_url: bool = False, *args: Any, **kwargs: Any
+        self, url: str, force_exact_url: bool = False, headers: Optional[str] = {}
     ) -> None:
         if not force_exact_url:
             url = f"{url}/{self.supported_api_version}"
         self.url = url
+        self.headers = headers
 
     def processes(self) -> ProcessList:
         url = f"{self.url}/processes"
@@ -250,32 +262,39 @@ class Processing:
 
     def process(self, process_id: str) -> Process:
         url = f"{self.url}/processes/{process_id}"
-        return Process.from_request("get", url)
+        return Process.from_request("get", url, headers=self.headers)
 
     def process_execute(
         self, process_id: str, inputs: Dict[str, Any], **kwargs: Any
     ) -> StatusInfo:
         assert "json" not in kwargs
         url = f"{self.url}/processes/{process_id}/execute"
-        return StatusInfo.from_request("post", url, json={"inputs": inputs}, **kwargs)
+        headers = kwargs.pop("headers", {})
+        return StatusInfo.from_request(
+            "post",
+            url,
+            json={"inputs": inputs},
+            headers={**self.headers, **headers},
+            **kwargs,
+        )
 
     def jobs(self) -> JobList:
         url = f"{self.url}/jobs"
-        return JobList.from_request("get", url)
+        return JobList.from_request("get", url, headers=self.headers)
 
     def job(self, job_id: str) -> StatusInfo:
         url = f"{self.url}/jobs/{job_id}"
-        return StatusInfo.from_request("get", url)
+        return StatusInfo.from_request("get", url, headers=self.headers)
 
     def job_results(self, job_id: str) -> Results:
         url = f"{self.url}/jobs/{job_id}/results"
-        return Results.from_request("get", url)
+        return Results.from_request("get", url, headers=self.headers)
 
     # convenience methods
 
     def make_remote(self, job_id: str) -> Remote:
         url = f"{self.url}/jobs/{job_id}"
-        return Remote(url)
+        return Remote(url, headers=self.headers)
 
     def download_result(
         self, job_id: str, target: Optional[str], retry_options: Dict[str, Any]
