@@ -7,9 +7,10 @@ Draft Python API:
 ```python
 >>> import os
 >>> cads_api_root_url = os.getenv("CADS_API_ROOT_URL", "http://localhost:8080/api")
+>>> cads_api_key = os.getenv("CADS_API_KEY", "00112233-4455-6677-c899-aabbccddeeff")
 
 >>> import cads_api_client
->>> client = cads_api_client.ApiClient(cads_api_root_url)
+>>> client = cads_api_client.ApiClient(cads_api_root_url, api_key=cads_api_key)
 >>> collection = client.collection("reanalysis-era5-pressure-levels")
 >>> collection.end_datetime()
 datetime.datetime(2022, 7, 20, 23, 0)
@@ -45,7 +46,8 @@ datetime.datetime(2022, 7, 20, 23, 0)
 Advanced usage:
 
 ```python
->>> processing = cads_api_client.Processing(f"{cads_api_root_url}/retrieve")
+>>> headers = {"PRIVATE-TOKEN": cads_api_key}
+>>> processing = cads_api_client.Processing(f"{cads_api_root_url}/retrieve", headers=headers)
 >>> process = processing.process("reanalysis-era5-pressure-levels")
 >>> status_info = process.execute(inputs={
 ...     "variable": "temperature",

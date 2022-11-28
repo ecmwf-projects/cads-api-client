@@ -1,8 +1,8 @@
 from cads_api_client import catalogue
 
 
-def test_collections(dev_env_api_url: str) -> None:
-    cat = catalogue.Catalogue(f"{dev_env_api_url}/catalogue")
+def test_collections(api_root_url: str) -> None:
+    cat = catalogue.Catalogue(f"{api_root_url}/catalogue")
 
     res = cat.collections()
 
@@ -17,9 +17,9 @@ def test_collections(dev_env_api_url: str) -> None:
     assert expected_collection_id in res.collection_ids()
 
 
-def test_collection(dev_env_api_url: str) -> None:
+def test_collection(api_root_url: str) -> None:
     collection_id = "reanalysis-era5-land-monthly-means"
-    cat = catalogue.Catalogue(f"{dev_env_api_url}/catalogue")
+    cat = catalogue.Catalogue(f"{api_root_url}/catalogue")
 
     res = cat.collection(collection_id)
 

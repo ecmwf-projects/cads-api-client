@@ -8,20 +8,19 @@ from . import catalogue, processing
 
 @attrs.define(slots=False)
 class ApiClient:
-    def __init__(self, url: str, token: str = None):
-        self.url = url
-        if token is not None:
-            self._headers = {"PRIVATE-TOKEN": token}
-        else:
-            self._headers = {}
+    url: str
+    api_key: str
+
+    def _headers(self):
+        return {"PRIVATE-TOKEN": self.api_key}
 
     @functools.cached_property
     def catalogue_api(self) -> catalogue.Catalogue:
-        return catalogue.Catalogue(f"{self.url}/catalogue", headers=self._headers)
+        return catalogue.Catalogue(f"{self.url}/catalogue", headers=self._headers())
 
     @functools.cached_property
     def retrieve_api(self) -> processing.Processing:
-        return processing.Processing(f"{self.url}/retrieve", headers=self._headers)
+        return processing.Processing(f"{self.url}/retrieve", headers=self._headers())
 
     def collections(self) -> catalogue.Collections:
         return self.catalogue_api.collections()

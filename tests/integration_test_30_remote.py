@@ -3,9 +3,9 @@ import py
 from cads_api_client import catalogue, processing
 
 
-def test_from_collection_to_process(dev_env_api_url: str) -> None:
+def test_from_collection_to_process(api_root_url: str) -> None:
     collection_id = "reanalysis-era5-land-monthly-means"
-    cat = catalogue.Catalogue(f"{dev_env_api_url}/catalogue")
+    cat = catalogue.Catalogue(f"{api_root_url}/catalogue")
     dataset = cat.collection(collection_id)
 
     res = dataset.retrieve_process()
@@ -13,9 +13,10 @@ def test_from_collection_to_process(dev_env_api_url: str) -> None:
     assert isinstance(res, processing.Process)
 
 
-def test_collection_submit(dev_env_api_url: str) -> None:
+def test_collection_submit(api_root_url: str, api_key: str) -> None:
     collection_id = "reanalysis-era5-pressure-levels"
-    cat = catalogue.Catalogue(f"{dev_env_api_url}/catalogue")
+    headers = {"PRIVATE-TOKEN": api_key}
+    cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
 
     res = dataset.submit(
@@ -35,10 +36,11 @@ def test_collection_submit(dev_env_api_url: str) -> None:
 
 
 def test_collection_retrieve_with_cds_adaptor(
-    dev_env_api_url: str, tmpdir: py.path.local
+    api_root_url: str, api_key: str, tmpdir: py.path.local
 ) -> None:
     collection_id = "reanalysis-era5-pressure-levels"
-    cat = catalogue.Catalogue(f"{dev_env_api_url}/catalogue")
+    headers = {"PRIVATE-TOKEN": api_key}
+    cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
     target = str(tmpdir.join("era5.grib"))
 
@@ -59,10 +61,11 @@ def test_collection_retrieve_with_cds_adaptor(
 
 
 def test_collection_retrieve_with_cams_adaptor(
-    dev_env_api_url: str, tmpdir: py.path.local
+    api_root_url: str, api_key: str, tmpdir: py.path.local
 ) -> None:
     collection_id = "cams-global-reanalysis-eac4-monthly"
-    cat = catalogue.Catalogue(f"{dev_env_api_url}/catalogue")
+    headers = {"PRIVATE-TOKEN": api_key}
+    cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
     target = str(tmpdir.join("eac4.grib"))
 
