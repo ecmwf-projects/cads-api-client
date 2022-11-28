@@ -34,14 +34,13 @@ class ApiResponse:
         cls: Type[T_ApiResponse],
         *args: Any,
         raise_for_status: bool = True,
-        headers: Dict[str, Any] = {},
         **kwargs: Any,
     ) -> T_ApiResponse:
         # TODO:  use HTTP session
-        response = requests.request(*args, **{"headers": headers, **kwargs})
+        response = requests.request(*args, **kwargs)
         if raise_for_status:
             response.raise_for_status()
-        self = cls(response, headers=headers)
+        self = cls(response, headers=kwargs.get("headers", {}))
         return self
 
     @functools.cached_property
@@ -70,7 +69,7 @@ class ProcessList(ApiResponse):
 
 @attrs.define
 class Process(ApiResponse):
-    headers: dict = {}
+    headers: Dict[str, Any] = {}
 
     @property
     def id(self) -> str:
@@ -249,7 +248,7 @@ class Processing:
     supported_api_version = "v1"
 
     def __init__(
-        self, url: str, force_exact_url: bool = False, headers: Optional[str] = {}
+        self, url: str, force_exact_url: bool = False, headers: Dict[str, Any] = {}
     ) -> None:
         if not force_exact_url:
             url = f"{url}/{self.supported_api_version}"

@@ -11,7 +11,7 @@ class ApiClient:
     url: str
     api_key: str
 
-    def _headers(self):
+    def _headers(self) -> Dict[str, str]:
         return {"PRIVATE-TOKEN": self.api_key}
 
     @functools.cached_property
