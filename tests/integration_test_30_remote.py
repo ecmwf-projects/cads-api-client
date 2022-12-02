@@ -60,7 +60,7 @@ def test_collection_retrieve_with_cds_adaptor(
     assert res.endswith(target)
 
 
-def test_collection_retrieve_with_cams_adaptor(
+def test_collection_retrieve_with_ads_adaptor(
     api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
 ) -> None:
     collection_id = "cams-global-reanalysis-eac4-monthly"
