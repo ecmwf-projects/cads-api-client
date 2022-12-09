@@ -2,6 +2,13 @@
 
 CADS API Python client
 
+The `ApiClient` needs the `url` to the API root and a valid API `key` to access protected resources.
+You can also set the `CADS_API_URL` and `CADS_API_KEY` environment variables.
+
+It is possible (but not recommended) to use the API key of the anonymous user
+`00112233-4455-6677-c899-aabbccddeeff`. This is used in anonymous tests and
+it is designed to be the least performant option to access the system.
+
 Draft Python API:
 
 ```python
