@@ -1,18 +1,24 @@
 import functools
+import os
 from typing import Any, Dict, Optional
 
 import attrs
 
 from . import catalogue, processing
 
+CADS_API_URL = os.getenv("CADS_API_URL", "http://localhost:8080/api")
+CADS_API_KEY = os.getenv("CADS_API_KEY")
+
 
 @attrs.define(slots=False)
 class ApiClient:
-    url: str
-    api_key: str
+    key: Optional[str] = CADS_API_KEY
+    url: str = CADS_API_URL
 
     def _headers(self) -> Dict[str, str]:
-        return {"PRIVATE-TOKEN": self.api_key}
+        if self.key is None:
+            raise ValueError("A valid API key is needed to access this resource")
+        return {"PRIVATE-TOKEN": self.key}
 
     @functools.cached_property
     def catalogue_api(self) -> catalogue.Catalogue:
