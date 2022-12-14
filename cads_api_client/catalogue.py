@@ -11,6 +11,24 @@ class Collections(processing.ApiResponse):
     def collection_ids(self) -> List[str]:
         return [collection["id"] for collection in self.json["collections"]]
 
+    def next(self) -> processing.T_ApiResponse:
+        next_page = self.get_links(rel="next")
+        assert len(next_page) <= 1
+        if len(next_page) == 1:
+            out = self.from_request("get", url=next_page[0]["href"])
+        else:
+            out = None
+        return out
+
+    def prev(self) -> processing.T_ApiResponse:
+        prev_page = self.get_links(rel="prev")
+        assert len(prev_page) <= 1
+        if len(prev_page) == 1:
+            out = self.from_request("get", url=prev_page[0]["href"])
+        else:
+            out = None
+        return out
+
 
 @attrs.define
 class Collection(processing.ApiResponse):
@@ -59,9 +77,11 @@ class Catalogue:
         self.url = url
         self.headers = headers
 
-    def collections(self) -> Collections:
-        url = f"{self.url}/collections"
-        return Collections.from_request("get", url)
+    def collections(self, limit=None, **params) -> Collections:
+        url = f"{self.url}/datasets"
+        if limit is not None:
+            params = {"limit": limit, **params}
+        return Collections.from_request("get", url, params=params)
 
     def collection(self, collection_id: str) -> Collection:
         url = f"{self.url}/collections/{collection_id}"

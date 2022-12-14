@@ -28,8 +28,8 @@ class ApiClient:
     def retrieve_api(self) -> processing.Processing:
         return processing.Processing(f"{self.url}/retrieve", headers=self._headers())
 
-    def collections(self) -> catalogue.Collections:
-        return self.catalogue_api.collections()
+    def collections(self, limit=None, **params) -> catalogue.Collections:
+        return self.catalogue_api.collections(limit=limit, **params)
 
     def collection(self, collection_id: str) -> catalogue.Collection:
         return self.catalogue_api.collection(collection_id)
@@ -61,9 +61,9 @@ class ApiClient:
         self, collection_id: str, request: dict[str, Any]
     ) -> dict[str, Any]:
 
-        processing_ = processing.Processing(
+        proc = processing.Processing(
             f"{self.url}/retrieve",
             headers={"Content-Type": "application/json", **self._headers()},
         )
-        process = processing_.process(collection_id)
+        process = proc.process(collection_id)
         return process.valid_values(request)
