@@ -35,6 +35,4 @@ def test_validate_constraints(api_root_url) -> None:
     process = proc.process(process_id)
     res = process.valid_values({})
 
-    assert set(['product_type', 'variable', 'year', 'month', 'time']) <= set(res)
-
-
+    assert set(["product_type", "variable", "year", "month", "time"]) <= set(res)
