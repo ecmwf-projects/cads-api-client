@@ -60,10 +60,5 @@ class ApiClient:
     def valid_values(
         self, collection_id: str, request: dict[str, Any]
     ) -> dict[str, Any]:
-
-        processing_ = processing.Processing(
-            f"{self.url}/retrieve",
-            headers={"Content-Type": "application/json", **self._headers()},
-        )
-        process = processing_.process(collection_id)
+        process = self.retrieve_api.process(collection_id)
         return process.valid_values(request)
