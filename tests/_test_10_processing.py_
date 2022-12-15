@@ -8,7 +8,7 @@ JOB_RUNNING_ID = "9bfc1362-2832-48e1-a235-359267420bb1"
 JOB_SUCCESSFUL_ID = "9bfc1362-2832-48e1-a235-359267420bb2"
 
 CATALOGUE_URL = "http://localhost:8080/api/catalogue"
-COLLECTIONS_URL = "http://localhost:8080/api/catalogue/v1/datasets"
+COLLECTIONS_URL = "http://localhost:8080/api/catalogue/v1/collections"
 COLLECTION_URL = (
     "http://localhost:8080/api/catalogue/v1/collections/reanalysis-era5-pressure-levels"
 )
@@ -98,7 +98,7 @@ COLLECTION_JSON = {
         },
         {
             "rel": "related",
-            "href": "http://localhost:8080/api/catalogue/v1/cojlections/reanalysis-era5-single-levels",
+            "href": "http://localhost:8080/api/catalogue/v1/collections/reanalysis-era5-single-levels",
         },
     ],
     "tmp:variables": {
@@ -194,23 +194,6 @@ JOB_SUCCESSFUL_JSON = {
     ],
 }
 
-RESULT_SUCCESSFUL_JSON = {
-    "asset": {
-        "value": {
-            "type": "application/netcdf",
-            "href": "./e7d452a747061ab880887d88814bfb0c27593a73cb7736d2dc340852",
-            "file:checksum": "e7d452a747061ab880887d88814bfb0c27593a73cb7736d2dc340852",
-            "file:size": 8,
-            "file:local_path": [
-                "/cache-store/",
-                "e7d452a747061ab880887d88814bfb0c27593a73cb7736d2dc340852.nc",
-            ],
-            "xarray:open_kwargs": {},
-            "xarray:storage_options": {},
-        }
-    }
-}
-
 
 RESULT_RUNNING_JSON = {
     "type": "http://www.opengis.net/def/exceptions/ogcapi-processes-1/1.0/result-not-ready",
@@ -272,6 +255,7 @@ def test_catalogue_collections() -> None:
     responses_add()
 
     catalogue = cads_api_client.Catalogue(CATALOGUE_URL)
+    assert catalogue.response == CATALOGUE_JSON
 
     collections = catalogue.collections()
     assert collections.response.json() == COLLECTIONS_JSON
@@ -281,7 +265,7 @@ def test_catalogue_collections() -> None:
 
 
 @responses.activate
-def test_submit() -> None:
+def test_retrieve() -> None:
     responses_add()
 
     catalogue = cads_api_client.Catalogue(CATALOGUE_URL)
@@ -293,16 +277,137 @@ def test_submit() -> None:
     job = process.execute(inputs={"variable": "temperature", "year": "2022"})
     assert job.response.json() == JOB_SUCCESSFUL_JSON
 
-    remote = collection.submit(variable="temperature", year="2022")
+    remote = collection.retrieve(variable="temperature", year="2022")
     assert remote.url == JOB_SUCCESSFUL_URL
     assert remote.status == "successful"
 
 
 @responses.activate
-def test_wait_on_result() -> None:
+def test_wait_on_result_ready() -> None:
     responses_add()
 
     catalogue = cads_api_client.Catalogue(CATALOGUE_URL)
     collection = catalogue.collection(COLLECTION_ID)
-    remote = collection.submit(variable="temperature", year="2022")
-    remote.wait_on_result()
+    remote = collection.retrieve(variable="temperature", year="2022")
+    remote.wait_on_result_ready()
+
+    responses.add(
+        responses.GET,
+        url=RESULT_SUCCESSFUL_URL,
+        json=RESULT_SUCCESSFUL_JSON,
+        content_type="application/json",
+    )
+
+    with open("test_data.nc", "rb") as f1:
+        with open("test_data.nc", "rb") as f2:
+
+            responses.add(
+                responses.HEAD,
+                f"{JOB_SUCCESSFUL_URL}/e7d452a747061ab880887d88814bfb0c27593a73cb7736d2dc340852",
+                body=f1.read(),
+                status=200,
+                content_type="image/nc",
+                adding_headers={"Transfer-Encoding": "chunked"},
+                stream=True,
+            )
+            responses.add(
+                responses.GET,
+                f"{JOB_SUCCESSFUL_URL}/e7d452a747061ab880887d88814bfb0c27593a73cb7736d2dc340852",
+                body=f2.read(),
+                status=200,
+                content_type="image/nc",
+                adding_headers={"Transfer-Encoding": "chunked"},
+                stream=True,
+            )
+
+        filename = remote.download("aaaa")
+
+
+# .................................................................................................
+
+import requests
+
+import cads_api_client
+
+inputs = dict(
+    product_type="reanalysis",
+    format="grib",
+    variable="temperature",
+    pressure_level="1",
+    year="1971",
+    month="01",
+    day="25",
+    time="06:00",
+)
+
+processing = cads_api_client.Processing("http://localhost:8080/api/retrieve")
+process = processing.process("reanalysis-era5-pressure-levels")
+job = process.execute(inputs=inputs)
+remote = job.make_remote()
+remote.wait_on_result_ready()
+
+JOB_SUCCESSFUL_ID = job.json.get("jobID")
+JOB_SUCCESSFUL_URL = f"http://localhost:8080/api/retrieve/v1/jobs/{JOB_SUCCESSFUL_ID}"
+RESULT_SUCCESSFUL_URL = (
+    f"http://localhost:8080/api/retrieve/v1/jobs/{JOB_SUCCESSFUL_ID}/results"
+)
+RESULT_DATA_URL = "/Users/barghini/devel/COPDS/cads-api-client/adaptor.mars.internal-1663060875.360122-1279-12-0f258d44-636e-4102-8a07-5ea4f9f913a9.grib"
+
+RESULT_SUCCESSFUL_JSON = {
+    "asset": {
+        "value": {
+            "type": "application/netcdf",
+            "href": f"{RESULT_DATA_URL}",
+            "file:checksum": "e7d452a747061ab880887d88814bfb0c27593a73cb7736d2dc340852",
+            "file:size": 8,
+            "file:local_path": [
+                "/cache-store/",
+                "e7d452a747061ab880887d88814bfb0c27593a73cb7736d2dc340852.nc",
+            ],
+            "xarray:open_kwargs": {},
+            "xarray:storage_options": {},
+        }
+    }
+}
+
+JOB_SUCCESSFUL_JSON = {
+    "processID": f"{COLLECTION_ID}",
+    "type": "process",
+    "jobID": f"{JOB_SUCCESSFUL_ID}",
+    "status": "successful",
+    "created": "2022-09-02T17:30:48.201213",
+    "started": "2022-09-02T17:32:43.890617",
+    "finished": "2022-09-02T17:32:54.308120",
+    "updated": "2022-09-02T17:32:54.308116",
+    "links": [
+        {"href": f"{JOB_SUCCESSFUL_ID}", "rel": "self", "type": "application/json"},
+        {
+            "href": f"http://localhost:8080/api/retrieve/v1/jobs/{JOB_SUCCESSFUL_ID}/results",
+            "rel": "results",
+        },
+        {
+            "href": f"{JOB_SUCCESSFUL_URL}",
+            "rel": "monitor",
+            "type": "application/json",
+            "title": "job status info",
+        },
+    ],
+}
+
+with responses.RequestsMock() as rsps:
+
+    rsps.add(
+        responses.GET,
+        JOB_SUCCESSFUL_URL,
+        json=JOB_SUCCESSFUL_JSON,
+        content_type="application/json",
+    )
+
+    rsps.add(
+        responses.GET,
+        RESULT_SUCCESSFUL_URL,
+        json=RESULT_SUCCESSFUL_JSON,
+        content_type="application/json",
+    )
+
+    path = remote.download()

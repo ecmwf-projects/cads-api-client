@@ -1,0 +1,85 @@
+responses.add(
+        responses.GET,
+        url=RESULT_SUCCESSFUL_URL,
+        json=RESULT_SUCCESSFUL_JSON,
+        content_type="application/json",
+    )
+
+    with open('test_data.nc', 'rb') as f:
+        fr = f.read()
+        responses.add(
+            responses.HEAD,
+            DOWNLOAD_URL,
+            body=fr,
+            status=200,
+            content_type='image/jpg',
+            adding_headers={'Transfer-Encoding': 'chunked'},
+            stream=True,
+        )
+        responses.add(
+            responses.GET,
+            DOWNLOAD_URL,
+            body=fr,
+            status=200,
+            content_type='image/jpg',
+            adding_headers={'Transfer-Encoding': 'chunked'},
+            stream=True,
+        )
+
+        filename = remote.download("a")
+
+
+@responses.activate
+def test_downloads_file(self):
+    responses_add()
+
+    catalogue = cads_api_client.Catalogue(CATALOGUE_URL)
+    collection = catalogue.collection(COLLECTION_ID)
+    remote = collection.retrieve(variable="temperature", year="2022")
+
+    responses.add(
+        responses.GET,
+        url=JOB_SUCCESSFUL_URL,
+        json=JOB_SUCCESSFUL_JSON,
+        content_type="application/json",
+    )
+    remote.wait_on_result_ready()
+
+    responses.add(
+        responses.GET,
+        url=JOB_SUCCESSFUL_URL,
+        json=JOB_SUCCESSFUL_JSON,
+        content_type="application/json",
+    )
+
+    responses.add(
+        responses.GET,
+        url=JOB_SUCCESSFUL_URL,
+        json=JOB_SUCCESSFUL_JSON,
+        content_type="application/json",
+    )
+
+    remote._download_result("test")
+    return remote
+
+    with open('test_data.nc', 'rb') as f:
+        responses.add(
+            responses.get,
+            DOWNLOAD_URL,
+            body=f.read(),
+            status=200,
+            content_type='image/jpg',
+            adding_headers={'Transfer-Encoding': 'chunked'},
+            stream=True,
+        )
+        responses.add(
+            responses.HEAD,
+            DOWNLOAD_URL,
+            body=f.read(),
+            status=200,
+            content_type='image/jpg',
+            adding_headers={'Transfer-Encoding': 'chunked'},
+            stream=True,
+        )
+
+        filename = remote.download(url)
