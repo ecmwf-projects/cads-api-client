@@ -8,9 +8,9 @@ JOB_RUNNING_ID = "9bfc1362-2832-48e1-a235-359267420bb1"
 JOB_SUCCESSFUL_ID = "9bfc1362-2832-48e1-a235-359267420bb2"
 
 CATALOGUE_URL = "http://localhost:8080/api/catalogue"
-COLLECTIONS_URL = "http://localhost:8080/api/catalogue/v1/collections"
+COLLECTIONS_URL = "http://localhost:8080/api/catalogue/v1/datasets"
 COLLECTION_URL = (
-    "http://localhost:8080/api/catalogue/v1/collections/reanalysis-era5-pressure-levels"
+    "http://localhost:8080/api/catalogue/v1/datasets/reanalysis-era5-pressure-levels"
 )
 PROCESS_URL = f"http://localhost:8080/api/retrieve/v1/processes/{COLLECTION_ID}"
 EXECUTE_URL = f"{PROCESS_URL}/execute"
@@ -79,7 +79,7 @@ COLLECTION_JSON = {
         {
             "rel": "self",
             "type": "application/json",
-            "href": "http://localhost:8080/api/catalogue/v1/collections/reanalysis-era5-pressure-levels",
+            "href": "http://localhost:8080/api/catalogue/v1/datasets/reanalysis-era5-pressure-levels",
         },
         {
             "rel": "parent",
@@ -98,7 +98,7 @@ COLLECTION_JSON = {
         },
         {
             "rel": "related",
-            "href": "http://localhost:8080/api/catalogue/v1/collections/reanalysis-era5-single-levels",
+            "href": "http://localhost:8080/api/catalogue/v1/datasets/reanalysis-era5-single-levels",
         },
     ],
     "tmp:variables": {

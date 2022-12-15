@@ -34,7 +34,7 @@ class ApiClient:
     def collection(self, collection_id: str) -> catalogue.Collection:
         return self.catalogue_api.collection(collection_id)
 
-    def processes(self, **params: Dict[str, Any]):
+    def processes(self, **params: Dict[str, Any]) -> processing.ProcessList:
         return self.retrieve_api.processes(params=params)
 
     def process(self, process_id: str) -> processing.Process:
@@ -50,7 +50,7 @@ class ApiClient:
         collection = self.collection(collection_id)
         return collection.retrieve(target, retry_options=retry_options, **request)
 
-    def get_requests(self, **params) -> processing.JobList:
+    def get_requests(self, **params: dict[str, Any]) -> processing.JobList:
         return self.retrieve_api.jobs(params=params)
 
     def get_request(self, request_uid: str) -> processing.StatusInfo:

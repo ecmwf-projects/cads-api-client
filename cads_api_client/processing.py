@@ -60,7 +60,7 @@ class ApiResponse:
             raise RuntimeError(f"link not found or not unique {kwargs}")
         return links[0]["href"]
 
-    def from_rel_href(self, rel) -> Optional[T_ApiResponse]:
+    def from_rel_href(self, rel: str) -> Optional[ApiResponse]:
         rels = self.get_links(rel=rel)
         assert len(rels) <= 1
         if len(rels) == 1:
@@ -75,10 +75,10 @@ class ProcessList(ApiResponse):
     def process_ids(self) -> List[str]:
         return [proc["id"] for proc in self.json["processes"]]
 
-    def next(self) -> Optional[T_ApiResponse]:
+    def next(self) -> Optional[ApiResponse]:
         return self.from_rel_href(rel="next")
 
-    def prev(self) -> Optional[T_ApiResponse]:
+    def prev(self) -> Optional[ApiResponse]:
         return self.from_rel_href(rel="prev")
 
 
@@ -208,10 +208,10 @@ class JobList(ApiResponse):
     def job_ids(self) -> List[str]:
         return [job["jobID"] for job in self.json["jobs"]]
 
-    def next(self) -> Optional[T_ApiResponse]:
+    def next(self) -> Optional[ApiResponse]:
         return self.from_rel_href(rel="next")
 
-    def prev(self) -> Optional[T_ApiResponse]:
+    def prev(self) -> Optional[ApiResponse]:
         return self.from_rel_href(rel="prev")
 
 
