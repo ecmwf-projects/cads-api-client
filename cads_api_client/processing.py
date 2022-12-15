@@ -60,11 +60,26 @@ class ApiResponse:
             raise RuntimeError(f"link not found or not unique {kwargs}")
         return links[0]["href"]
 
+    def from_rel_href(self, rel) -> Optional[T_ApiResponse]:
+        rels = self.get_links(rel=rel)
+        assert len(rels) <= 1
+        if len(rels) == 1:
+            out = self.from_request("get", url=rels[0]["href"])
+        else:
+            out = None
+        return out
+
 
 @attrs.define
 class ProcessList(ApiResponse):
     def process_ids(self) -> List[str]:
         return [proc["id"] for proc in self.json["processes"]]
+
+    def next(self) -> Optional[T_ApiResponse]:
+        return self.from_rel_href(rel="next")
+
+    def prev(self) -> Optional[T_ApiResponse]:
+        return self.from_rel_href(rel="prev")
 
 
 @attrs.define
@@ -193,6 +208,12 @@ class JobList(ApiResponse):
     def job_ids(self) -> List[str]:
         return [job["jobID"] for job in self.json["jobs"]]
 
+    def next(self) -> Optional[T_ApiResponse]:
+        return self.from_rel_href(rel="next")
+
+    def prev(self) -> Optional[T_ApiResponse]:
+        return self.from_rel_href(rel="prev")
+
 
 @attrs.define
 class Results(ApiResponse):
@@ -261,9 +282,9 @@ class Processing:
         self.url = url
         self.headers = headers
 
-    def processes(self) -> ProcessList:
+    def processes(self, params: Dict[str, Any] = {}) -> ProcessList:
         url = f"{self.url}/processes"
-        return ProcessList.from_request("get", url)
+        return ProcessList.from_request("get", url, params=params)
 
     def process(self, process_id: str) -> Process:
         url = f"{self.url}/processes/{process_id}"
@@ -283,9 +304,9 @@ class Processing:
             **kwargs,
         )
 
-    def jobs(self) -> JobList:
+    def jobs(self, params: Dict[str, Any] = {}) -> JobList:
         url = f"{self.url}/jobs"
-        return JobList.from_request("get", url, headers=self.headers)
+        return JobList.from_request("get", url, params=params, headers=self.headers)
 
     def job(self, job_id: str) -> StatusInfo:
         url = f"{self.url}/jobs/{job_id}"
