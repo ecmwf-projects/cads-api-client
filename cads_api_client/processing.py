@@ -84,6 +84,12 @@ class Process(ApiResponse):
             "post", url, json={"inputs": inputs}, headers=self.headers, **kwargs
         )
 
+    def valid_values(self, request: dict[str, Any] = {}) -> dict[str, Any]:
+        url = f"{self.response.request.url}/constraints"
+        response = ApiResponse.from_request("post", url, json={"inputs": request})
+        response.response.raise_for_status()
+        return response.json
+
 
 class Remote:
     def __init__(self, url: str, sleep_max: int = 120, headers: Dict[str, Any] = {}):

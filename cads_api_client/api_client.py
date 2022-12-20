@@ -56,3 +56,9 @@ class ApiClient:
         return self.retrieve_api.download_result(
             request_uid, target, retry_options=retry_options
         )
+
+    def valid_values(
+        self, collection_id: str, request: dict[str, Any]
+    ) -> dict[str, Any]:
+        process = self.retrieve_api.process(collection_id)
+        return process.valid_values(request)
