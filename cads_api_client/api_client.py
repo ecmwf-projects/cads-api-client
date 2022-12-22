@@ -4,7 +4,7 @@ from typing import Any, Dict, Optional
 
 import attrs
 
-from . import catalogue, processing
+from . import catalogue, processing, profile
 
 CADS_API_URL = os.getenv("CADS_API_URL", "http://localhost:8080/api")
 CADS_API_KEY = os.getenv("CADS_API_KEY")
@@ -27,6 +27,10 @@ class ApiClient:
     @functools.cached_property
     def retrieve_api(self) -> processing.Processing:
         return processing.Processing(f"{self.url}/retrieve", headers=self._headers())
+
+    @functools.cached_property
+    def profile_api(self) -> profile.Profile:
+        return profile.Profile(f"{self.url}/profiles", headers=self._headers())
 
     def collections(self) -> catalogue.Collections:
         return self.catalogue_api.collections()
@@ -56,3 +60,13 @@ class ApiClient:
         return self.retrieve_api.download_result(
             request_uid, target, retry_options=retry_options
         )
+
+    def licences(self):
+        return self.catalogue_api.licenses()
+
+    def accepted_licenses(self) -> dict[str, Any]:
+        return self.profile_api.accepted_licences()
+
+    def accept_license(self, licence_id: str) -> dict[str, Any]:
+        return self.profile_api.accepted_licenses()
+

@@ -66,3 +66,7 @@ class Catalogue:
     def collection(self, collection_id: str) -> Collection:
         url = f"{self.url}/collections/{collection_id}"
         return Collection.from_request("get", url, headers=self.headers)
+
+    def licenses(self):
+        url = f"{self.url}/vocabularies/licences"
+        return processing.ApiResponse.from_request("get", url, headers=self.headers).json
