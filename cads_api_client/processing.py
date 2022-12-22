@@ -80,7 +80,7 @@ class Process(ApiResponse):
     def execute(
         self,
         inputs: Dict[str, Any],
-        accepted_licences: dict[str, any] = {},
+        accepted_licences: list[dict[str, any]] = [],
         **kwargs: Any,
     ) -> StatusInfo:
         assert "json" not in kwargs

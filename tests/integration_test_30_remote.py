@@ -1,4 +1,6 @@
 import py
+import pytest
+import requests
 
 from cads_api_client import catalogue, processing
 
@@ -114,3 +116,27 @@ def test_collection_retrieve_with_url_adaptor(
 
     assert isinstance(res, str)
     assert res.endswith(target)
+
+
+def test_collection_missing_licence(
+    api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
+) -> None:
+    collection_id = "reanalysis-era5-pressure-levels"
+    headers = {"PRIVATE-TOKEN": api_key}
+
+    cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
+    dataset = cat.collection(collection_id)
+    target = str(tmpdir.join("era5.grib"))
+
+    with pytest.raises(requests.exceptions.HTTPError, match="403 Client Error"):
+        dataset.retrieve(
+            product_type="reanalysis",
+            variable="temperature",
+            year=request_year,
+            month="01",
+            day="02",
+            time="00:00",
+            level="1000",
+            target=target,
+            retry_options={"maximum_tries": 0},
+        )
