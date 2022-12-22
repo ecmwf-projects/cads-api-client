@@ -95,11 +95,14 @@ def test_collection_retrieve_with_url_adaptor(
 ) -> None:
     collection_id = "derived-near-surface-meteorological-variables"
     headers = {"PRIVATE-TOKEN": api_key}
+    accepted_licences = [{"id": "licence-to-use-copernicus-products", "revision": 12}]
+
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
     target = str(tmpdir.join("wfde.zip"))
 
     res = dataset.retrieve(
+        accepted_licences=accepted_licences,
         variable="surface_downwelling_longwave_radiation",
         reference_dataset="cru",
         year=request_year,
@@ -111,4 +114,3 @@ def test_collection_retrieve_with_url_adaptor(
 
     assert isinstance(res, str)
     assert res.endswith(target)
-
