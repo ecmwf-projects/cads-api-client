@@ -103,3 +103,40 @@ def test_collection_retrieve_with_url_adaptor(
 
     assert isinstance(res, str)
     assert res.endswith(target)
+
+
+def test_jobs_list(api_root_url: str, api_key: str, request_year: str) -> None:
+
+    collection_id = "reanalysis-era5-pressure-levels"
+    headers = {"PRIVATE-TOKEN": api_key}
+    proc = processing.Processing(f"{api_root_url}/retrieve", headers=headers)
+    process = proc.process(collection_id)
+
+    _ = process.execute(
+        inputs=dict(
+            product_type="reanalysis",
+            variable="temperature",
+            year=request_year,
+            month="01",
+            day="01",
+            time="00:00",
+            level="1000",
+        )
+    )
+    _ = process.execute(
+        inputs=dict(
+            product_type="reanalysis",
+            variable="temperature",
+            year=request_year,
+            month="02",
+            day="01",
+            time="00:00",
+            level="1000",
+        )
+    )
+
+    res = proc.jobs().json
+    assert len(res["jobs"]) > 2
+
+    res = proc.jobs(params={"limit": 1}).json
+    assert len(res["jobs"]) == 1
