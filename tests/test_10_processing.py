@@ -254,7 +254,12 @@ def responses_add() -> None:
         url=EXECUTE_URL,
         json=JOB_SUCCESSFUL_JSON,
         match=[
-            json_params_matcher({"inputs": {"variable": "temperature", "year": "2022"}})
+            json_params_matcher(
+                {
+                    "inputs": {"variable": "temperature", "year": "2022"},
+                    "acceptedLicences": [],
+                }
+            )
         ],
         content_type="application/json",
     )

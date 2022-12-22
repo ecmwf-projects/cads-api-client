@@ -77,11 +77,17 @@ class Process(ApiResponse):
         assert isinstance(process_id, str)
         return process_id
 
-    def execute(self, inputs: Dict[str, Any], **kwargs: Any) -> StatusInfo:
+    def execute(
+        self,
+        inputs: Dict[str, Any],
+        accepted_licences: list[dict[str, Any]] = [],
+        **kwargs: Any,
+    ) -> StatusInfo:
         assert "json" not in kwargs
         url = f"{self.response.request.url}/execute"
+        json = {"inputs": inputs, "acceptedLicences": accepted_licences}
         return StatusInfo.from_request(
-            "post", url, json={"inputs": inputs}, headers=self.headers, **kwargs
+            "post", url, json=json, headers=self.headers, **kwargs
         )
 
     def valid_values(self, request: dict[str, Any] = {}) -> dict[str, Any]:
