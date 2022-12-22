@@ -34,7 +34,7 @@ class Collection(processing.ApiResponse):
         return processing.Process.from_request("get", url, headers=self.headers)
 
     def submit(
-        self, accepted_licences: list[dict[str, any]] = [], **request: Any
+        self, accepted_licences: list[dict[str, Any]] = [], **request: Any
     ) -> processing.Remote:
         retrieve_process = self.retrieve_process()
         status_info = retrieve_process.execute(
