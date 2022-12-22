@@ -43,7 +43,12 @@ class ApiClient:
         **request: Any,
     ) -> str:
         collection = self.collection(collection_id)
-        return collection.retrieve(target, retry_options=retry_options, accepted_licences=accepted_licences, **request)
+        return collection.retrieve(
+            target,
+            retry_options=retry_options,
+            accepted_licences=accepted_licences,
+            **request,
+        )
 
     def get_requests(self) -> processing.JobList:
         return self.retrieve_api.jobs()
