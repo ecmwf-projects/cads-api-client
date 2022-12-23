@@ -11,6 +11,12 @@ class Collections(processing.ApiResponse):
     def collection_ids(self) -> List[str]:
         return [collection["id"] for collection in self.json["collections"]]
 
+    def next(self) -> Optional[processing.ApiResponse]:
+        return self.from_rel_href(rel="next")
+
+    def prev(self) -> Optional[processing.ApiResponse]:
+        return self.from_rel_href(rel="prev")
+
 
 @attrs.define
 class Collection(processing.ApiResponse):
@@ -33,18 +39,23 @@ class Collection(processing.ApiResponse):
         url = self.get_link_href(rel="retrieve")
         return processing.Process.from_request("get", url, headers=self.headers)
 
-    def submit(self, **request: Any) -> processing.Remote:
+    def submit(
+        self, accepted_licences: list[dict[str, Any]] = [], **request: Any
+    ) -> processing.Remote:
         retrieve_process = self.retrieve_process()
-        status_info = retrieve_process.execute(inputs=request)
+        status_info = retrieve_process.execute(
+            inputs=request, accepted_licences=accepted_licences
+        )
         return status_info.make_remote()
 
     def retrieve(
         self,
         target: Optional[str] = None,
-        retry_options: Dict[str, Any] = {},
+        retry_options: dict[str, Any] = {},
+        accepted_licences: list[dict[str, Any]] = [],
         **request: Any,
     ) -> str:
-        remote = self.submit(**request)
+        remote = self.submit(accepted_licences=accepted_licences, **request)
         return remote.download(target, retry_options=retry_options)
 
 
@@ -59,9 +70,9 @@ class Catalogue:
         self.url = url
         self.headers = headers
 
-    def collections(self) -> Collections:
-        url = f"{self.url}/collections"
-        return Collections.from_request("get", url)
+    def collections(self, params: Dict[str, Any] = {}) -> Collections:
+        url = f"{self.url}/datasets"
+        return Collections.from_request("get", url, params=params)
 
     def collection(self, collection_id: str) -> Collection:
         url = f"{self.url}/collections/{collection_id}"
