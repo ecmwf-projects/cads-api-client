@@ -1,6 +1,6 @@
 import functools
 import os
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 import attrs
 
@@ -15,7 +15,7 @@ class ApiClient:
     key: Optional[str] = CADS_API_KEY
     url: str = CADS_API_URL
 
-    def _headers(self) -> Dict[str, str]:
+    def _headers(self) -> dict[str, str]:
         if self.key is None:
             raise ValueError("A valid API key is needed to access this resource")
         return {"PRIVATE-TOKEN": self.key}
@@ -28,19 +28,17 @@ class ApiClient:
     def retrieve_api(self) -> processing.Processing:
         return processing.Processing(f"{self.url}/retrieve", headers=self._headers())
 
-    def collections(self, **params: Dict[str, Any]) -> catalogue.Collections:
+    def collections(self, **params: dict[str, Any]) -> catalogue.Collections:
         return self.catalogue_api.collections(params=params)
-    @functools.cached_property
-    def profile_api(self) -> profile.Profile:
-        return profile.Profile(f"{self.url}/profiles", headers=self._headers())
-
-    def collections(self) -> catalogue.Collections:
-        return self.catalogue_api.collections()
 
     def collection(self, collection_id: str) -> catalogue.Collection:
         return self.catalogue_api.collection(collection_id)
 
-    def processes(self, **params: Dict[str, Any]) -> processing.ProcessList:
+    @functools.cached_property
+    def profile_api(self) -> profile.Profile:
+        return profile.Profile(f"{self.url}/profiles", headers=self._headers())
+
+    def processes(self, **params: dict[str, Any]) -> processing.ProcessList:
         return self.retrieve_api.processes(params=params)
 
     def process(self, process_id: str) -> processing.Process:
@@ -69,7 +67,7 @@ class ApiClient:
         return self.retrieve_api.job(request_uid)
 
     def download_result(
-        self, request_uid: str, target: Optional[str], retry_options: Dict[str, Any]
+        self, request_uid: str, target: Optional[str], retry_options: dict[str, Any]
     ) -> str:
         return self.retrieve_api.download_result(
             request_uid, target, retry_options=retry_options
@@ -81,7 +79,7 @@ class ApiClient:
         process = self.retrieve_api.process(collection_id)
         return process.valid_values(request)
 
-    def licences(self):
+    def licences(self) -> dict[str, Any]:
         return self.catalogue_api.licenses()
 
     @property
@@ -90,4 +88,3 @@ class ApiClient:
 
     def accept_licence(self, licence_id: str) -> dict[str, Any]:
         return self.profile_api.accept_licence(licence_id)
-

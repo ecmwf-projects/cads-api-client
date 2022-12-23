@@ -119,10 +119,10 @@ def test_collection_retrieve_with_url_adaptor(
 
 
 def test_collection_missing_licence(
-    api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
+    api_root_url: str, request_year: str, tmpdir: py.path.local
 ) -> None:
     collection_id = "reanalysis-era5-pressure-levels"
-    headers = {"PRIVATE-TOKEN": api_key}
+    headers = {"PRIVATE-TOKEN": "00112233-4455-6677-c899-aabbccddeeff"}
 
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
@@ -160,7 +160,7 @@ def test_jobs_list(api_root_url: str, api_key: str, request_year: str) -> None:
             day="01",
             time="00:00",
             level="1000",
-        )
+        ),
     )
     _ = process.execute(
         accepted_licences=accepted_licences,
@@ -172,7 +172,7 @@ def test_jobs_list(api_root_url: str, api_key: str, request_year: str) -> None:
             day="01",
             time="00:00",
             level="1000",
-        )
+        ),
     )
 
     res = proc.jobs().json

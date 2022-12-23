@@ -1,5 +1,5 @@
 import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import attrs
 
@@ -8,7 +8,7 @@ from . import processing
 
 @attrs.define
 class Collections(processing.ApiResponse):
-    def collection_ids(self) -> List[str]:
+    def collection_ids(self) -> list[str]:
         return [collection["id"] for collection in self.json["collections"]]
 
     def next(self) -> Optional[processing.ApiResponse]:
@@ -20,7 +20,7 @@ class Collections(processing.ApiResponse):
 
 @attrs.define
 class Collection(processing.ApiResponse):
-    headers: Dict[str, Any] = {}
+    headers: dict[str, Any] = {}
 
     def end_datetime(self) -> datetime.datetime:
         try:
@@ -63,14 +63,14 @@ class Catalogue:
     supported_api_version = "v1"
 
     def __init__(
-        self, url: str, force_exact_url: bool = False, headers: Dict[str, Any] = {}
+        self, url: str, force_exact_url: bool = False, headers: dict[str, Any] = {}
     ) -> None:
         if not force_exact_url:
             url = f"{url}/{self.supported_api_version}"
         self.url = url
         self.headers = headers
 
-    def collections(self, params: Dict[str, Any] = {}) -> Collections:
+    def collections(self, params: dict[str, Any] = {}) -> Collections:
         url = f"{self.url}/datasets"
         return Collections.from_request("get", url, params=params)
 
@@ -78,6 +78,8 @@ class Catalogue:
         url = f"{self.url}/collections/{collection_id}"
         return Collection.from_request("get", url, headers=self.headers)
 
-    def licenses(self):
+    def licenses(self) -> dict[str, Any]:
         url = f"{self.url}/vocabularies/licences"
-        return processing.ApiResponse.from_request("get", url, headers=self.headers).json
+        return processing.ApiResponse.from_request(
+            "get", url, headers=self.headers
+        ).json
