@@ -28,6 +28,8 @@ class ApiClient:
     def retrieve_api(self) -> processing.Processing:
         return processing.Processing(f"{self.url}/retrieve", headers=self._headers())
 
+    def collections(self, **params: Dict[str, Any]) -> catalogue.Collections:
+        return self.catalogue_api.collections(params=params)
     @functools.cached_property
     def profile_api(self) -> profile.Profile:
         return profile.Profile(f"{self.url}/profiles", headers=self._headers())
@@ -38,18 +40,30 @@ class ApiClient:
     def collection(self, collection_id: str) -> catalogue.Collection:
         return self.catalogue_api.collection(collection_id)
 
+    def processes(self, **params: Dict[str, Any]) -> processing.ProcessList:
+        return self.retrieve_api.processes(params=params)
+
+    def process(self, process_id: str) -> processing.Process:
+        return self.retrieve_api.process(process_id=process_id)
+
     def retrieve(
         self,
         collection_id: str,
         target: Optional[str] = None,
-        retry_options: Dict[str, Any] = {},
+        retry_options: dict[str, Any] = {},
+        accepted_licences: list[dict[str, Any]] = [],
         **request: Any,
     ) -> str:
         collection = self.collection(collection_id)
-        return collection.retrieve(target, retry_options=retry_options, **request)
+        return collection.retrieve(
+            target,
+            retry_options=retry_options,
+            accepted_licences=accepted_licences,
+            **request,
+        )
 
-    def get_requests(self) -> processing.JobList:
-        return self.retrieve_api.jobs()
+    def get_requests(self, **params: dict[str, Any]) -> processing.JobList:
+        return self.retrieve_api.jobs(params=params)
 
     def get_request(self, request_uid: str) -> processing.StatusInfo:
         return self.retrieve_api.job(request_uid)
@@ -60,6 +74,12 @@ class ApiClient:
         return self.retrieve_api.download_result(
             request_uid, target, retry_options=retry_options
         )
+
+    def valid_values(
+        self, collection_id: str, request: dict[str, Any]
+    ) -> dict[str, Any]:
+        process = self.retrieve_api.process(collection_id)
+        return process.valid_values(request)
 
     def licences(self):
         return self.catalogue_api.licenses()

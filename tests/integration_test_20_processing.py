@@ -27,3 +27,12 @@ def test_process(api_root_url: str) -> None:
     assert res.id == process_id
     assert "links" in res.json
     assert isinstance(res.json["links"], list)
+
+
+def test_validate_constraints(api_root_url: str) -> None:
+    process_id = "reanalysis-era5-land-monthly-means"
+    proc = processing.Processing(f"{api_root_url}/retrieve")
+    process = proc.process(process_id)
+    res = process.valid_values({})
+
+    assert set(["product_type", "variable", "year", "month", "time"]) <= set(res)

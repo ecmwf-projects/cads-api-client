@@ -21,7 +21,8 @@ Draft Python API:
 >>> collection.end_datetime()
 datetime.datetime(2022, 7, 20, 23, 0)
 >>> remote = client.retrieve(
-...     "reanalysis-era5-pressure-levels",
+...     accepted_licences=[{"id": "licence-to-use-copernicus-products", "revision": 12}],
+...     collection_id="reanalysis-era5-pressure-levels",
 ...     product_type="reanalysis",
 ...     variable="temperature",
 ...     year="2022",
@@ -32,6 +33,7 @@ datetime.datetime(2022, 7, 20, 23, 0)
 ...     target="tmp1-era5.grib",
 ... )  # blocks
 >>> remote = collection.submit(
+...     accepted_licences=[{"id": "licence-to-use-copernicus-products", "revision": 12}],
 ...     variable="temperature",
 ...     product_type="reanalysis",
 ...     year="2021",
@@ -56,15 +58,18 @@ Advanced usage:
 >>> cads_api_root_url = client.url
 >>> processing = cads_api_client.Processing(f"{cads_api_root_url}/retrieve", headers=headers)
 >>> process = processing.process("reanalysis-era5-pressure-levels")
->>> status_info = process.execute(inputs={
-...     "variable": "temperature",
-...     "product_type": "reanalysis",
-...     "year": "2022",
-...     "month": "01",
-...     "day": "03",
-...     "time": "00:00",
-...     "level": "1000",
-... })  # doesn't block
+>>> status_info = process.execute(
+...     inputs={
+...         "variable": "temperature",
+...         "product_type": "reanalysis",
+...         "year": "2022",
+...         "month": "01",
+...         "day": "03",
+...         "time": "00:00",
+...         "level": "1000",
+...     },
+...     accepted_licences=[{"id": "licence-to-use-copernicus-products", "revision": 12}],
+... )  # doesn't block
 >>> remote = status_info.make_remote()
 >>> remote_url = remote.url
 >>> remote.request_uid
