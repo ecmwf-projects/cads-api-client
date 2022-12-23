@@ -44,11 +44,17 @@ class ApiClient:
         self,
         collection_id: str,
         target: Optional[str] = None,
-        retry_options: Dict[str, Any] = {},
+        retry_options: dict[str, Any] = {},
+        accepted_licences: list[dict[str, Any]] = [],
         **request: Any,
     ) -> str:
         collection = self.collection(collection_id)
-        return collection.retrieve(target, retry_options=retry_options, **request)
+        return collection.retrieve(
+            target,
+            retry_options=retry_options,
+            accepted_licences=accepted_licences,
+            **request,
+        )
 
     def get_requests(self, **params: dict[str, Any]) -> processing.JobList:
         return self.retrieve_api.jobs(params=params)
