@@ -79,6 +79,7 @@ class ApiClient:
         process = self.retrieve_api.process(collection_id)
         return process.valid_values(request)
 
+    @property
     def licences(self) -> dict[str, Any]:
         return self.catalogue_api.licenses()
 
