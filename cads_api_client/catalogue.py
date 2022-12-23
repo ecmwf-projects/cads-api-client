@@ -11,6 +11,12 @@ class Collections(processing.ApiResponse):
     def collection_ids(self) -> List[str]:
         return [collection["id"] for collection in self.json["collections"]]
 
+    def next(self) -> Optional[processing.ApiResponse]:
+        return self.from_rel_href(rel="next")
+
+    def prev(self) -> Optional[processing.ApiResponse]:
+        return self.from_rel_href(rel="prev")
+
 
 @attrs.define
 class Collection(processing.ApiResponse):
@@ -64,9 +70,9 @@ class Catalogue:
         self.url = url
         self.headers = headers
 
-    def collections(self) -> Collections:
-        url = f"{self.url}/collections"
-        return Collections.from_request("get", url)
+    def collections(self, params: Dict[str, Any] = {}) -> Collections:
+        url = f"{self.url}/datasets"
+        return Collections.from_request("get", url, params=params)
 
     def collection(self, collection_id: str) -> Collection:
         url = f"{self.url}/collections/{collection_id}"

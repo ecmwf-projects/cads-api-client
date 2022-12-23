@@ -28,11 +28,17 @@ class ApiClient:
     def retrieve_api(self) -> processing.Processing:
         return processing.Processing(f"{self.url}/retrieve", headers=self._headers())
 
-    def collections(self) -> catalogue.Collections:
-        return self.catalogue_api.collections()
+    def collections(self, **params: Dict[str, Any]) -> catalogue.Collections:
+        return self.catalogue_api.collections(params=params)
 
     def collection(self, collection_id: str) -> catalogue.Collection:
         return self.catalogue_api.collection(collection_id)
+
+    def processes(self, **params: Dict[str, Any]) -> processing.ProcessList:
+        return self.retrieve_api.processes(params=params)
+
+    def process(self, process_id: str) -> processing.Process:
+        return self.retrieve_api.process(process_id=process_id)
 
     def retrieve(
         self,
@@ -50,8 +56,8 @@ class ApiClient:
             **request,
         )
 
-    def get_requests(self) -> processing.JobList:
-        return self.retrieve_api.jobs()
+    def get_requests(self, **params: dict[str, Any]) -> processing.JobList:
+        return self.retrieve_api.jobs(params=params)
 
     def get_request(self, request_uid: str) -> processing.StatusInfo:
         return self.retrieve_api.job(request_uid)
