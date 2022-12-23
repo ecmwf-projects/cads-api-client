@@ -26,7 +26,6 @@ class Profile:
 
     def accepted_licences(self):
         url = f"{self.url}/account/licences"
-        print(self.headers)
         response = processing.ApiResponse.from_request("get", url, headers=self.headers)
         return response.json
 

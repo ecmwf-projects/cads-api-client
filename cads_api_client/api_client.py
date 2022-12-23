@@ -64,9 +64,10 @@ class ApiClient:
     def licences(self):
         return self.catalogue_api.licenses()
 
-    def accepted_licenses(self) -> dict[str, Any]:
+    @property
+    def accepted_licences(self) -> dict[str, Any]:
         return self.profile_api.accepted_licences()
 
-    def accept_license(self, licence_id: str) -> dict[str, Any]:
-        return self.profile_api.accepted_licenses()
+    def accept_licence(self, licence_id: str) -> dict[str, Any]:
+        return self.profile_api.accept_licence(licence_id)
 
