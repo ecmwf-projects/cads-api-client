@@ -24,18 +24,6 @@ class DownloadError(RuntimeError):
     pass
 
 
-def _raise_for_status(response: requests.Response) -> None:
-
-    try:
-        response.raise_for_status()
-    except requests.exceptions.RequestException as ex:
-        try:
-            details = response.json()
-        except Exception:
-            details = ""
-        raise type(ex)(f"{str(ex)} {details}")
-
-
 @attrs.define(slots=False)
 class ApiResponse:
     response: requests.Response
