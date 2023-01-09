@@ -117,6 +117,20 @@ def test_collection_retrieve_with_url_adaptor(
     assert isinstance(res, str)
     assert res.endswith(target)
 
+    res = dataset.retrieve(
+        accepted_licences=accepted_licences,
+        version="2.1",
+        variable="snowfall_flux",
+        reference_dataset="cru_and_gpcc",
+        year="2019",
+        month=["07", "08"],
+        target=target,
+        retry_options={"maximum_tries": 0},
+    )
+
+    assert isinstance(res, str)
+    assert res.endswith(target)
+
 
 def test_collection_missing_licence(
     api_root_url: str, request_year: str, tmpdir: py.path.local
