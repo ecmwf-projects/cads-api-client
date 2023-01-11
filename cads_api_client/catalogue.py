@@ -1,5 +1,5 @@
 import datetime
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 import attrs
 
@@ -8,7 +8,7 @@ from . import processing
 
 @attrs.define
 class Collections(processing.ApiResponse):
-    def collection_ids(self) -> list[str]:
+    def collection_ids(self) -> List[str]:
         return [collection["id"] for collection in self.json["collections"]]
 
     def next(self) -> Optional[processing.ApiResponse]:
@@ -40,7 +40,7 @@ class Collection(processing.ApiResponse):
         return processing.Process.from_request("get", url, headers=self.headers)
 
     def submit(
-        self, accepted_licences: list[dict[str, Any]] = [], **request: Any
+        self, accepted_licences: List[dict[str, Any]] = [], **request: Any
     ) -> processing.Remote:
         retrieve_process = self.retrieve_process()
         status_info = retrieve_process.execute(
@@ -52,7 +52,7 @@ class Collection(processing.ApiResponse):
         self,
         target: Optional[str] = None,
         retry_options: dict[str, Any] = {},
-        accepted_licences: list[dict[str, Any]] = [],
+        accepted_licences: List[dict[str, Any]] = [],
         **request: Any,
     ) -> str:
         remote = self.submit(accepted_licences=accepted_licences, **request)

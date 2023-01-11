@@ -5,7 +5,7 @@ import logging
 import os
 import time
 import urllib
-from typing import Any, Optional, Type, TypeVar
+from typing import Any, List, Optional, Type, TypeVar
 
 import attrs
 import multiurl
@@ -47,7 +47,7 @@ class ApiResponse:
     def json(self) -> dict[str, Any]:
         return self.response.json()  # type: ignore
 
-    def get_links(self, rel: Optional[str] = None) -> list[dict[str, str]]:
+    def get_links(self, rel: Optional[str] = None) -> List[dict[str, str]]:
         links = []
         for link in self.json.get("links", []):
             if rel is not None and link.get("rel") == rel:
@@ -72,7 +72,7 @@ class ApiResponse:
 
 @attrs.define
 class ProcessList(ApiResponse):
-    def process_ids(self) -> list[str]:
+    def process_ids(self) -> List[str]:
         return [proc["id"] for proc in self.json["processes"]]
 
     def next(self) -> Optional[ApiResponse]:
@@ -95,7 +95,7 @@ class Process(ApiResponse):
     def execute(
         self,
         inputs: dict[str, Any],
-        accepted_licences: list[dict[str, Any]] = [],
+        accepted_licences: List[dict[str, Any]] = [],
         **kwargs: Any,
     ) -> StatusInfo:
         assert "json" not in kwargs
@@ -211,7 +211,7 @@ class StatusInfo(ApiResponse):
 
 @attrs.define
 class JobList(ApiResponse):
-    def job_ids(self) -> list[str]:
+    def job_ids(self) -> List[str]:
         return [job["jobID"] for job in self.json["jobs"]]
 
     def next(self) -> Optional[ApiResponse]:

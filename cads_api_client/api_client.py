@@ -1,6 +1,6 @@
 import functools
 import os
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 import attrs
 
@@ -49,7 +49,7 @@ class ApiClient:
         collection_id: str,
         target: Optional[str] = None,
         retry_options: dict[str, Any] = {},
-        accepted_licences: list[dict[str, Any]] = [],
+        accepted_licences: List[dict[str, Any]] = [],
         **request: Any,
     ) -> str:
         collection = self.collection(collection_id)
