@@ -101,7 +101,7 @@ def test_collection_retrieve_with_url_adaptor(
 
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
-    target = str(tmpdir.join("wfde.zip"))
+    target = str(tmpdir.join("wfde1.zip"))
 
     res = dataset.retrieve(
         accepted_licences=accepted_licences,
@@ -117,15 +117,15 @@ def test_collection_retrieve_with_url_adaptor(
     assert isinstance(res, str)
     assert res.endswith(target)
 
+    target = str(tmpdir.join("wfde2.zip"))
+
     res = dataset.retrieve(
         accepted_licences=accepted_licences,
+        variable="grid_point_altitude",
+        reference_dataset="cru",
         version="2.1",
-        variable="snowfall_flux",
-        reference_dataset="cru_and_gpcc",
-        year="2019",
-        month=["07", "08"],
+        format="zip",
         target=target,
-        retry_options={"maximum_tries": 0},
     )
 
     assert isinstance(res, str)
