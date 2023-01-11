@@ -5,7 +5,7 @@ import logging
 import os
 import time
 import urllib
-from typing import Any, Optional, Type, TypeVar
+from typing import Any, Dict, List, Optional, Type, TypeVar
 
 import attrs
 import multiurl
@@ -27,7 +27,7 @@ class DownloadError(RuntimeError):
 @attrs.define(slots=False)
 class ApiResponse:
     response: requests.Response
-    headers: dict[str, Any] = {}
+    headers: Dict[str, Any] = {}
 
     @classmethod
     def from_request(
@@ -44,10 +44,10 @@ class ApiResponse:
         return self
 
     @functools.cached_property
-    def json(self) -> dict[str, Any]:
+    def json(self) -> Dict[str, Any]:
         return self.response.json()  # type: ignore
 
-    def get_links(self, rel: Optional[str] = None) -> list[dict[str, str]]:
+    def get_links(self, rel: Optional[str] = None) -> List[Dict[str, str]]:
         links = []
         for link in self.json.get("links", []):
             if rel is not None and link.get("rel") == rel:
@@ -72,7 +72,7 @@ class ApiResponse:
 
 @attrs.define
 class ProcessList(ApiResponse):
-    def process_ids(self) -> list[str]:
+    def process_ids(self) -> List[str]:
         return [proc["id"] for proc in self.json["processes"]]
 
     def next(self) -> Optional[ApiResponse]:
@@ -84,7 +84,7 @@ class ProcessList(ApiResponse):
 
 @attrs.define
 class Process(ApiResponse):
-    headers: dict[str, Any] = {}
+    headers: Dict[str, Any] = {}
 
     @property
     def id(self) -> str:
@@ -94,8 +94,8 @@ class Process(ApiResponse):
 
     def execute(
         self,
-        inputs: dict[str, Any],
-        accepted_licences: list[dict[str, Any]] = [],
+        inputs: Dict[str, Any],
+        accepted_licences: List[Dict[str, Any]] = [],
         **kwargs: Any,
     ) -> StatusInfo:
         assert "json" not in kwargs
@@ -105,7 +105,7 @@ class Process(ApiResponse):
             "post", url, json=json, headers=self.headers, **kwargs
         )
 
-    def valid_values(self, request: dict[str, Any] = {}) -> dict[str, Any]:
+    def valid_values(self, request: Dict[str, Any] = {}) -> Dict[str, Any]:
         url = f"{self.response.request.url}/constraints"
         response = ApiResponse.from_request("post", url, json={"inputs": request})
         response.response.raise_for_status()
@@ -113,7 +113,7 @@ class Process(ApiResponse):
 
 
 class Remote:
-    def __init__(self, url: str, sleep_max: int = 120, headers: dict[str, Any] = {}):
+    def __init__(self, url: str, sleep_max: int = 120, headers: Dict[str, Any] = {}):
         self.url = url
         self.sleep_max = sleep_max
         self.headers = headers
@@ -130,7 +130,7 @@ class Remote:
         json = requests_response.json()
         return json["status"]  # type: ignore
 
-    def _robust_status(self, retry_options: dict[str, Any] = {}) -> str:
+    def _robust_status(self, retry_options: Dict[str, Any] = {}) -> str:
         # TODO: cache responses for a timeout (possibly reported nby the server)
         requests_response = multiurl.robust(requests.get, **retry_options)(
             self.url, headers=self.headers
@@ -139,7 +139,7 @@ class Remote:
         json = requests_response.json()
         return json["status"]  # type: ignore
 
-    def wait_on_result(self, retry_options: dict[str, Any] = {}) -> None:
+    def wait_on_result(self, retry_options: Dict[str, Any] = {}) -> None:
         sleep = 1.0
         last_status = self._robust_status(retry_options=retry_options)
         while True:
@@ -187,13 +187,13 @@ class Remote:
         return results
 
     def _download_result(
-        self, target: Optional[str] = None, retry_options: dict[str, Any] = {}
+        self, target: Optional[str] = None, retry_options: Dict[str, Any] = {}
     ) -> str:
         results: Results = multiurl.robust(self.make_results, **retry_options)(self.url)
         return results.download(target, retry_options=retry_options)
 
     def download(
-        self, target: Optional[str] = None, retry_options: dict[str, Any] = {}
+        self, target: Optional[str] = None, retry_options: Dict[str, Any] = {}
     ) -> str:
         self.wait_on_result(retry_options=retry_options)
         return self._download_result(target, retry_options=retry_options)
@@ -211,7 +211,7 @@ class StatusInfo(ApiResponse):
 
 @attrs.define
 class JobList(ApiResponse):
-    def job_ids(self) -> list[str]:
+    def job_ids(self) -> List[str]:
         return [job["jobID"] for job in self.json["jobs"]]
 
     def next(self) -> Optional[ApiResponse]:
@@ -249,7 +249,7 @@ class Results(ApiResponse):
         self,
         target: Optional[str] = None,
         timeout: int = 60,
-        retry_options: dict[str, Any] = {},
+        retry_options: Dict[str, Any] = {},
     ) -> str:
 
         result_href = self.get_result_href()
@@ -281,14 +281,14 @@ class Processing:
     supported_api_version = "v1"
 
     def __init__(
-        self, url: str, force_exact_url: bool = False, headers: dict[str, Any] = {}
+        self, url: str, force_exact_url: bool = False, headers: Dict[str, Any] = {}
     ) -> None:
         if not force_exact_url:
             url = f"{url}/{self.supported_api_version}"
         self.url = url
         self.headers = headers
 
-    def processes(self, params: dict[str, Any] = {}) -> ProcessList:
+    def processes(self, params: Dict[str, Any] = {}) -> ProcessList:
         url = f"{self.url}/processes"
         return ProcessList.from_request("get", url, params=params)
 
@@ -297,7 +297,7 @@ class Processing:
         return Process.from_request("get", url, headers=self.headers)
 
     def process_execute(
-        self, process_id: str, inputs: dict[str, Any], **kwargs: Any
+        self, process_id: str, inputs: Dict[str, Any], **kwargs: Any
     ) -> StatusInfo:
         assert "json" not in kwargs
         url = f"{self.url}/processes/{process_id}/execute"
@@ -310,7 +310,7 @@ class Processing:
             **kwargs,
         )
 
-    def jobs(self, params: dict[str, Any] = {}) -> JobList:
+    def jobs(self, params: Dict[str, Any] = {}) -> JobList:
         url = f"{self.url}/jobs"
         return JobList.from_request("get", url, params=params, headers=self.headers)
 
@@ -329,7 +329,7 @@ class Processing:
         return Remote(url, headers=self.headers)
 
     def download_result(
-        self, job_id: str, target: Optional[str], retry_options: dict[str, Any]
+        self, job_id: str, target: Optional[str], retry_options: Dict[str, Any]
     ) -> str:
         # NOTE: the remote waits for the result to be available
         return self.make_remote(job_id).download(target, retry_options=retry_options)
