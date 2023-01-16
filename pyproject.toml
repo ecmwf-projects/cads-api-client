@@ -24,6 +24,13 @@ branch = true
 [tool.mypy]
 strict = true
 
+[[tool.mypy.overrides]]
+module = [
+  "multiurl.*",
+  "py.*"
+]
+ignore_missing_imports = true
+
 [tool.ruff]
 # Black line length is 88, but black does not format comments.
 line-length = 110
@@ -52,6 +59,9 @@ ignore = [
   "D416",
   "D417"
 ]
+
+[tool.setuptools]
+packages = ["cads_api_client"]
 
 [tool.setuptools_scm]
 write_to = "cads_api_client/version.py"
