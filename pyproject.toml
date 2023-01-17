@@ -17,6 +17,12 @@ classifiers = [
     "Topic :: Scientific/Engineering"
 ]
 dynamic = ["version"]
+dependencies = [
+  "attrs",
+  "multiurl",
+  "owslib",
+  "requests"
+]
 
 [tool.coverage.run]
 branch = true
