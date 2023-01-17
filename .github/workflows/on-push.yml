@@ -137,9 +137,8 @@ jobs:
 
     strategy:
       matrix:
-        include:
-        - python-version: '3.8'
-          extra: -ci
+        python-version: ['3.8', '3.9']
+        extra: ['-ci']
 
     steps:
     - uses: actions/checkout@v3
