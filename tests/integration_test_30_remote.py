@@ -39,6 +39,27 @@ def test_collection_submit(api_root_url: str, api_key: str, request_year: str) -
     assert isinstance(res.status, str)
 
 
+def test_collection_retrieve_with_dummy_adaptor(
+    api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
+) -> None:
+    collection_id = "dummy-dataset"
+    headers = {"PRIVATE-TOKEN": api_key}
+    accepted_licences = []
+
+    cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
+    dataset = cat.collection(collection_id)
+    target = str(tmpdir.join("dummy.txt"))
+
+    res = dataset.retrieve(
+        accepted_licences=accepted_licences,
+        target=target,
+        retry_options={"maximum_tries": 0},
+    )
+
+    assert isinstance(res, str)
+    assert res.endswith(target)
+
+
 def test_collection_retrieve_with_cds_adaptor(
     api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
 ) -> None:
