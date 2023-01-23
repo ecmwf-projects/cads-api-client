@@ -64,7 +64,7 @@ class ApiResponse:
         rels = self.get_links(rel=rel)
         assert len(rels) <= 1
         if len(rels) == 1:
-            out = self.from_request("get", url=rels[0]["href"])
+            out = self.from_request("get", url=rels[0]["href"], headers=self.headers)
         else:
             out = None
         return out
