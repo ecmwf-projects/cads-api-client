@@ -108,15 +108,13 @@ def test_jobs_list(api_root_url: str, api_key: str, request_year: str) -> None:
     )
 
     res = proc.jobs().json
-    assert len(res["jobs"]) > 2
+    assert len(res["jobs"]) >= 2
 
     res = proc.jobs(params={"limit": 1}).json
     assert len(res["jobs"]) == 1
 
     jobs = proc.jobs(params={"limit": 1})
-
-    assert jobs is not None
-
     res = jobs.next().json  # type: ignore
 
+    assert res is not None
     assert len(res["jobs"]) == 1

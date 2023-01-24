@@ -1,3 +1,5 @@
+from typing import Any
+
 import py
 
 from cads_api_client import catalogue, processing
@@ -16,7 +18,9 @@ def test_from_collection_to_process(api_root_url: str) -> None:
 def test_collection_submit(api_root_url: str, api_key: str, request_year: str) -> None:
     collection_id = "reanalysis-era5-pressure-levels"
     headers = {"PRIVATE-TOKEN": api_key}
-    accepted_licences = [{"id": "licence-to-use-copernicus-products", "revision": 12}]
+    accepted_licences: list[dict[str, Any]] = [
+        {"id": "licence-to-use-copernicus-products", "revision": 12}
+    ]
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
 
@@ -42,7 +46,7 @@ def test_collection_retrieve_with_dummy_adaptor(
 ) -> None:
     collection_id = "dummy-dataset"
     headers = {"PRIVATE-TOKEN": api_key}
-    accepted_licences = []
+    accepted_licences: list[dict[str, Any]] = []
 
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
@@ -63,7 +67,9 @@ def test_collection_retrieve_with_cds_adaptor(
 ) -> None:
     collection_id = "reanalysis-era5-pressure-levels"
     headers = {"PRIVATE-TOKEN": api_key}
-    accepted_licences = [{"id": "licence-to-use-copernicus-products", "revision": 12}]
+    accepted_licences: list[dict[str, Any]] = [
+        {"id": "licence-to-use-copernicus-products", "revision": 12}
+    ]
 
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
@@ -91,7 +97,9 @@ def test_collection_retrieve_with_ads_adaptor(
 ) -> None:
     collection_id = "cams-global-reanalysis-eac4-monthly"
     headers = {"PRIVATE-TOKEN": api_key}
-    accepted_licences = [{"id": "licence-to-use-copernicus-products", "revision": 12}]
+    accepted_licences: list[dict[str, Any]] = [
+        {"id": "licence-to-use-copernicus-products", "revision": 12}
+    ]
 
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
@@ -116,7 +124,9 @@ def test_collection_retrieve_with_url_adaptor(
 ) -> None:
     collection_id = "derived-near-surface-meteorological-variables"
     headers = {"PRIVATE-TOKEN": api_key}
-    accepted_licences = [{"id": "licence-to-use-copernicus-products", "revision": 12}]
+    accepted_licences: list[dict[str, Any]] = [
+        {"id": "licence-to-use-copernicus-products", "revision": 12}
+    ]
 
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
