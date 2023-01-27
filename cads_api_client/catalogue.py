@@ -2,6 +2,7 @@ import datetime
 from typing import Any, Dict, List, Optional
 
 import attrs
+import requests
 
 from . import processing
 
@@ -37,14 +38,16 @@ class Collection(processing.ApiResponse):
 
     def retrieve_process(self) -> processing.Process:
         url = self.get_link_href(rel="retrieve")
-        return processing.Process.from_request("get", url, headers=self.headers)
+        return processing.Process.from_request(
+            "get", url, headers=self.headers, session=self.session
+        )
 
     def submit(
         self, accepted_licences: List[Dict[str, Any]] = [], **request: Any
     ) -> processing.Remote:
         retrieve_process = self.retrieve_process()
         status_info = retrieve_process.execute(
-            inputs=request, accepted_licences=accepted_licences
+            inputs=request, accepted_licences=accepted_licences, session=self.session
         )
         return status_info.make_remote()
 
@@ -63,23 +66,30 @@ class Catalogue:
     supported_api_version = "v1"
 
     def __init__(
-        self, url: str, force_exact_url: bool = False, headers: Dict[str, Any] = {}
+        self,
+        url: str,
+        force_exact_url: bool = False,
+        headers: Dict[str, Any] = {},
+        session: requests.Session = requests.api,  # type: ignore
     ) -> None:
         if not force_exact_url:
             url = f"{url}/{self.supported_api_version}"
         self.url = url
         self.headers = headers
+        self.session = session
 
     def collections(self, params: Dict[str, Any] = {}) -> Collections:
         url = f"{self.url}/datasets"
-        return Collections.from_request("get", url, params=params)
+        return Collections.from_request("get", url, params=params, session=self.session)
 
     def collection(self, collection_id: str) -> Collection:
         url = f"{self.url}/collections/{collection_id}"
-        return Collection.from_request("get", url, headers=self.headers)
+        return Collection.from_request(
+            "get", url, headers=self.headers, session=self.session
+        )
 
     def licenses(self) -> Dict[str, Any]:
         url = f"{self.url}/vocabularies/licences"
         return processing.ApiResponse.from_request(
-            "get", url, headers=self.headers
+            "get", url, headers=self.headers, session=self.session
         ).json
