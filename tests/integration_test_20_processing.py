@@ -15,7 +15,7 @@ def test_processes(api_root_url: str) -> None:
     assert "links" in res.json
     assert isinstance(res.json["links"], list)
 
-    expected_process_id = "reanalysis-era5-land-monthly-means"
+    expected_process_id = "dummy-dataset"
 
     assert expected_process_id in res.process_ids()
 
@@ -31,7 +31,7 @@ def test_processes_limit(api_root_url: str) -> None:
 
 
 def test_process(api_root_url: str) -> None:
-    process_id = "reanalysis-era5-land-monthly-means"
+    process_id = "dummy-dataset"
     proc = processing.Processing(f"{api_root_url}/retrieve")
 
     res = proc.process(process_id)
@@ -76,36 +76,13 @@ def test_collection_missing_licence(
 
 def test_jobs_list(api_root_url: str, api_key: str, request_year: str) -> None:
 
-    collection_id = "reanalysis-era5-pressure-levels"
+    collection_id = "dummy-dataset"
     headers = {"PRIVATE-TOKEN": api_key}
     proc = processing.Processing(f"{api_root_url}/retrieve", headers=headers)
     process = proc.process(collection_id)
-    accepted_licences = [{"id": "licence-to-use-copernicus-products", "revision": 12}]
 
-    _ = process.execute(
-        accepted_licences=accepted_licences,
-        inputs=dict(
-            product_type="reanalysis",
-            variable="temperature",
-            year=request_year,
-            month="01",
-            day="01",
-            time="00:00",
-            level="1000",
-        ),
-    )
-    _ = process.execute(
-        accepted_licences=accepted_licences,
-        inputs=dict(
-            product_type="reanalysis",
-            variable="temperature",
-            year=request_year,
-            month="02",
-            day="01",
-            time="00:00",
-            level="1000",
-        ),
-    )
+    _ = process.execute(inputs={})
+    _ = process.execute(inputs={})
 
     res = proc.jobs().json
     assert len(res["jobs"]) >= 2
