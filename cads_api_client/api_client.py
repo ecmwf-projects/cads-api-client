@@ -3,6 +3,7 @@ import os
 from typing import Any, Dict, List, Optional
 
 import attrs
+import requests
 
 from . import catalogue, processing, profile
 
@@ -14,6 +15,7 @@ CADS_API_KEY = os.getenv("CADS_API_KEY")
 class ApiClient:
     key: Optional[str] = CADS_API_KEY
     url: str = CADS_API_URL
+    session: requests.Session = attrs.field(factory=requests.Session)
 
     def _headers(self) -> Dict[str, str]:
         if self.key is None:
@@ -22,11 +24,15 @@ class ApiClient:
 
     @functools.cached_property
     def catalogue_api(self) -> catalogue.Catalogue:
-        return catalogue.Catalogue(f"{self.url}/catalogue", headers=self._headers())
+        return catalogue.Catalogue(
+            f"{self.url}/catalogue", headers=self._headers(), session=self.session
+        )
 
     @functools.cached_property
     def retrieve_api(self) -> processing.Processing:
-        return processing.Processing(f"{self.url}/retrieve", headers=self._headers())
+        return processing.Processing(
+            f"{self.url}/retrieve", headers=self._headers(), session=self.session
+        )
 
     def collections(self, **params: Dict[str, Any]) -> catalogue.Collections:
         return self.catalogue_api.collections(params=params)
