@@ -9,6 +9,8 @@ from . import catalogue, processing, profile
 
 CADS_API_URL = os.getenv("CADS_API_URL", "http://localhost:8080/api")
 CADS_API_KEY = os.getenv("CADS_API_KEY")
+MAXIMUM_TRIES = int(os.getenv("MAXIMUM_TRIES", 500))
+RETRY_AFTER = int(os.getenv("MAXIMUM_TRIES", 120))
 
 
 @attrs.define(slots=False)
@@ -16,6 +18,8 @@ class ApiClient:
     key: Optional[str] = CADS_API_KEY
     url: str = CADS_API_URL
     session: requests.Session = attrs.field(factory=requests.Session)
+    maximum_tries: int = MAXIMUM_TRIES
+    retry_after: int = RETRY_AFTER
 
     def _headers(self) -> Dict[str, str]:
         if self.key is None:
@@ -54,14 +58,14 @@ class ApiClient:
         self,
         collection_id: str,
         target: Optional[str] = None,
-        retry_options: Dict[str, Any] = {},
         accepted_licences: List[Dict[str, Any]] = [],
         **request: Any,
     ) -> str:
         collection = self.collection(collection_id)
         return collection.retrieve(
             target,
-            retry_options=retry_options,
+            maximum_tries=self.maximum_tries,
+            retry_after=self.retry_after,
             accepted_licences=accepted_licences,
             **request,
         )
@@ -73,10 +77,12 @@ class ApiClient:
         return self.retrieve_api.job(request_uid)
 
     def download_result(
-        self, request_uid: str, target: Optional[str], retry_options: Dict[str, Any]
+        self, request_uid: str, target: Optional[str], retry_after: int
     ) -> str:
         return self.retrieve_api.download_result(
-            request_uid, target, retry_options=retry_options
+            request_uid,
+            target,
+            retry_after=retry_after,
         )
 
     def valid_values(

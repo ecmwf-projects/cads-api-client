@@ -38,9 +38,16 @@ class Collection(processing.ApiResponse):
 
     def retrieve_process(self) -> processing.Process:
         url = self.get_link_href(rel="retrieve")
-        return processing.Process.from_request(
-            "get", url, headers=self.headers, session=self.session
+
+        process = processing.Process.from_request(
+            "get",
+            url,
+            headers=self.headers,
+            session=self.session,
+            maximum_tries=self.maximum_tries,
+            retry_after=self.retry_after,
         )
+        return process
 
     def submit(
         self, accepted_licences: List[Dict[str, Any]] = [], **request: Any
@@ -54,16 +61,17 @@ class Collection(processing.ApiResponse):
     def retrieve(
         self,
         target: Optional[str] = None,
-        retry_options: Dict[str, Any] = {},
         accepted_licences: List[Dict[str, Any]] = [],
         **request: Any,
     ) -> str:
         remote = self.submit(accepted_licences=accepted_licences, **request)
-        return remote.download(target, retry_options=retry_options)
+        return remote.download(target)
 
 
 class Catalogue:
     supported_api_version = "v1"
+    maximum_tries: int = 500
+    retry_after: int = 120
 
     def __init__(
         self,
@@ -80,16 +88,33 @@ class Catalogue:
 
     def collections(self, params: Dict[str, Any] = {}) -> Collections:
         url = f"{self.url}/datasets"
-        return Collections.from_request("get", url, params=params, session=self.session)
+        return Collections.from_request(
+            "get",
+            url,
+            params=params,
+            session=self.session,
+            maximum_tries=self.maximum_tries,
+            retry_after=self.retry_after,
+        )
 
     def collection(self, collection_id: str) -> Collection:
         url = f"{self.url}/collections/{collection_id}"
-        return Collection.from_request(
-            "get", url, headers=self.headers, session=self.session
+        return Collections.from_request(
+            "get",
+            url,
+            headers=self.headers,
+            session=self.session,
+            maximum_tries=self.maximum_tries,
+            retry_after=self.retry_after,
         )
 
     def licenses(self) -> Dict[str, Any]:
         url = f"{self.url}/vocabularies/licences"
         return processing.ApiResponse.from_request(
-            "get", url, headers=self.headers, session=self.session
+            "get",
+            url,
+            headers=self.headers,
+            session=self.session,
+            maximum_tries=self.maximum_tries,
+            retry_after=self.retry_after,
         ).json
