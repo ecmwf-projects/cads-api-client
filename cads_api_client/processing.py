@@ -24,7 +24,7 @@ class DownloadError(RuntimeError):
     pass
 
 
-def cads_raise_for_status(response):
+def cads_raise_for_status(response: requests.Response) -> None:
     if response.status_code > 499:
         response.raise_for_status()
     if response.status_code > 399:
