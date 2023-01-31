@@ -101,5 +101,5 @@ def test_validate_constraints_error(api_root_url: str) -> None:
     process_id = "reanalysis-era5-land-monthly-means"
     proc = processing.Processing(f"{api_root_url}/retrieve")
     process = proc.process(process_id)
-    with pytest.raises(RuntimeError):
+    with pytest.raises(RuntimeError, match="422 Client Error"):
         process.valid_values({"invalid_param": 1})
