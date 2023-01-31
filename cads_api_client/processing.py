@@ -34,7 +34,7 @@ def cads_raise_for_status(response: requests.Response) -> None:
         except Exception:
             pass
         if error_json is not None:
-            raise RuntimeError(f"Client Error {response.status_code}: {error_json}")
+            raise RuntimeError(f"{response.status_code} Client Error: {error_json}")
         else:
             response.raise_for_status()
 

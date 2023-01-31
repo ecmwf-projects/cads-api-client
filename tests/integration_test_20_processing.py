@@ -60,7 +60,7 @@ def test_collection_missing_licence(
     proc = processing.Processing(f"{api_root_url}/retrieve", headers=headers)
     process = proc.process(collection_id)
 
-    with pytest.raises(requests.exceptions.HTTPError, match="403 Client Error"):
+    with pytest.raises(RuntimeError, match="403 Client Error"):
         _ = process.execute(
             inputs=dict(
                 product_type="reanalysis",
