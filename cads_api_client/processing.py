@@ -24,6 +24,21 @@ class DownloadError(RuntimeError):
     pass
 
 
+def cads_raise_for_status(response: requests.Response) -> None:
+    if response.status_code > 499:
+        response.raise_for_status()
+    if response.status_code > 399:
+        error_json = None
+        try:
+            error_json = response.json()
+        except Exception:
+            pass
+        if error_json is not None:
+            raise RuntimeError(f"{response.status_code} Client Error: {error_json}")
+        else:
+            response.raise_for_status()
+
+
 @attrs.define(slots=False)
 class ApiResponse:
     response: requests.Response
@@ -40,7 +55,7 @@ class ApiResponse:
     ) -> T_ApiResponse:
         response = session.request(*args, **kwargs)
         if raise_for_status:
-            response.raise_for_status()
+            cads_raise_for_status(response)
         self = cls(response, headers=kwargs.get("headers", {}), session=session)
         return self
 

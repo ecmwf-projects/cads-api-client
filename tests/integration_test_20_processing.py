@@ -60,7 +60,7 @@ def test_collection_missing_licence(
     proc = processing.Processing(f"{api_root_url}/retrieve", headers=headers)
     process = proc.process(collection_id)
 
-    with pytest.raises(requests.exceptions.HTTPError, match="403 Client Error"):
+    with pytest.raises(RuntimeError, match="403 Client Error"):
         _ = process.execute(
             inputs=dict(
                 product_type="reanalysis",
@@ -95,3 +95,11 @@ def test_jobs_list(api_root_url: str, api_key: str, request_year: str) -> None:
 
     assert res is not None
     assert len(res["jobs"]) == 1
+
+
+def test_validate_constraints_error(api_root_url: str) -> None:
+    process_id = "reanalysis-era5-land-monthly-means"
+    proc = processing.Processing(f"{api_root_url}/retrieve")
+    process = proc.process(process_id)
+    with pytest.raises(RuntimeError, match="422 Client Error"):
+        process.valid_values({"invalid_param": 1})
