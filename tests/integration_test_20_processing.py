@@ -53,7 +53,6 @@ def test_validate_constraints(api_root_url: str) -> None:
 def test_collection_missing_licence(
     api_root_url: str, api_key: str, request_year: str
 ) -> None:
-
     collection_id = "reanalysis-era5-pressure-levels"
     headers = {"PRIVATE-TOKEN": api_key}
     proc = processing.Processing(f"{api_root_url}/retrieve", headers=headers)
@@ -74,7 +73,6 @@ def test_collection_missing_licence(
 
 
 def test_jobs_list(api_root_url: str, api_key: str, request_year: str) -> None:
-
     collection_id = "dummy-dataset"
     headers = {"PRIVATE-TOKEN": api_key}
     proc = processing.Processing(f"{api_root_url}/retrieve", headers=headers)

@@ -282,7 +282,6 @@ class Results(ApiResponse):
         timeout: int = 60,
         retry_options: Dict[str, Any] = {},
     ) -> str:
-
         result_href = self.get_result_href()
         url = urllib.parse.urljoin(self.response.url, result_href)
         if target is None:
