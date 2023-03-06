@@ -1,5 +1,4 @@
 import pytest
-import requests
 
 from cads_api_client import processing
 
