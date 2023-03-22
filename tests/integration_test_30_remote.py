@@ -178,3 +178,33 @@ def test_collection_retrieve_with_direct_mars_adaptor(
 
     assert isinstance(res, str)
     assert res.endswith(target)
+
+
+@pytest.mark.xfail
+def test_collection_retrieve_with_mars_adaptor(
+    api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
+) -> None:
+    collection_id = "reanalysis-era5-single-levels"
+    headers = {"PRIVATE-TOKEN": api_key}
+    accepted_licences: list[dict[str, Any]] = [
+        {"id": "licence-to-use-copernicus-products", "revision": 12}
+    ]
+
+    cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
+    dataset = cat.collection(collection_id)
+    target = str(tmpdir.join("era5.grib"))
+
+    res = dataset.retrieve(
+        accepted_licences=accepted_licences,
+        product_type="reanalysis",
+        variable="2m_temperature",
+        year=request_year,
+        month="01",
+        day="02",
+        time="00:00",
+        target=target,
+        retry_options={"maximum_tries": 0},
+    )
+
+    assert isinstance(res, str)
+    assert res.endswith(target)
