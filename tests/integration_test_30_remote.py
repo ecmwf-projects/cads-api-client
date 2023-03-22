@@ -147,7 +147,7 @@ def test_collection_retrieve_with_url_adaptor(
     assert res.endswith(target)
 
 
-@pytest.xfail()  # type: ignore
+@pytest.mark.xfail  # type: ignore
 def test_collection_retrieve_with_direct_mars_adaptor(
     api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
 ) -> None:
