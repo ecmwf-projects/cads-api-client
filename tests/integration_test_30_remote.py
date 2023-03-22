@@ -1,6 +1,7 @@
 from typing import Any
 
 import py
+import pytest
 
 from cads_api_client import catalogue, processing
 
@@ -140,6 +141,39 @@ def test_collection_retrieve_with_url_adaptor(
         version="2.1",
         format="zip",
         target=target,
+    )
+
+    assert isinstance(res, str)
+    assert res.endswith(target)
+
+
+@pytest.xfail()  # type: ignore
+def test_collection_retrieve_with_direct_mars_adaptor(
+    api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
+) -> None:
+    collection_id = "reanalysis-era5-complete"
+    headers = {"PRIVATE-TOKEN": api_key}
+    accepted_licences: list[dict[str, Any]] = [
+        {"id": "licence-to-use-copernicus-products", "revision": 12}
+    ]
+
+    cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
+    dataset = cat.collection(collection_id)
+    target = str(tmpdir.join("era5-complete.grib"))
+
+    res = dataset.retrieve(
+        accepted_licences=accepted_licences,
+        date="20180101",
+        levelist="1",
+        levtype="ml",
+        param="130",
+        step="1",
+        stream="mnth",
+        time="06:00:00",
+        type="fc",
+        target=target,
+        retry_options={"maximum_tries": 0},
+        **{"class": "ea"},
     )
 
     assert isinstance(res, str)
