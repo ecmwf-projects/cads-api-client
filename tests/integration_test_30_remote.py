@@ -7,7 +7,7 @@ from cads_api_client import catalogue, processing
 
 
 def test_from_collection_to_process(api_root_url: str) -> None:
-    collection_id = "dummy-dataset"
+    collection_id = "test-dummy-adaptor"
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue")
     dataset = cat.collection(collection_id)
 
@@ -17,7 +17,7 @@ def test_from_collection_to_process(api_root_url: str) -> None:
 
 
 def test_collection_submit(api_root_url: str, api_key: str, request_year: str) -> None:
-    collection_id = "dummy-dataset"
+    collection_id = "test-dummy-adaptor"
     headers = {"PRIVATE-TOKEN": api_key}
 
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
@@ -34,7 +34,7 @@ def test_collection_submit(api_root_url: str, api_key: str, request_year: str) -
 def test_collection_retrieve_with_dummy_adaptor(
     api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
 ) -> None:
-    collection_id = "dummy-dataset"
+    collection_id = "test-dummy-adaptor"
     headers = {"PRIVATE-TOKEN": api_key}
 
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
@@ -50,10 +50,10 @@ def test_collection_retrieve_with_dummy_adaptor(
     assert res.endswith(target)
 
 
-def test_collection_retrieve_with_cds_adaptor(
+def test_collection_retrieve_with_legacy_cds_adaptor(
     api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
 ) -> None:
-    collection_id = "reanalysis-era5-pressure-levels"
+    collection_id = "test-legacy-cds-adaptor"
     headers = {"PRIVATE-TOKEN": api_key}
     accepted_licences: list[dict[str, Any]] = [
         {"id": "licence-to-use-copernicus-products", "revision": 12}
@@ -80,11 +80,10 @@ def test_collection_retrieve_with_cds_adaptor(
     assert res.endswith(target)
 
 
-@pytest.mark.xfail
-def test_collection_retrieve_with_ads_adaptor(
+def test_collection_retrieve_with_legacy_cds_adaptor_from_ads(
     api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
 ) -> None:
-    collection_id = "cams-global-reanalysis-eac4-monthly"
+    collection_id = "test-legacy-cds-adaptor-from-ads"
     headers = {"PRIVATE-TOKEN": api_key}
     accepted_licences: list[dict[str, Any]] = [
         {"id": "licence-to-use-copernicus-products", "revision": 12}
@@ -108,10 +107,10 @@ def test_collection_retrieve_with_ads_adaptor(
     assert res.endswith(target)
 
 
-def test_collection_retrieve_with_url_adaptor(
+def test_collection_retrieve_with_url_cds_adaptor(
     api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
 ) -> None:
-    collection_id = "derived-near-surface-meteorological-variables"
+    collection_id = "test-url-cds-adaptor"
     headers = {"PRIVATE-TOKEN": api_key}
     accepted_licences: list[dict[str, Any]] = [
         {"id": "licence-to-use-copernicus-products", "revision": 12}
@@ -149,10 +148,10 @@ def test_collection_retrieve_with_url_adaptor(
 
 
 @pytest.mark.xfail
-def test_collection_retrieve_with_direct_mars_adaptor(
+def test_collection_retrieve_with_direct_mars_cds_adaptor(
     api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
 ) -> None:
-    collection_id = "reanalysis-era5-complete"
+    collection_id = "test-direct-mars-cds-adaptor"
     headers = {"PRIVATE-TOKEN": api_key}
     accepted_licences: list[dict[str, Any]] = [
         {"id": "licence-to-use-copernicus-products", "revision": 12}
@@ -182,10 +181,10 @@ def test_collection_retrieve_with_direct_mars_adaptor(
 
 
 @pytest.mark.xfail
-def test_collection_retrieve_with_mars_adaptor(
+def test_collection_retrieve_with_mars_cds_adaptor(
     api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
 ) -> None:
-    collection_id = "reanalysis-era5-single-levels"
+    collection_id = "test-era5-mars-cds-adaptor"
     headers = {"PRIVATE-TOKEN": api_key}
     accepted_licences: list[dict[str, Any]] = [
         {"id": "licence-to-use-copernicus-products", "revision": 12}
