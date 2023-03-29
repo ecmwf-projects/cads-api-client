@@ -50,63 +50,6 @@ def test_collection_retrieve_with_dummy_adaptor(
     assert res.endswith(target)
 
 
-def test_collection_retrieve_with_legacy_cds_adaptor(
-    api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
-) -> None:
-    collection_id = "test-legacy-cds-adaptor"
-    headers = {"PRIVATE-TOKEN": api_key}
-    accepted_licences: list[dict[str, Any]] = [
-        {"id": "licence-to-use-copernicus-products", "revision": 12}
-    ]
-
-    cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
-    dataset = cat.collection(collection_id)
-    target = str(tmpdir.join("era5.grib"))
-
-    res = dataset.retrieve(
-        accepted_licences=accepted_licences,
-        product_type="reanalysis",
-        variable="temperature",
-        year=request_year,
-        month="01",
-        day="02",
-        time="00:00",
-        level="1000",
-        target=target,
-        retry_options={"maximum_tries": 0},
-    )
-
-    assert isinstance(res, str)
-    assert res.endswith(target)
-
-
-def test_collection_retrieve_with_legacy_cds_adaptor_from_ads(
-    api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
-) -> None:
-    collection_id = "test-legacy-cds-adaptor-from-ads"
-    headers = {"PRIVATE-TOKEN": api_key}
-    accepted_licences: list[dict[str, Any]] = [
-        {"id": "licence-to-use-copernicus-products", "revision": 12}
-    ]
-
-    cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
-    dataset = cat.collection(collection_id)
-    target = str(tmpdir.join("eac4.grib"))
-
-    res = dataset.retrieve(
-        accepted_licences=accepted_licences,
-        variable="particulate_matter_10um",
-        year=request_year,
-        month="02",
-        product_type="monthly_mean",
-        target=target,
-        retry_options={"maximum_tries": 0},
-    )
-
-    assert isinstance(res, str)
-    assert res.endswith(target)
-
-
 def test_collection_retrieve_with_url_cds_adaptor(
     api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
 ) -> None:
@@ -202,6 +145,63 @@ def test_collection_retrieve_with_mars_cds_adaptor(
         month="01",
         day="02",
         time="00:00",
+        target=target,
+        retry_options={"maximum_tries": 0},
+    )
+
+    assert isinstance(res, str)
+    assert res.endswith(target)
+
+
+def test_collection_retrieve_with_legacy_cds_adaptor(
+    api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
+) -> None:
+    collection_id = "test-legacy-cds-adaptor"
+    headers = {"PRIVATE-TOKEN": api_key}
+    accepted_licences: list[dict[str, Any]] = [
+        {"id": "licence-to-use-copernicus-products", "revision": 12}
+    ]
+
+    cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
+    dataset = cat.collection(collection_id)
+    target = str(tmpdir.join("era5.grib"))
+
+    res = dataset.retrieve(
+        accepted_licences=accepted_licences,
+        product_type="reanalysis",
+        variable="temperature",
+        year=request_year,
+        month="01",
+        day="02",
+        time="00:00",
+        level="1000",
+        target=target,
+        retry_options={"maximum_tries": 0},
+    )
+
+    assert isinstance(res, str)
+    assert res.endswith(target)
+
+
+def test_collection_retrieve_with_legacy_cds_adaptor_from_ads(
+    api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
+) -> None:
+    collection_id = "test-legacy-cds-adaptor-from-ads"
+    headers = {"PRIVATE-TOKEN": api_key}
+    accepted_licences: list[dict[str, Any]] = [
+        {"id": "licence-to-use-copernicus-products", "revision": 12}
+    ]
+
+    cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
+    dataset = cat.collection(collection_id)
+    target = str(tmpdir.join("eac4.grib"))
+
+    res = dataset.retrieve(
+        accepted_licences=accepted_licences,
+        variable="particulate_matter_10um",
+        year=request_year,
+        month="02",
+        product_type="monthly_mean",
         target=target,
         retry_options={"maximum_tries": 0},
     )
