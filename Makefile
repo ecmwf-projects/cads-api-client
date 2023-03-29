@@ -34,4 +34,8 @@ docs-build:
 
 integration-tests:
 	python -m pytest -vv --cov=. --cov-report=$(COV_REPORT) tests/integration*.py
+
+doc-tests:
 	python -m pytest -vv --doctest-glob='*.md' README.md
+
+all-tests: default integration-tests doc-tests
