@@ -90,7 +90,6 @@ def test_collection_retrieve_with_url_cds_adaptor(
     assert res.endswith(target)
 
 
-@pytest.mark.xfail
 def test_collection_retrieve_with_direct_mars_cds_adaptor(
     api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
 ) -> None:
@@ -106,14 +105,14 @@ def test_collection_retrieve_with_direct_mars_cds_adaptor(
 
     res = dataset.retrieve(
         accepted_licences=accepted_licences,
-        date="20180101",
-        levelist="1",
-        levtype="ml",
-        param="130",
-        step="1",
-        stream="mnth",
-        time="06:00:00",
-        type="fc",
+        levelist=1,
+        dataset="reanalysis",
+        time="00:00:00",
+        param="155",
+        date="1940-01-01",
+        expect="any",
+        levtype="pl",
+        number="all",
         target=target,
         retry_options={"maximum_tries": 0},
         **{"class": "ea"},
