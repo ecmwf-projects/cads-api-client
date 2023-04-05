@@ -14,9 +14,7 @@ def test_processes(api_root_url: str) -> None:
     assert "links" in res.json
     assert isinstance(res.json["links"], list)
 
-    expected_process_id = "test-dummy-adaptor"
-
-    assert expected_process_id in res.process_ids()
+    assert len(res.process_ids()) == 10
 
 
 def test_processes_limit(api_root_url: str) -> None:
