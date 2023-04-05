@@ -14,7 +14,7 @@ def test_processes(api_root_url: str) -> None:
     assert "links" in res.json
     assert isinstance(res.json["links"], list)
 
-    expected_process_id = "dummy-dataset"
+    expected_process_id = "test-dummy-adaptor"
 
     assert expected_process_id in res.process_ids()
 
@@ -30,7 +30,7 @@ def test_processes_limit(api_root_url: str) -> None:
 
 
 def test_process(api_root_url: str) -> None:
-    process_id = "dummy-dataset"
+    process_id = "test-dummy-adaptor"
     proc = processing.Processing(f"{api_root_url}/retrieve")
 
     res = proc.process(process_id)
@@ -73,7 +73,7 @@ def test_collection_missing_licence(
 
 
 def test_jobs_list(api_root_url: str, api_key: str, request_year: str) -> None:
-    collection_id = "dummy-dataset"
+    collection_id = "test-dummy-adaptor"
     headers = {"PRIVATE-TOKEN": api_key}
     proc = processing.Processing(f"{api_root_url}/retrieve", headers=headers)
     process = proc.process(collection_id)
