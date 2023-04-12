@@ -15,7 +15,6 @@ classifiers = [
 dependencies = [
   "attrs",
   "multiurl",
-  "owslib",
   "requests"
 ]
 description = "CADS API Python client"
