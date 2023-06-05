@@ -28,7 +28,7 @@ def test_processes_limit(api_root_url: str) -> None:
 
 
 def test_process(api_root_url: str) -> None:
-    process_id = "test-dummy-adaptor"
+    process_id = "test-adaptor-dummy"
     proc = processing.Processing(f"{api_root_url}/retrieve")
 
     res = proc.process(process_id)
@@ -40,7 +40,7 @@ def test_process(api_root_url: str) -> None:
 
 
 def test_validate_constraints(api_root_url: str) -> None:
-    process_id = "reanalysis-era5-land-monthly-means"
+    process_id = "test-adaptor-mars"
     proc = processing.Processing(f"{api_root_url}/retrieve")
     process = proc.process(process_id)
     res = process.valid_values({})
@@ -51,7 +51,7 @@ def test_validate_constraints(api_root_url: str) -> None:
 def test_collection_missing_licence(
     api_root_url: str, api_key: str, request_year: str
 ) -> None:
-    collection_id = "reanalysis-era5-pressure-levels"
+    collection_id = "test-adaptor-mars"
     headers = {"PRIVATE-TOKEN": api_key}
     proc = processing.Processing(f"{api_root_url}/retrieve", headers=headers)
     process = proc.process(collection_id)
@@ -71,7 +71,7 @@ def test_collection_missing_licence(
 
 
 def test_jobs_list(api_root_url: str, api_key: str, request_year: str) -> None:
-    collection_id = "test-dummy-adaptor"
+    collection_id = "test-adaptor-dummy"
     headers = {"PRIVATE-TOKEN": api_key}
     proc = processing.Processing(f"{api_root_url}/retrieve", headers=headers)
     process = proc.process(collection_id)
@@ -93,7 +93,7 @@ def test_jobs_list(api_root_url: str, api_key: str, request_year: str) -> None:
 
 
 def test_validate_constraints_error(api_root_url: str) -> None:
-    process_id = "reanalysis-era5-land-monthly-means"
+    process_id = "test-adaptor-mars"
     proc = processing.Processing(f"{api_root_url}/retrieve")
     process = proc.process(process_id)
     with pytest.raises(RuntimeError, match="422 Client Error"):

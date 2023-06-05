@@ -1,13 +1,12 @@
 from typing import Any
 
 import py
-import pytest
 
 from cads_api_client import catalogue, processing
 
 
 def test_from_collection_to_process(api_root_url: str) -> None:
-    collection_id = "test-dummy-adaptor"
+    collection_id = "test-adaptor-dummy"
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue")
     dataset = cat.collection(collection_id)
 
@@ -17,7 +16,7 @@ def test_from_collection_to_process(api_root_url: str) -> None:
 
 
 def test_collection_submit(api_root_url: str, api_key: str, request_year: str) -> None:
-    collection_id = "test-dummy-adaptor"
+    collection_id = "test-adaptor-dummy"
     headers = {"PRIVATE-TOKEN": api_key}
 
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
@@ -34,7 +33,7 @@ def test_collection_submit(api_root_url: str, api_key: str, request_year: str) -
 def test_collection_retrieve_with_dummy_adaptor(
     api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
 ) -> None:
-    collection_id = "test-dummy-adaptor"
+    collection_id = "test-adaptor-dummy"
     headers = {"PRIVATE-TOKEN": api_key}
 
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
@@ -53,7 +52,7 @@ def test_collection_retrieve_with_dummy_adaptor(
 def test_collection_retrieve_with_url_cds_adaptor(
     api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
 ) -> None:
-    collection_id = "test-url-cds-adaptor"
+    collection_id = "test-adaptor-url"
     headers = {"PRIVATE-TOKEN": api_key}
     accepted_licences: list[dict[str, Any]] = [
         {"id": "licence-to-use-copernicus-products", "revision": 12}
@@ -93,7 +92,7 @@ def test_collection_retrieve_with_url_cds_adaptor(
 def test_collection_retrieve_with_direct_mars_cds_adaptor(
     api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
 ) -> None:
-    collection_id = "test-direct-mars-cds-adaptor"
+    collection_id = "test-adaptor-direct-mars"
     headers = {"PRIVATE-TOKEN": api_key}
     accepted_licences: list[dict[str, Any]] = [
         {"id": "licence-to-use-copernicus-products", "revision": 12}
@@ -122,11 +121,10 @@ def test_collection_retrieve_with_direct_mars_cds_adaptor(
     assert res.endswith(target)
 
 
-@pytest.mark.xfail
 def test_collection_retrieve_with_mars_cds_adaptor(
     api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
 ) -> None:
-    collection_id = "test-era5-mars-cds-adaptor"
+    collection_id = "test-adaptor-mars"
     headers = {"PRIVATE-TOKEN": api_key}
     accepted_licences: list[dict[str, Any]] = [
         {"id": "licence-to-use-copernicus-products", "revision": 12}
@@ -155,7 +153,7 @@ def test_collection_retrieve_with_mars_cds_adaptor(
 def test_collection_retrieve_with_legacy_cds_adaptor(
     api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
 ) -> None:
-    collection_id = "test-legacy-cds-adaptor"
+    collection_id = "test-adaptor-legacy"
     headers = {"PRIVATE-TOKEN": api_key}
     accepted_licences: list[dict[str, Any]] = [
         {"id": "licence-to-use-copernicus-products", "revision": 12}
@@ -174,33 +172,6 @@ def test_collection_retrieve_with_legacy_cds_adaptor(
         day="02",
         time="00:00",
         level="1000",
-        target=target,
-        retry_options={"maximum_tries": 0},
-    )
-
-    assert isinstance(res, str)
-    assert res.endswith(target)
-
-
-def test_collection_retrieve_with_legacy_cds_adaptor_from_ads(
-    api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
-) -> None:
-    collection_id = "test-legacy-cds-adaptor-from-ads"
-    headers = {"PRIVATE-TOKEN": api_key}
-    accepted_licences: list[dict[str, Any]] = [
-        {"id": "licence-to-use-copernicus-products", "revision": 12}
-    ]
-
-    cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
-    dataset = cat.collection(collection_id)
-    target = str(tmpdir.join("eac4.grib"))
-
-    res = dataset.retrieve(
-        accepted_licences=accepted_licences,
-        variable="particulate_matter_10um",
-        year=request_year,
-        month="02",
-        product_type="monthly_mean",
         target=target,
         retry_options={"maximum_tries": 0},
     )
