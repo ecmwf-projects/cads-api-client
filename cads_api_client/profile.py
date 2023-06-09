@@ -1,6 +1,6 @@
 from typing import Any, Dict
 
-from . import processing
+from cads_api_client.api_response import ApiResponse
 
 
 class Profile:
@@ -12,15 +12,15 @@ class Profile:
 
     def profile(self) -> Dict[str, Any]:
         url = f"{self.url}/account"
-        response = processing.ApiResponse.from_request("get", url, headers=self.headers)
+        response = ApiResponse.from_request("get", url, headers=self.headers)
         return response.json
 
     def accept_licence(self, licence_id: str) -> Dict[str, Any]:
         url = f"{self.url}/account/licences/{licence_id}"
-        response = processing.ApiResponse.from_request("put", url, headers=self.headers)
+        response = ApiResponse.from_request("put", url, headers=self.headers)
         return response.json
 
     def accepted_licences(self) -> Dict[str, Any]:
         url = f"{self.url}/account/licences"
-        response = processing.ApiResponse.from_request("get", url, headers=self.headers)
+        response = ApiResponse.from_request("get", url, headers=self.headers)
         return response.json

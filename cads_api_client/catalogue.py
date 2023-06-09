@@ -4,23 +4,24 @@ from typing import Any, Dict, List, Optional
 import attrs
 import requests
 
+import cads_api_client.api_response
 from . import processing
 
 
 @attrs.define
-class Collections(processing.ApiResponse):
+class Collections(cads_api_client.api_response.ApiResponse):
     def collection_ids(self) -> List[str]:
         return [collection["id"] for collection in self.json["collections"]]
 
-    def next(self) -> Optional[processing.ApiResponse]:
+    def next(self) -> Optional[cads_api_client.api_response.ApiResponse]:
         return self.from_rel_href(rel="next")
 
-    def prev(self) -> Optional[processing.ApiResponse]:
+    def prev(self) -> Optional[cads_api_client.api_response.ApiResponse]:
         return self.from_rel_href(rel="prev")
 
 
 @attrs.define
-class Collection(processing.ApiResponse):
+class Collection(cads_api_client.api_response.ApiResponse):
     headers: Dict[str, Any] = {}
 
     def end_datetime(self) -> datetime.datetime:
@@ -90,6 +91,6 @@ class Catalogue:
 
     def licenses(self) -> Dict[str, Any]:
         url = f"{self.url}/vocabularies/licences"
-        return processing.ApiResponse.from_request(
+        return cads_api_client.api_response.ApiResponse.from_request(
             "get", url, headers=self.headers, session=self.session
         ).json
