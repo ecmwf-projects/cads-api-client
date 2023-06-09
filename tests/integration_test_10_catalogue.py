@@ -12,7 +12,7 @@ def test_collections(api_root_url: str) -> None:
     assert "links" in res.json
     assert isinstance(res.json["links"], list)
 
-    expected_collection_id = "reanalysis-era5-land-monthly-means"
+    expected_collection_id = "reanalysis-era5-single-levels"
 
     assert expected_collection_id in res.collection_ids()
 
@@ -28,7 +28,7 @@ def test_collections_limit(api_root_url: str) -> None:
 
 
 def test_collection(api_root_url: str) -> None:
-    collection_id = "reanalysis-era5-land-monthly-means"
+    collection_id = "test-adaptor-mars"
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue")
 
     res = cat.collection(collection_id)
