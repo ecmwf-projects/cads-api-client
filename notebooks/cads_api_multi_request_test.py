@@ -65,5 +65,3 @@ producer_results, consumer_results = download_multiple_requests(collection, requ
                                                                 max_updates=10, max_downloads=2)
 
 
-
-
