@@ -148,6 +148,10 @@ class Remote:
         return self.url.rpartition("/")[2]
 
     @property
+    def response(self):
+        return self.session.get(self.url, headers=self.headers)
+
+    @property
     def status(self) -> str:
         # TODO: cache responses for a timeout (possibly reported nby the server)
         requests_response = self.session.get(self.url, headers=self.headers)
@@ -191,6 +195,7 @@ class Remote:
                 raise ProcessingFailedError(f"Unknown API state {status!r}")
             logger.debug(f"result not ready, waiting for {sleep} seconds")
             time.sleep(sleep)
+        return status
 
     def build_status_info(self) -> StatusInfo:
         return StatusInfo.from_request(
