@@ -11,7 +11,7 @@ QUEUE_GET_PUT_TIMEOUT_S = 10
 
 
 # API client calls
-def _submit_and_wait(collection, request, downloads_queue):
+def _submit_and_wait(collection, request, downloads_queue, *args, **kwargs):
 
     # submit request
     job = collection.submit(**request)  # TODO: set timeout
@@ -21,7 +21,7 @@ def _submit_and_wait(collection, request, downloads_queue):
     # wait on result
     logging.debug(f"{job_id} - Waiting on result")
     try:
-        job_status = job.wait_on_result()   # TODO: set timeout
+        job_status = job.wait_on_result(*args, **kwargs)   # TODO: set timeout
     except ProcessingFailedError:
         job_status = 'failed'
     logging.debug(f"{job_id} - Job {job_status}")
@@ -41,31 +41,33 @@ def _download(job, *args, **kwargs):
 
 
 # producer/consumer pattern
-def _producer(collection, requests_queue, downloads_queue, end_event):
+def _producer(collection, requests_queue, downloads_queue, end_event, *args, **kwargs):
     logging.debug("Producer starting")
     results = []
     while not requests_queue.empty():
         request = requests_queue.get(timeout=QUEUE_GET_PUT_TIMEOUT_S)
-        job_id, job_status = _submit_and_wait(collection, request, downloads_queue)
+        job_id, job_status = _submit_and_wait(collection, request, downloads_queue, *args, **kwargs)
         results.append((job_id, job_status))
     end_event.set()
     return results
 
 
-def _consumer(downloads_queue, end_event):
+def _consumer(downloads_queue, end_event, *args, **kwargs):
     logging.debug("Consumer starting")
     results = []
     while not end_event.is_set() or not downloads_queue.empty():
         job = downloads_queue.get(timeout=QUEUE_GET_PUT_TIMEOUT_S)
-        job_id, download_status = _download(job)
+        job_id, download_status = _download(job, *args, **kwargs)
         results.append((job_id, download_status))
     return results
 
 
-def download_multiple_requests(collection, requests, MAX_UPDATES=10, MAX_DOWNLOADS=2):
+def download_multiple_requests(collection, requests,
+                               target, retry_options,
+                               max_updates, max_downloads):
 
     requests_q = queue.Queue()
-    downloads_q = queue.Queue(maxsize=MAX_DOWNLOADS)
+    downloads_q = queue.Queue(maxsize=max_downloads)
     # we still need an event in case all requests are extracted from the queue but they are not fed into the
     # downloads queue yet (see stop condition for consumer)
     end_event = threading.Event()
@@ -74,11 +76,23 @@ def download_multiple_requests(collection, requests, MAX_UPDATES=10, MAX_DOWNLOA
         requests_q.put(request)
 
     # producer / consumer
-    with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_UPDATES+MAX_DOWNLOADS) as executor:
-        for i in range(MAX_UPDATES):
-            producer_results = executor.submit(_producer, collection, requests_q, downloads_q, end_event)
-        for i in range(MAX_DOWNLOADS):
-            consumer_results = executor.submit(_consumer, downloads_q, end_event)
+    p_res, c_res = [], []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_updates + max_downloads) as executor:
+        for i in range(max_updates):
+            p_res.append(
+                executor.submit(_producer, collection, requests_q, downloads_q, end_event,
+                                retry_options=retry_options)
+            )
+
+        for i in range(max_downloads):
+            c_res.append(
+                executor.submit(_consumer, downloads_q, end_event,
+                                target=target, retry_options=retry_options)
+            )
+
+    producer_results, consumer_results = tuple(map(
+        lambda lst_futures: [res for fut in lst_futures for res in fut.result()],
+        [p_res, c_res]))
 
     return producer_results, consumer_results
 

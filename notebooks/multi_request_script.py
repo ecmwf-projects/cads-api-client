@@ -1,3 +1,20 @@
+# ---
+# jupyter:
+#   jupytext:
+#     formats: ipynb,py:light
+#     text_representation:
+#       extension: .py
+#       format_name: light
+#       format_version: '1.5'
+#       jupytext_version: 1.14.5
+#   kernelspec:
+#     display_name: conda-py310-cads_api_client
+#     language: python
+#     name: conda-py310-cads_api_client
+# ---
+
+# %load_ext autoreload
+# %autoreload 2
 
 import json
 import logging
@@ -16,6 +33,7 @@ logging.basicConfig(format=format, level=logging.INFO, datefmt=datefmt)
 logging.getLogger().setLevel(logging.DEBUG)
 logging.getLogger("urllib3.connectionpool").setLevel(logging.INFO)
 logging.getLogger("multiurl.base").setLevel(logging.WARNING)
+logging.getLogger("multiurl.http").setLevel(logging.WARNING)
 
 # params
 MAX_DOWNLOADS = 2
@@ -40,7 +58,12 @@ print(f"Requests: {len(requests)}\n"\
       f"Concurrent updates: {MAX_UPDATES}\n"\
       f"Concurrent downloads: {MAX_DOWNLOADS}")
 
-
 client = ApiClient(url=CADS_API_ROOT_URL, key="00112233-4455-6677-c899-aabbccddeeff")
 collection = client.collection("reanalysis-era5-pressure-levels")
-download_multiple_requests(collection, requests)
+producer_results, consumer_results = download_multiple_requests(collection, requests,
+                                                                target=None, retry_options={},
+                                                                max_updates=10, max_downloads=2)
+
+
+
+
