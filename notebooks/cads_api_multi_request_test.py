@@ -42,6 +42,7 @@ MAX_UPDATES = 5
 # init
 client = ApiClient(url=CADS_API_ROOT_URL, key="00112233-4455-6677-c899-aabbccddeeff")
 collection = client.collection("reanalysis-era5-pressure-levels")
+accepted_licences=[{"id": "licence-to-use-copernicus-products", "revision": 12}]
 requests = [
     dict(product_type="reanalysis",
          variable="temperature",
@@ -50,9 +51,9 @@ requests = [
          month=['01'],
          day=['01'],
          time="06:00",
-         #target="test02.grib",
-         accepted_licences=[{"id": "licence-to-use-copernicus-products", "revision": 12}])
-    for year in range(2014, 2024)]
+         # target="test02.grib",
+         # accepted_licences=[{"id": "licence-to-use-copernicus-products", "revision": 12}]
+         ) for year in range(2014, 2024)]
 
 print(f"Requests: {len(requests)}\n"\
       f"Concurrent updates: {MAX_UPDATES}\n"\
@@ -60,8 +61,10 @@ print(f"Requests: {len(requests)}\n"\
 
 client = ApiClient(url=CADS_API_ROOT_URL, key="00112233-4455-6677-c899-aabbccddeeff")
 collection = client.collection("reanalysis-era5-pressure-levels")
-producer_results, consumer_results = download_multiple_requests(collection, requests,
-                                                                target=None, retry_options={},
-                                                                max_updates=10, max_downloads=2)
+#producer_results, consumer_results = download_multiple_requests(collection, requests,
+#                                                                target=None, retry_options={},
+#                                                                max_updates=10, max_downloads=2)
+producer_results, consumer_results = collection.multi_retrieve(requests=requests, accepted_licences=accepted_licences,
+                                                               max_updates=10, max_downloads=2)
 
 

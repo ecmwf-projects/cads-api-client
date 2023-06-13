@@ -5,6 +5,7 @@ import attrs
 import requests
 
 from . import processing
+from cads_api_client.multi_request import download_multiple_requests
 
 
 @attrs.define
@@ -60,6 +61,23 @@ class Collection(processing.ApiResponse):
     ) -> str:
         remote = self.submit(accepted_licences=accepted_licences, **request)
         return remote.download(target, retry_options=retry_options)
+
+    def multi_retrieve(
+            self,
+            target: Optional[str] = None,
+            retry_options: Dict[str, Any] = {},
+            accepted_licences: List[Dict[str, Any]] = [],
+            requests: List[Dict] | Dict = [],
+            max_updates: int = 10,
+            max_downloads: int = 2,
+    ):  # TODO in retrieve (composite pattern)
+
+        for request in requests:
+            request.update({'accepted_licences': accepted_licences})
+
+        return download_multiple_requests(collection=self, requests=requests,
+                                          target=target, retry_options=retry_options,
+                                          max_updates=max_updates, max_downloads=max_downloads)
 
 
 class Catalogue:
