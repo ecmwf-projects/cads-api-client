@@ -62,39 +62,52 @@ def _consumer(downloads_queue, end_event, *args, **kwargs):
     return results
 
 
-def download_multiple_requests(collection, requests,
-                               target, retry_options,
-                               max_updates, max_downloads):
+def _format_results(p_futures, c_futures):
+    # producer_results, consumer_results = tuple(map(
+    #     lambda lst_futures: [res for fut in lst_futures for res in fut.result()],
+    #     [p_futures, c_futures]))
+    _c_path_map: dict = {job_id: path for c_fut in c_futures for job_id, path in c_fut.result()}
+    p_res = {
+        job_id: (job_status, _c_path_map.get(job_id))
+        for p_fut in p_futures
+        for job_id, job_status in p_fut.result()
+    }
+    return p_res
 
+
+def multi_retrieve(collection, requests,
+                   target, retry_options,
+                   max_updates, max_downloads):
+
+    # initialize queues and events for concurrency
     requests_q = queue.Queue()
     downloads_q = queue.Queue(maxsize=max_downloads)
     # we still need an event in case all requests are extracted from the queue but they are not fed into the
     # downloads queue yet (see stop condition for consumer)
     end_event = threading.Event()
 
+    # put requests into queue
     for request in requests:
         requests_q.put(request)
 
     # producer / consumer
-    p_res, c_res = [], []
+    p_futures, c_futures = [], []
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_updates + max_downloads) as executor:
         for i in range(max_updates):
-            p_res.append(
+            p_futures.append(
                 executor.submit(_producer, collection, requests_q, downloads_q, end_event,
                                 retry_options=retry_options)
             )
 
         for i in range(max_downloads):
-            c_res.append(
+            c_futures.append(
                 executor.submit(_consumer, downloads_q, end_event,
                                 target=target, retry_options=retry_options)
             )
 
-    producer_results, consumer_results = tuple(map(
-        lambda lst_futures: [res for fut in lst_futures for res in fut.result()],
-        [p_res, c_res]))
+    results = _format_results(p_futures=p_futures, c_futures=c_futures)
 
-    return producer_results, consumer_results
+    return results
 
 
 

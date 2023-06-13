@@ -21,7 +21,7 @@ import logging
 import os
 
 from cads_api_client import ApiClient
-from cads_api_client.multi_request import download_multiple_requests
+# from cads_api_client.multi_retrieve import multi_retrieve
 
 # env vars
 CADS_API_ROOT_URL = os.getenv("CADS_API_ROOT_URL", "http://cds2-dev.copernicus-climate.eu/api")
@@ -61,10 +61,8 @@ print(f"Requests: {len(requests)}\n"\
 
 client = ApiClient(url=CADS_API_ROOT_URL, key="00112233-4455-6677-c899-aabbccddeeff")
 collection = client.collection("reanalysis-era5-pressure-levels")
-#producer_results, consumer_results = download_multiple_requests(collection, requests,
-#                                                                target=None, retry_options={},
-#                                                                max_updates=10, max_downloads=2)
-producer_results, consumer_results = collection.multi_retrieve(requests=requests, accepted_licences=accepted_licences,
-                                                               max_updates=10, max_downloads=2)
+results = collection.multi_retrieve(requests=requests, accepted_licences=accepted_licences,
+                                    max_updates=10, max_downloads=2)
+
 
 
