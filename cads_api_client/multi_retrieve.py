@@ -1,14 +1,25 @@
 
+import _queue
 import concurrent.futures
 import logging
 import queue
 import threading
-import _queue
+from dataclasses import dataclass
+from typing import Any, List, Dict
 
-from cads_api_client.processing import ProcessingFailedError
+from cads_api_client import catalogue
+from cads_api_client.processing import ProcessingFailedError, Remote
 
-
+# params
 QUEUE_GET_PUT_TIMEOUT_S = 10
+
+
+# utils
+@dataclass
+class TaskResult:
+    good: bool
+    input: Any
+    output: Any
 
 
 def _hash(request: dict):
@@ -16,12 +27,15 @@ def _hash(request: dict):
 
 
 # API client calls
-def _submit_and_wait(collection, request: dict, downloads_queue, *args, **kwargs):
+def _submit_and_wait(collection: catalogue.Collection, request: dict,
+                     downloads_queue: queue.Queue,
+                     *args, **kwargs) -> Remote:
 
     # submit request
     req_id = _hash(request)
     logging.debug(f"{req_id} - Sending request")
     job = collection.submit(**request)  # TODO: set timeout
+    # req_uid = job.request_uid
 
     # wait on result
     logging.debug(f"{req_id} - {job.id} - Waiting on result")
@@ -37,7 +51,7 @@ def _submit_and_wait(collection, request: dict, downloads_queue, *args, **kwargs
     return job
 
 
-def _download(job, *args, **kwargs):
+def _download(job: Remote, *args, **kwargs) -> str:
     logging.debug(f"{job.id} - Downloading")
     path = job._download_result(*args, **kwargs)
     logging.debug(f"{job.id} - Downloaded")
@@ -45,7 +59,9 @@ def _download(job, *args, **kwargs):
 
 
 # producer/consumer pattern
-def _producer(collection, requests_queue, downloads_queue, end_event, *args, **kwargs):
+def _producer(collection: catalogue.Collection,
+              requests_queue: queue.Queue, downloads_queue: queue.Queue, end_event: threading.Event,
+              *args, **kwargs) -> List[TaskResult]:
     logging.debug("Producer starting")
     results = []
     while not requests_queue.empty():
@@ -56,12 +72,13 @@ def _producer(collection, requests_queue, downloads_queue, end_event, *args, **k
             res, good = _submit_and_wait(collection, request, downloads_queue, *args, **kwargs), True
         except BaseException as e:
             res, good = str(e), False
-        results.append((good, request, res))
+        results.append(TaskResult(good=good, input=request, output=res))
     end_event.set()
     return results
 
 
-def _consumer(downloads_queue, end_event, *args, **kwargs):
+def _consumer(downloads_queue: queue.Queue, end_event: threading.Event,
+              *args, **kwargs) -> List[TaskResult]:
     logging.debug("Consumer starting")
     results = []
     while not end_event.is_set() or not downloads_queue.empty():
@@ -71,13 +88,14 @@ def _consumer(downloads_queue, end_event, *args, **kwargs):
             res, good = _download(job, *args, **kwargs), True
         except BaseException as e:
             res, good = str(e), False
-        results.append((good, job, res))
+        results.append(TaskResult(good=good, input=job, output=res))
     return results
 
 
-def multi_retrieve(collection, requests,
-                   target, retry_options,
-                   max_updates, max_downloads):
+# multi-threading orchestrator
+def multi_retrieve(collection: catalogue.Collection, requests: List[dict],
+                   target: str, retry_options: Dict[str, Any],
+                   max_updates: int, max_downloads: int):
 
     # initialize queues and events for concurrency
     requests_q = queue.Queue()
@@ -117,10 +135,11 @@ def _format_results(p_futures, c_futures):
     for c_fut in c_futures:
         try:
             c_results = c_fut.result()
-            for good, job, res in c_results:
-                if good:
+            for r in c_results:
+                good, job, res = r.good, r.input, r.output
+                if good:  # successful downloads
                     _c_path_map.update({job.id: {"path": res}})
-                else:
+                else:     # failed downloads
                     _c_path_map.update({job.id: {"exception": res}})
         except _queue.Empty:
             logging.debug("_queue.Empty")
@@ -128,14 +147,15 @@ def _format_results(p_futures, c_futures):
     for p_fut in p_futures:
         try:
             p_results = p_fut.result()
-            for good, req, res in p_results:
-                if good:
+            for r in p_results:
+                good, req, res = r.good, r.input, r.output
+                if good:  # successful job requests
                     results.update({_hash(req): {
                         "request": req,
                         "job": {"id": res.id, "status": res.status},
                         "download": _c_path_map.get(res.id)
                     }})
-                else:
+                else:     # failed job requests
                     results.update({_hash(req): {
                         "request": req,
                         "job": {"exception": res}
