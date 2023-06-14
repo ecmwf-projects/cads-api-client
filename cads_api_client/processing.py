@@ -130,6 +130,30 @@ class Process(ApiResponse):
         return response.json
 
 
+def cond_cached(func):
+    """
+    Cache response for a remote job request only if 'status' field is equal to 'successful' or 'failed'.
+    """
+    @functools.wraps(func)
+    def wrap(self, *args, **kwargs):
+        name = "_" + func.__name__
+        if not hasattr(self, name):
+            values = func(self, *args, **kwargs)
+            setattr(self, name, values)
+        else:
+            response = getattr(self, name)
+            if response.json()["status"] not in ('successful', 'failed'):
+                response = func(self, *args, **kwargs)
+                setattr(self, name, response)
+            response.raise_for_status()
+        return getattr(self, name)
+
+    return wrap
+
+
+# TODO add enum for status
+
+# TODO into Process?
 class Remote:
     def __init__(
         self,
@@ -148,16 +172,28 @@ class Remote:
         return self.url.rpartition("/")[2]
 
     @property
+    @cond_cached
     def response(self):
-        return self.session.get(self.url, headers=self.headers)
+        response = self.session.get(self.url, headers=self.headers)
+        response.raise_for_status()
+        return response
+
+    @functools.cached_property
+    def id(self):
+        return self.response.json()["jobID"]
 
     @property
     def status(self) -> str:
-        # TODO: cache responses for a timeout (possibly reported nby the server)
-        requests_response = self.session.get(self.url, headers=self.headers)
-        requests_response.raise_for_status()
-        json = requests_response.json()
-        return json["status"]  # type: ignore
+        # # TODO: cache responses for a timeout (possibly reported by the server)
+        # requests_response = self.session.get(self.url, headers=self.headers)
+        # requests_response.raise_for_status()
+        # json = requests_response.json()
+        # return json["status"]  # type: ignore
+        return self.response.json()["status"]
+
+    # @cond_cached
+    # def _robust_response(self, retry_options: Dict[str, Any] = {}) -> str:
+    #     return multiurl.robust(self.session.get, **retry_options)(self.url, headers=self.headers)
 
     def _robust_status(self, retry_options: Dict[str, Any] = {}) -> str:
         # TODO: cache responses for a timeout (possibly reported nby the server)
@@ -167,8 +203,21 @@ class Remote:
         requests_response.raise_for_status()
         json = requests_response.json()
         return json["status"]  # type: ignore
+        # return self._robust_response(retry_options=retry_options).json()["status"]  # type: ignore
 
     def wait_on_result(self, retry_options: Dict[str, Any] = {}) -> None:
+        """
+        Poll periodically the current request for its status (accepted, running, successful, failed) until it has been
+        processed (successful, failed). The wait time increases automatically from 1 second up to ``sleep_max``.
+
+        Parameters
+        ----------
+        retry_options: retry options for the ``robust`` method in ``multiurl`` library.
+
+        Returns
+        -------
+
+        """
         sleep = 1.0
         last_status = self._robust_status(retry_options=retry_options)
         while True:

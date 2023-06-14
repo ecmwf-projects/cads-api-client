@@ -20,27 +20,24 @@ def _submit_and_wait(collection, request: dict, downloads_queue, *args, **kwargs
     job = collection.submit(**request)  # TODO: set timeout
 
     # wait on result
-    job_id = job.response.json()["jobID"]
-    logging.debug(f"{req_id} - {job_id} - Waiting on result")
+    logging.debug(f"{req_id} - {job.id} - Waiting on result")
     try:
         job_status = job.wait_on_result(*args, **kwargs)   # TODO: set timeout
     except ProcessingFailedError:
         job_status = "failed"
 
-    logging.debug(f"{req_id} - {job_id} - Job {job_status}")
+    logging.debug(f"{req_id} - {job.id} - Job {job_status}")
     if job_status == "successful":
         downloads_queue.put(job, timeout=QUEUE_GET_PUT_TIMEOUT_S)
 
-    return job_id, job_status
-    # return job
+    return job
+
 
 def _download(job, *args, **kwargs):
-    job_id = job.response.json()["jobID"]
-    logging.debug(f"{job_id} - Downloading")
+    logging.debug(f"{job.id} - Downloading")
     path = job._download_result(*args, **kwargs)
-    logging.debug(f"{job_id} - Downloaded")
-    return job_id, path
-    # return path
+    logging.debug(f"{job.id} - Downloaded")
+    return path
 
 
 # producer/consumer pattern
@@ -109,20 +106,7 @@ def multi_retrieve(collection, requests,
     return results
 
 
-
-
-
 def _format_results(p_futures, c_futures):
-    # producer_results, consumer_results = tuple(map(
-    #     lambda lst_futures: [res for fut in lst_futures for res in fut.result()],
-    #     [p_futures, c_futures]))
-    # _c_path_map: dict = {job_id: path for c_fut in c_futures for job_id, path in c_fut.result()}
-    # p_res = {
-    #     job_id: (job_status, _c_path_map.get(job_id))
-    #     for p_fut in p_futures
-    #     for job_id, job_status in p_fut.result()
-    # }
-    # return p_res
 
     _c_path_map = {}
     _p_req_map = {}
@@ -135,12 +119,11 @@ def _format_results(p_futures, c_futures):
             logging.debug("_queue.Empty")
         for result in results:
             good, job, res = result
-            job_id = job.response.json()["jobID"]
             if good:
                 job_id, path = res
-                _c_path_map.update({job_id: {"path": path}})
+                _c_path_map.update({job.id: {"path": path}})
             else:
-                _c_path_map.update({job_id: {"exception": res}})
+                _c_path_map.update({job.id: {"exception": res}})
 
     results = []
     for p_fut in p_futures:
@@ -152,12 +135,12 @@ def _format_results(p_futures, c_futures):
             good, req, res = result
             req_id = hash(', '.join(f"{k}={v}" for k, v in req.items()))
             if good:
-                job_id, job_status = res
+                job = res
                 _p_req_map.update({req_id: {
                     "request": req,
                     "job": {
-                        "id": job_id,
-                        "status": job_status,
+                        "id": job.id,
+                        "status": job.status,
                     },
                     "download": _c_path_map.get(job_id)
                 }})
