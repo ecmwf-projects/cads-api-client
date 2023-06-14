@@ -6,26 +6,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## To Do
 - `JobList`, `ProcessList` as iterators
-
-## Unreleased
-### Changed
+- Naming consistency: processing -> retrieve
+- Remove unused `Remote.build_status_info` method
 - Details for `Remote.status`
+- Documentation
+- Use pydantic for requests and responses
+- CLI
 
+## [Unreleased]
+
+## [0.4.0] - 2023-06-14
 ### Added
 - Support for multiple requests to the CADS API client [COPDS-1112](https://jira.ecmwf.int/browse/COPDS-1112)
-- Cache response when status is successful or failed
+- `response` property in `Remote` class (cached when job status is `successful` or `failed`)
 
-### Removed
-- Removed unused `Remote.build_status_info` method
-
-
-## [0.1.0] - 2021-01-01
-### Added
 ### Changed
 ### Fixed
 ### Removed
 
 
-[Unreleased]: https://github.com/ecmwf-projects/cads-api-client/compare/v0.1.0...master
-[0.1.0]: https://github.com/ecmwf-projects/cads-api-client/compare/xxxxxxx...v0.1.0
+[Unreleased]: https://github.com/ecmwf-projects/cads-api-client/compare/v0.4.0...main
+[0.4.0]: https://github.com/ecmwf-projects/cads-api-client/compare/v0.3.0...v0.4.0
 

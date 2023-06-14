@@ -5,7 +5,7 @@ import attrs
 import requests
 
 from . import processing
-from cads_api_client.multi_retrieve import multi_retrieve
+from . import multi_retrieve
 
 
 @attrs.define
@@ -75,9 +75,9 @@ class Collection(processing.ApiResponse):
         for request in requests:
             request.update({'accepted_licences': accepted_licences})
 
-        return multi_retrieve(collection=self, requests=requests,
-                              target=target, retry_options=retry_options,
-                              max_updates=max_updates, max_downloads=max_downloads)
+        return multi_retrieve.multi_retrieve(collection=self, requests=requests,
+                                             target=target, retry_options=retry_options,
+                                             max_updates=max_updates, max_downloads=max_downloads)
 
 
 class Catalogue:
