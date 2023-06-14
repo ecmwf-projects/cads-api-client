@@ -11,11 +11,15 @@ from cads_api_client.processing import ProcessingFailedError
 QUEUE_GET_PUT_TIMEOUT_S = 10
 
 
+def _hash(request: dict):
+    return hash(', '.join(f"{k}={v}" for k, v in request.items()))
+
+
 # API client calls
 def _submit_and_wait(collection, request: dict, downloads_queue, *args, **kwargs):
 
     # submit request
-    req_id = hash(', '.join(f"{k}={v}" for k, v in request.items()))
+    req_id = _hash(request)
     logging.debug(f"{req_id} - Sending request")
     job = collection.submit(**request)  # TODO: set timeout
 
@@ -108,48 +112,35 @@ def multi_retrieve(collection, requests,
 
 def _format_results(p_futures, c_futures):
 
-    _c_path_map = {}
-    _p_req_map = {}
+    _c_path_map, results = {}, {}
 
-    results = []
     for c_fut in c_futures:
         try:
-            results = c_fut.result()
+            c_results = c_fut.result()
+            for good, job, res in c_results:
+                if good:
+                    _c_path_map.update({job.id: {"path": res}})
+                else:
+                    _c_path_map.update({job.id: {"exception": res}})
         except _queue.Empty:
             logging.debug("_queue.Empty")
-        for result in results:
-            good, job, res = result
-            if good:
-                job_id, path = res
-                _c_path_map.update({job.id: {"path": path}})
-            else:
-                _c_path_map.update({job.id: {"exception": res}})
 
-    results = []
     for p_fut in p_futures:
         try:
-            results = p_fut.result()
+            p_results = p_fut.result()
+            for good, req, res in p_results:
+                if good:
+                    results.update({_hash(req): {
+                        "request": req,
+                        "job": {"id": res.id, "status": res.status},
+                        "download": _c_path_map.get(res.id)
+                    }})
+                else:
+                    results.update({_hash(req): {
+                        "request": req,
+                        "job": {"exception": res}
+                    }})
         except _queue.Empty:
             logging.debug("_queue.Empty")
-        for result in results:
-            good, req, res = result
-            req_id = hash(', '.join(f"{k}={v}" for k, v in req.items()))
-            if good:
-                job = res
-                _p_req_map.update({req_id: {
-                    "request": req,
-                    "job": {
-                        "id": job.id,
-                        "status": job.status,
-                    },
-                    "download": _c_path_map.get(job.id)
-                }})
-            else:
-                _p_req_map.update({req_id: {
-                    "request": req,
-                    "job": {
-                        "exception": res
-                    },
-                }})
 
-    return _p_req_map
+    return results
