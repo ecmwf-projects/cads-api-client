@@ -142,7 +142,7 @@ def _format_results(p_futures, c_futures):
                         "id": job.id,
                         "status": job.status,
                     },
-                    "download": _c_path_map.get(job_id)
+                    "download": _c_path_map.get(job.id)
                 }})
             else:
                 _p_req_map.update({req_id: {
