@@ -65,4 +65,7 @@ results = collection.multi_retrieve(requests=requests, accepted_licences=accepte
                                     max_updates=10, max_downloads=2)
 
 
-
+print("YEAR | " + "{:>20}".format("HASH") + " | PATH")
+for request_hash, result in results.items():
+    request, job, download = result.get("request"), result.get("job"), result.get("download", {})
+    print(f"{request['year']} | {request_hash:20} | {download.get('path')}")
