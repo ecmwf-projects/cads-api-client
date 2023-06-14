@@ -12,13 +12,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Documentation
 - Use pydantic for requests and responses
 - CLI
+- Architecture consistent with underlying API
 
 ## [Unreleased]
 
 ## [0.4.0] - 2023-06-14
 ### Added
 - Support for multiple requests to the CADS API client [COPDS-1112](https://jira.ecmwf.int/browse/COPDS-1112)
-- `response` property in `Remote` class (cached when job status is `successful` or `failed`)
+- `Remote.response` property added (cached when job status is `successful` or `failed`)
+
+### Changed
+- `Remote.wait_on_result` returns status
 
 ### Changed
 ### Fixed

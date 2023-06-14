@@ -153,7 +153,6 @@ def cond_cached(func):
 
 # TODO add enum for status
 
-# TODO into Process?
 class Remote:
     def __init__(
         self,
