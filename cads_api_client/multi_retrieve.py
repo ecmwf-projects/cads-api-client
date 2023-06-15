@@ -154,7 +154,7 @@ def _format_results(p_futures, c_futures):
                     results.update({_hash(req): {
                         "request": req,
                         "job": {"id": res.id, "status": res.status},
-                        "download": _c_path_map.get(res.id)
+                        "download": _c_path_map.get(res.id, {})
                     }})
                 else:     # failed job requests
                     results.update({_hash(req): {

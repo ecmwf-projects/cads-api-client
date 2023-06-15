@@ -51,7 +51,6 @@ requests = [
          month=['01'],
          day=['01'],
          time="06:00",
-         # target="test02.grib",
          # accepted_licences=[{"id": "licence-to-use-copernicus-products", "revision": 12}]
          ) for year in range(2014, 2024)]
 
@@ -61,11 +60,14 @@ print(f"Requests: {len(requests)}\n"\
 
 client = ApiClient(url=CADS_API_ROOT_URL, key="00112233-4455-6677-c899-aabbccddeeff")
 collection = client.collection("reanalysis-era5-pressure-levels")
-results = collection.multi_retrieve(requests=requests, accepted_licences=accepted_licences,
-                                    max_updates=10, max_downloads=2)
+target = "/tmp"
+results = collection.multi_retrieve(requests=requests, accepted_licences=accepted_licences, 
+                                    target=target, max_updates=10, max_downloads=2)
 
 
 print("YEAR | " + "{:>20}".format("HASH") + " | PATH")
 for request_hash, result in results.items():
     request, job, download = result.get("request"), result.get("job"), result.get("download", {})
     print(f"{request['year']} | {request_hash:20} | {download.get('path')}")
+
+results

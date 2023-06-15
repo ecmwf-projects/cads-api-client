@@ -72,6 +72,9 @@ class Collection(processing.ApiResponse):
             max_downloads: int = 2,
     ):  # TODO in retrieve (composite pattern)
 
+        if target and len(requests) > 1 and not os.path.isdir(target):
+            raise ValueError(f"The target parameter path must be a directory ({target} given instead)")
+
         for request in requests:
             request.update({'accepted_licences': accepted_licences})
 

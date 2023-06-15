@@ -337,10 +337,11 @@ class Results(ApiResponse):
     ) -> str:
         result_href = self.get_result_href()
         url = urllib.parse.urljoin(self.response.url, result_href)
-        if target is None:
-            parts = urllib.parse.urlparse(url)
-            target = parts.path.strip("/").split("/")[-1]
-
+        if not target or os.path.isdir(target):
+            urlparts = urllib.parse.urlparse(url)
+            dirname = target if target else ''
+            filename = urlparts.path.strip("/").split("/")[-1]
+            target = os.path.join(dirname, filename)
         # FIXME add retry and progress bar
         retry_options = retry_options.copy()
         maximum_tries = retry_options.pop("maximum_tries", None)
