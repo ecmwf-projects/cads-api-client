@@ -5,10 +5,11 @@ import logging
 import queue
 import threading
 from dataclasses import dataclass
-from typing import Any, List, Dict
+from typing import Any, List, Dict, TypeVar
 
-from cads_api_client import catalogue
 from cads_api_client.processing import ProcessingFailedError, Remote
+
+Collection = TypeVar("Collection", bound="cads_api_client.catalogue.Collection")
 
 # params
 QUEUE_GET_PUT_TIMEOUT_S = 10
@@ -27,7 +28,7 @@ def _hash(request: dict):
 
 
 # API client calls
-def _submit_and_wait(collection: catalogue.Collection, request: dict,
+def _submit_and_wait(collection: Collection, request: dict,
                      downloads_queue: queue.Queue,
                      *args, **kwargs) -> Remote:
 
@@ -59,7 +60,7 @@ def _download(job: Remote, *args, **kwargs) -> str:
 
 
 # producer/consumer pattern
-def _producer(collection: catalogue.Collection,
+def _producer(collection: Collection,
               requests_queue: queue.Queue, downloads_queue: queue.Queue, end_event: threading.Event,
               *args, **kwargs) -> List[TaskResult]:
     logging.debug("Producer starting")
@@ -93,7 +94,7 @@ def _consumer(downloads_queue: queue.Queue, end_event: threading.Event,
 
 
 # multi-threading orchestrator
-def multi_retrieve(collection: catalogue.Collection, requests: List[dict],
+def multi_retrieve(collection: Collection, requests: List[dict],
                    target: str, retry_options: Dict[str, Any],
                    max_updates: int, max_downloads: int):
 
