@@ -7,7 +7,8 @@ import threading
 from dataclasses import dataclass
 from typing import Any, List, Dict, TypeVar, Tuple
 
-from cads_api_client.processing import ProcessingFailedError, Remote
+from cads_api_client.processes import ProcessingFailedError
+from cads_api_client.jobs import JobsAPIClient
 
 Collection = TypeVar("Collection", bound="cads_api_client.catalogue.Collection")
 
@@ -29,7 +30,7 @@ def _hash(request: dict):
 
 # API client calls
 def _submit_and_wait(collection: Collection, request: dict,
-                     *args, **kwargs) -> Tuple[Remote, str]:
+                     *args, **kwargs) -> Tuple[JobsAPIClient, str]:
 
     # submit request
     req_id = _hash(request)
@@ -49,7 +50,7 @@ def _submit_and_wait(collection: Collection, request: dict,
     return job, job_status
 
 
-def _download(job: Remote, *args, **kwargs) -> str:
+def _download(job: JobsAPIClient, *args, **kwargs) -> str:
     logging.debug(f"{job.id} - Downloading")
     path = job._download_result(*args, **kwargs)
     logging.debug(f"{job.id} - Downloaded")

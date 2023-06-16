@@ -1,27 +1,31 @@
 import datetime
+import os.path
 from typing import Any, Dict, List, Optional
 
 import attrs
 import requests
 
-from . import processing
+import cads_api_client.jobs
+from cads_api_client.api_response import ApiResponse
+from cads_api_client.processes import Process
 from . import multi_retrieve
 
 
+# TODO as iterator
 @attrs.define
-class Collections(processing.ApiResponse):
+class Collections(ApiResponse):
     def collection_ids(self) -> List[str]:
         return [collection["id"] for collection in self.json["collections"]]
 
-    def next(self) -> Optional[processing.ApiResponse]:
+    def next(self) -> Optional[ApiResponse]:
         return self.from_rel_href(rel="next")
 
-    def prev(self) -> Optional[processing.ApiResponse]:
+    def prev(self) -> Optional[ApiResponse]:
         return self.from_rel_href(rel="prev")
 
 
 @attrs.define
-class Collection(processing.ApiResponse):
+class Collection(ApiResponse):
     headers: Dict[str, Any] = {}
 
     def end_datetime(self) -> datetime.datetime:
@@ -37,15 +41,15 @@ class Collection(processing.ApiResponse):
         assert isinstance(collection_id, str)
         return collection_id
 
-    def retrieve_process(self) -> processing.Process:
+    def retrieve_process(self) -> Process:  # TODO private
         url = self.get_link_href(rel="retrieve")
-        return processing.Process.from_request(
+        return Process.from_request(
             "get", url, headers=self.headers, session=self.session
         )
 
     def submit(
         self, accepted_licences: List[Dict[str, Any]] = [], **request: Any
-    ) -> processing.Remote:
+    ) -> cads_api_client.jobs.JobsAPIClient:
         retrieve_process = self.retrieve_process()
         status_info = retrieve_process.execute(
             inputs=request, accepted_licences=accepted_licences, session=self.session
@@ -83,7 +87,7 @@ class Collection(processing.ApiResponse):
                                              max_updates=max_updates, max_downloads=max_downloads)
 
 
-class Catalogue:
+class CatalogueAPIClient:
     supported_api_version = "v1"
 
     def __init__(
@@ -111,6 +115,6 @@ class Catalogue:
 
     def licenses(self) -> Dict[str, Any]:
         url = f"{self.url}/vocabularies/licences"
-        return processing.ApiResponse.from_request(
+        return ApiResponse.from_request(
             "get", url, headers=self.headers, session=self.session
         ).json
