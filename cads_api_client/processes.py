@@ -58,6 +58,3 @@ class Process(ApiResponse):
         return Job.from_request(
             "post", url, json=json, headers=self.headers, **kwargs
         )
-
-
-

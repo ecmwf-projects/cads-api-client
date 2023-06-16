@@ -52,7 +52,7 @@ def _submit_and_wait(collection: Collection, request: dict,
 
 def _download(job: JobsAPIClient, *args, **kwargs) -> str:
     logging.debug(f"{job.id} - Downloading")
-    path = job._download_result(*args, **kwargs)
+    path = job._robust_download(*args, **kwargs)
     logging.debug(f"{job.id} - Downloaded")
     return path
 
