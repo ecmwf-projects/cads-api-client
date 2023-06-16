@@ -7,8 +7,8 @@ import threading
 from dataclasses import dataclass
 from typing import Any, List, Dict, TypeVar, Tuple
 
-from cads_api_client.processes import ProcessingFailedError
-from cads_api_client.jobs import JobsAPIClient
+from cads_api_client.jobs import ProcessingFailedError
+from cads_api_client.api_client import JobsAPIClient
 
 Collection = TypeVar("Collection", bound="cads_api_client.catalogue.Collection")
 

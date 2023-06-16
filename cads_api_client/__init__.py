@@ -22,8 +22,6 @@ except ImportError:  # pragma: no cover
     # Local copy or not installed with setuptools
     __version__ = "999"
 
-from .api_client import ApiClient
-from .catalogue import CatalogueAPIClient
-from .processing import ProcessesAPIClient, JobsAPIClient
+from .api_client import ApiClient, CatalogueAPIClient, ProcessesAPIClient, JobsAPIClient
 
-__all__ = ["__version__", "CatalogueAPIClient", "ProcessesAPIClient", "JobsAPIClient", "ApiClient"]
+__all__ = ["__version__", "ProcessesAPIClient", "JobsAPIClient", "ApiClient"]

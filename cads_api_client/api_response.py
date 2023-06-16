@@ -1,4 +1,3 @@
-from __future__ import annotations
 
 import functools
 from typing import Dict, Any, Optional, List, Type, TypeVar
@@ -27,11 +26,11 @@ def cads_raise_for_status(response: requests.Response) -> None:
 @attrs.define(slots=False)
 class ApiResponse:
     """
-    HTTP response from CADS API with utils.
+    HTTP response from CADS API with utils to parse json results.
     """
     response: requests.Response
     headers: Dict[str, Any] = {}
-    session: requests.Session = (requests.api,)  # type: ignore
+    session: requests.Session = (requests.api,)  # type: ignore   # todo DECOUPLE SESSION FROM REPSONSE
 
     # TODO as __init__?
     @classmethod
@@ -68,7 +67,7 @@ class ApiResponse:
             raise RuntimeError(f"link not found or not unique {kwargs}")
         return links[0]["href"]
 
-    def from_rel_href(self, rel: str) -> Optional[ApiResponse]:
+    def from_rel_href(self, rel: str) -> Optional[T_ApiResponse]:
         rels = self.get_links(rel=rel)
         assert len(rels) <= 1
         if len(rels) == 1:
