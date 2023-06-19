@@ -52,7 +52,7 @@ class Job(ApiResponse):
     def id(self):
         return self.response.json().get("jobID")
 
-    @functools.lru_cache()
+    # @functools.lru_cache()
     def _get_monitor_href(self):
         url = self.get_link_href(rel="monitor")
         return url
@@ -73,12 +73,12 @@ class Job(ApiResponse):
     @property
     def status(self) -> str:
         # note that this is the status of the job not of the job execution request
-        return self.monitor.json().get("status")
+        return self.monitor().json().get("status")
 
     def _robust_status(self, retry_options: Dict[str, Any] = {}) -> str:
         return self._robust_monitor(retry_options=retry_options).json().get("status")
 
-    def _make_results(self):
+    def _make_results(self) -> ApiResponse:
         # if url is None:
         #     url = self.url
         if self.status not in ("successful", "failed"):
@@ -149,18 +149,17 @@ class Job(ApiResponse):
         return status
 
     def _get_result_href(self) -> str:
-        if self.response.status_code != 200:
+        if self.results.response.status_code != 200:
             raise KeyError("result_href not available for processing failed results")
         href = self.json["asset"]["value"]["href"]
         assert isinstance(href, str)
         return href
 
     def _get_result_size(self) -> Optional[int]:
-        asset = self.json.get("asset", {}).get("value", {})
+        asset = self.results.json.get("asset", {}).get("value", {})
         size = asset["file:size"]
         return int(size)
 
-    # FIXME
     def download(
         self,
         target_folder: str = '.',

@@ -24,9 +24,9 @@ class ApiClient:
     session: requests.Session = attrs.field(factory=requests.Session)
     key: Optional[str] = CADS_API_KEY
     url: str = CADS_API_URL
-    catalogue_dir = "catalogue"
-    retrieve_dir = "retrieve"
-    profiles_dir = "profiles"
+    catalogue_dir = "catalogue/v1"
+    retrieve_dir = "retrieve/v1"
+    profiles_dir = "profiles/v1"
 
     def _headers(self) -> Dict[str, str]:
         if self.key is None:
