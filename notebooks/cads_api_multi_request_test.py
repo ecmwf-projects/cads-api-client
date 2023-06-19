@@ -40,7 +40,7 @@ MAX_DOWNLOADS = 2
 MAX_UPDATES = 5
 
 # init
-client = ApiClient(url=CADS_API_ROOT_URL, key="00112233-4455-6677-c899-aabbccddeeff")
+client = ApiClient(base_url=CADS_API_ROOT_URL, key="00112233-4455-6677-c899-aabbccddeeff")
 collection = client.collection("reanalysis-era5-pressure-levels")
 accepted_licences=[{"id": "licence-to-use-copernicus-products", "revision": 12}]
 requests = [
@@ -58,7 +58,7 @@ print(f"Requests: {len(requests)}\n"\
       f"Concurrent updates: {MAX_UPDATES}\n"\
       f"Concurrent downloads: {MAX_DOWNLOADS}")
 
-client = ApiClient(url=CADS_API_ROOT_URL, key="00112233-4455-6677-c899-aabbccddeeff")
+client = ApiClient(base_url=CADS_API_ROOT_URL, key="00112233-4455-6677-c899-aabbccddeeff")
 collection = client.collection("reanalysis-era5-pressure-levels")
 target = "/tmp"
 results = collection.multi_retrieve(requests=requests, accepted_licences=accepted_licences, 

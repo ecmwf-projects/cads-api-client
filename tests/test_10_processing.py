@@ -310,4 +310,4 @@ def test_wait_on_result() -> None:
     catalogue = cads_api_client.Catalogue(CATALOGUE_URL)
     collection = catalogue.collection(COLLECTION_ID)
     remote = collection.submit(variable="temperature", year="2022")
-    remote.wait_on_result()
+    remote.wait_on_results()

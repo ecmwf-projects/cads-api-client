@@ -4,110 +4,113 @@ import logging
 import os
 import time
 import urllib
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional
 
-import attrs
 import multiurl
 from requests import Response
 
-from cads_api_client.api_response import ApiResponse
+from cads_api_client.utils import get_link_href
 
 # TODO add enum for status
 
 
 logger = logging.getLogger(__name__)
 
-def cond_cached(func):
-    """
-    Cache response for a remote job request only if 'status' field is equal to 'successful' or 'failed'.
-    """
-    @functools.wraps(func)
-    def wrap(self, *args, **kwargs):
-        name = func.__name__
-        if not hasattr(self, name):
-            values = func(self, *args, **kwargs)
-            setattr(self, name, values)
-        else:
-            response = getattr(self, name)
-            if response.json()["status"] not in ('successful', 'failed'):
-                response = func(self, *args, **kwargs)
-                setattr(self, name, response)
-            response.raise_for_status()
-        return getattr(self, name)
+# def cond_cached(func):
+#     """
+#     Cache response for a remote job request only if 'status' field is equal to 'successful' or 'failed'.
+#     """
+#     @functools.wraps(func)
+#     def wrap(self, *args, **kwargs):
+#         name = func.__name__
+#         if not hasattr(self, name):
+#             values = func(self, *args, **kwargs)
+#             setattr(self, name, values)
+#         else:
+#             response = getattr(self, name)
+#             if response.json()["status"] not in ('successful', 'failed'):
+#                 response = func(self, *args, **kwargs)
+#                 setattr(self, name, response)
+#             response.raise_for_status()
+#         return getattr(self, name)
+#
+#     return wrap
+#
 
-    return wrap
 
+class Job:
 
-@attrs.define
-class Job(ApiResponse):
-    # note that this class extends the ResponseAPI class giving to it client capabilities.
-    # we can perform new requests from the urls inside the response and get new responses.
-    # we do that in order to monitor the status of the job.
+    def __init__(self, job_id, base_url, session, headers, request=None, sleep_max=120):
 
-    sleep_max = 120  # TODO pass as argument
+        self.session = session
+        self.headers = headers
+        self.request = request
+        self.sleep_max = sleep_max
+        self.job_id = job_id
+        self.base_url = base_url
+        self.url = f"{self.base_url}/retrieve/v1/jobs/{job_id}"  # TODO from settings
 
-    # TODO only one response (attribute for normal/robust)
+    def __repr__(self):
+        return f"Job(job_id={self.job_id})"
+
+    @functools.cached_property
+    def _response(self):
+        return self.session.get(self.url)
+
+    def json(self):
+        return self._response.json()
 
     @functools.cached_property
     def id(self):
-        return self.response.json().get("jobID")
+        return self.json().get("jobID")
 
-    # @functools.lru_cache()
-    def _get_monitor_href(self):
-        url = self.get_link_href(rel="monitor")
+    @functools.cached_property
+    def _monitor_href(self):
+        url = get_link_href(self._response, rel="monitor")
         return url
 
-    def monitor(self) -> Response:
+    @multiurl.robust
+    def _monitor_response(self) -> Response:
         """
         Send request to get information about the remote job.
         """
-        response = self.session.get(self._get_monitor_href(), headers=self.headers)
-        response.raise_for_status()
-        return response
-
-    def _robust_monitor(self, retry_options: Dict[str, Any] = {}) -> Response:
-        response = multiurl.robust(self.session.get, **retry_options)(self._get_monitor_href(), headers=self.headers)
+        response = self.session.get(self._monitor_href, headers=self.headers)
         response.raise_for_status()
         return response
 
     @property
     def status(self) -> str:
         # note that this is the status of the job not of the job execution request
-        return self.monitor().json().get("status")
+        return self._monitor_response().json().get("status")
 
-    def _robust_status(self, retry_options: Dict[str, Any] = {}) -> str:
-        return self._robust_monitor(retry_options=retry_options).json().get("status")
-
-    def _make_results(self) -> ApiResponse:
-        # if url is None:
-        #     url = self.url
+    @property
+    @multiurl.robust
+    def results(self):
         if self.status not in ("successful", "failed"):
             raise Exception(f"Result not ready, job is {self.status}")
-        url = self._get_monitor_href()
-        request_response = self.session.get(url, headers=self.headers)
-        response = ApiResponse(request_response, session=self.session)
-        # request_response: ApiResponse = ApiResponse(self.response, session=self.session)
         try:
-            results_url = response.get_link_href(rel="results")
+            results_url = get_link_href(response=self._monitor_response(), rel="results")
         except RuntimeError:
-            results_url = f"{url}/results"
-        results = ApiResponse.from_request(
-            "get",
-            results_url,
-            headers=self.headers,
-            session=self.session,
-            raise_for_status=False,
-        )
+            results_url = f"{self._monitor_href}/results"
+        results = self.session.get(results_url, headers=self.headers)  # , raise_for_status=False)
         return results
 
     @property
-    def results(self):
-        return self._make_results()
+    def _result_href(self) -> str:
+        if self.results.status_code != 200:
+            raise KeyError("result_href not available for processing failed results")
+        href = self.results.json()["asset"]["value"]["href"]
+        assert isinstance(href, str)
+        return href
 
-    def _robust_results(self, retry_options: Dict[str, Any] = {}) -> str:
-        return multiurl.robust(self._make_results, **retry_options)(self.url)  # TODO remove url
+    @property
+    def _result_size(self) -> Optional[int]:
+        asset = self.results.json().get("asset", {}).get("value", {})
+        size = asset["file:size"]
+        return int(size)
 
-    def wait_on_result(self, retry_options: Dict[str, Any] = {}) -> None:
+    @multiurl.robust
+    def wait_on_results(self, retry_options: Dict[str, Any] = {}) -> None:
         """
         Poll periodically the current request for its status (accepted, running, successful, failed) until it has been
         processed (successful, failed). The wait time increases automatically from 1 second up to ``sleep_max``.
@@ -121,16 +124,16 @@ class Job(ApiResponse):
 
         """
         sleep = 1.0
-        last_status = self._robust_status(retry_options=retry_options)
+        last_status = self.status   # _robust_status(retry_options=retry_options)
         while True:
-            status = self._robust_status(retry_options=retry_options)
+            status = self.status  # _robust_status(retry_options=retry_options)
             if last_status != status:
                 logger.debug(f"status has been updated to {status}")
             if status == "successful":
                 break
             elif status == "failed":
-                results = multiurl.robust(self._make_results, **retry_options)(self.url)
-                info = results.json
+                # results = multiurl.robust(self._make_results, **retry_options)(self.url)
+                info = self.results.json()
                 error_message = "processing failed"
                 if info.get("title"):
                     error_message = f'{info["title"]}'
@@ -146,19 +149,7 @@ class Job(ApiResponse):
                 raise ProcessingFailedError(f"Unknown API state {status!r}")
             logger.debug(f"result not ready, waiting for {sleep} seconds")
             time.sleep(sleep)
-        return status
-
-    def _get_result_href(self) -> str:
-        if self.results.response.status_code != 200:
-            raise KeyError("result_href not available for processing failed results")
-        href = self.json["asset"]["value"]["href"]
-        assert isinstance(href, str)
-        return href
-
-    def _get_result_size(self) -> Optional[int]:
-        asset = self.results.json.get("asset", {}).get("value", {})
-        size = asset["file:size"]
-        return int(size)
+        return self.results
 
     def download(
         self,
@@ -171,7 +162,7 @@ class Job(ApiResponse):
             raise ValueError("Selected folder does not exists!")
         elif not os.path.isdir(target_folder):
             raise ValueError("A folder must be specified instead of file.")
-        url = urllib.parse.urljoin(self._get_monitor_href(), self._get_result_href())
+        url = urllib.parse.urljoin(self._monitor_href, self._result_href)
 
         if target is None:
             parts = urllib.parse.urlparse(url)
@@ -186,7 +177,7 @@ class Job(ApiResponse):
             url, stream=True, target=target_path, timeout=timeout, **retry_options
         )
         target_size = os.path.getsize(target_path)
-        size = self._get_result_size()
+        size = self._result_size
         if size:
             if target_size != size:
                 raise DownloadError(
@@ -194,23 +185,6 @@ class Job(ApiResponse):
                     % (target_size, size)
                 )
         return target_path
-
-    def _robust_download(
-        self, target: Optional[str] = None, retry_options: Dict[str, Any] = {}
-    ) -> str:   # TODO public (used for multiple requests)
-        results = multiurl.robust(self._make_results, **retry_options)()
-        return results.download(target, retry_options=retry_options)
-
-@attrs.define
-class JobList(ApiResponse):
-    def job_ids(self) -> List[str]:
-        return [job["jobID"] for job in self.json["jobs"]]
-
-    def next(self) -> Optional[ApiResponse]:
-        return self.from_rel_href(rel="next")
-
-    def prev(self) -> Optional[ApiResponse]:
-        return self.from_rel_href(rel="prev")
 
 
 class ProcessingFailedError(RuntimeError):

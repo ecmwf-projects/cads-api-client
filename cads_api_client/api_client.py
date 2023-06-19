@@ -1,18 +1,15 @@
 from __future__ import annotations
 
-import os
 from typing import Any, Dict, Optional
 
 import attrs
 import requests
 
-from cads_api_client.api_response import ApiResponse
-from cads_api_client.catalogue import Collections, Collection
-from cads_api_client.jobs import Job, JobList
-from cads_api_client.processes import ProcessList, Process
-
-CADS_API_URL = os.getenv("CADS_API_URL", "http://localhost:8080/api")
-CADS_API_KEY = os.getenv("CADS_API_KEY")
+from cads_api_client.catalogue import Collection
+from cads_api_client.jobs import Job
+from cads_api_client.processes import Process
+from cads_api_client.settings import CADS_API_URL, CADS_API_KEY, CATALOGUE_DIR, PROFILES_DIR, RETRIEVE_DIR
+from cads_api_client.utils import ResponseIterator
 
 
 @attrs.define(slots=False)
@@ -23,67 +20,67 @@ class ApiClient:
     """
     session: requests.Session = attrs.field(factory=requests.Session)
     key: Optional[str] = CADS_API_KEY
-    url: str = CADS_API_URL
-    catalogue_dir = "catalogue/v1"
-    retrieve_dir = "retrieve/v1"
-    profiles_dir = "profiles/v1"
+    base_url: str = CADS_API_URL
+    version: int = 1
+    catalogue_dir = CATALOGUE_DIR
+    retrieve_dir = RETRIEVE_DIR
+    profiles_dir = PROFILES_DIR
+    # catalogue_url = f"{base_url}/{catalogue_dir}/v{version}"
 
     def _headers(self) -> Dict[str, str]:
         if self.key is None:
             raise ValueError("A valid API key is needed to access this resource")
         return {"PRIVATE-TOKEN": self.key}
 
-    def collections(self, **params: Dict[str, Any]) -> Collections:
-        url = f"{self.url}/{self.catalogue_dir}/datasets"
-        return Collections.from_request("get", url, params=params, session=self.session)
+    def collections(self, **params: Dict[str, Any]):
+        url = f"{self.base_url}/{self.catalogue_dir}/v{self.version}/datasets"
+        for page in ResponseIterator(url, session=self.session, headers=self._headers()):
+            for collection in page.json()["collections"]:
+                yield Collection(collection_id=collection["id"],
+                                 base_url=self.base_url, session=self.session, headers=self._headers())
 
     def collection(self, collection_id: str) -> Collection:
-        url = f"{self.url}/{self.catalogue_dir}/collections/{collection_id}"
-        return Collection.from_request(
-            "get", url, headers=self._headers(), session=self.session
-        )
+        return Collection(collection_id,
+                          base_url=self.base_url, session=self.session, api_key=self.key)
 
-    def processes(self, params: Dict[str, Any] = {}) -> ProcessList:
-        url = f"{self.url}/{self.retrieve_dir}/processes"
-        return ProcessList.from_request("get", url, params=params, session=self.session)
+    def processes(self, params: Dict[str, Any] = {}):
+        url = f"{self.base_url}/{self.retrieve_dir}/v{self.version}/processes"
+        for page in ResponseIterator(url, session=self.session, headers=self._headers()):
+            for process in page.json()["processes"]:
+                yield Process(pid=process["id"],
+                              session=self.session, headers=self._headers())
 
     def process(self, process_id: str) -> Process:
-        url = f"{self.url}/{self.retrieve_dir}/processes/{process_id}"
-        return Process.from_request(
-            "get", url, headers=self._headers(), session=self.session
-        )
+        return Process(pid=process_id, base_url=self.base_url, headers=self._headers(), session=self.session)
 
-    def jobs(self, params: Dict[str, Any] = {}) -> JobList:
-        url = f"{self.url}/{self.retrieve_dir}//jobs"
-        return JobList.from_request(
-            "get", url, params=params, headers=self._headers(), session=self.session
-        )
+    def jobs(self, params: Dict[str, Any] = {}):
+        url = f"{self.base_url}/{self.retrieve_dir}/v{self.version}/jobs"
+        for page in ResponseIterator(url, session=self.session, headers=self._headers()):
+            for job in page.json()["jobs"]:
+                yield Job(job_id=job["jobID"],
+                          base_url=self.base_url, session=self.session, headers=self._headers())
 
     def job(self, job_id: str) -> Job:
-        url = f"{self.url}/{self.retrieve_dir}/jobs/{job_id}"
-        return Job.from_request(
-            "get", url, headers=self._headers(), session=self.session
-        )
+        return Job(job_id, base_url=self.base_url, headers=self._headers(), session=self.session)
 
     def profile(self) -> Dict[str, Any]:
-        url = f"{self.url}/{self.profiles_dir}/account"
-        response = ApiResponse.from_request("get", url, headers=self._headers())
-        return response.json
+        url = f"{self.base_url}/{self.profiles_dir}/v{self.version}/account"
+        response = self.session.request("get", url, headers=self._headers())
+        return response.json()
 
     @property
     def licences(self) -> Dict[str, Any]:
-        url = f"{self.url}/{self.profiles_dir}/vocabularies/licences"
-        return ApiResponse.from_request(
-            "get", url, headers=self._headers(), session=self.session
-        ).json
+        url = f"{self.base_url}/{self.profiles_dir}/v{self.version}/vocabularies/licences"
+        response = self.session.request("get", url, headers=self._headers())
+        return response.json()
 
     @property
     def accepted_licences(self) -> Dict[str, Any]:
-        url = f"{self.url}/{self.profiles_dir}/account/licences"
-        response = ApiResponse.from_request("get", url, headers=self._headers())
-        return response.json
+        url = f"{self.base_url}/{self.profiles_dir}/v{self.version}/account/licences"
+        response = self.session.request("get", url, headers=self._headers())
+        return response.json()
 
     def accept_licence(self, licence_id: str) -> Dict[str, Any]:
-        url = f"{self.url}/{self.profiles_dir}/account/licences/{licence_id}"
-        response = ApiResponse.from_request("put", url, headers=self._headers())
-        return response.json
+        url = f"{self.base_url}/{self.profiles_dir}/v{self.version}/account/licences/{licence_id}"
+        response = self.session.request("put", url, headers=self._headers())
+        return response.json()

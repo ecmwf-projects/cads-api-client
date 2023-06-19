@@ -41,7 +41,7 @@ def _submit_and_wait(collection: Collection, request: dict,
     # wait on result
     logging.debug(f"{req_id} - {job.id} - Waiting on result")
     try:
-        job_status = job.wait_on_result(*args, **kwargs)   # TODO: set timeout
+        job_status = job.wait_on_results(*args, **kwargs)   # TODO: set timeout
     except ProcessingFailedError:
         job_status = "failed"
 

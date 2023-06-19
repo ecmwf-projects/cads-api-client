@@ -123,3 +123,9 @@ come si passano i token? --> si restituisce un client già autenticato
 
 ---
 
+gli oggetti si passano le sessione.
+le risposte non hanno sessione.
+le liste restituiscono oggetti e non id.
+gli oggetti sono inizializzati senza fare chiamate (lazy) (per le liste)
+
+
