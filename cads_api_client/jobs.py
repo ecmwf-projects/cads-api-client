@@ -9,7 +9,8 @@ from typing import Dict, Any, Optional
 import multiurl
 from requests import Response
 
-from cads_api_client.utils import get_link_href
+from cads_api_client.utils import get_link_href, ConnectionObject
+from cads_api_client.settings import RETRIEVE_DIR, API_VERSION
 
 # TODO add enum for status
 
@@ -38,17 +39,14 @@ logger = logging.getLogger(__name__)
 #
 
 
-class Job:
+class Job(ConnectionObject):
 
-    def __init__(self, job_id, base_url, session, headers, request=None, sleep_max=120):
-
-        self.session = session
-        self.headers = headers
+    def __init__(self, job_id, *args, request=None, sleep_max=120, **kwargs):
+        super().__init__(*args, **kwargs)
         self.request = request
         self.sleep_max = sleep_max
         self.job_id = job_id
-        self.base_url = base_url
-        self.url = f"{self.base_url}/retrieve/v1/jobs/{job_id}"  # TODO from settings
+        self.url = f"{self.base_url}/{RETRIEVE_DIR}/{API_VERSION}/jobs/{job_id}"
 
     def __repr__(self):
         return f"Job(job_id={self.job_id})"

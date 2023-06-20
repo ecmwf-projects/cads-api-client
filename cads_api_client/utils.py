@@ -4,6 +4,7 @@ from typing import Dict, Any, Optional, List, Type, TypeVar
 
 import attrs
 import requests
+from settings import CADS_API_URL, CADS_API_KEY
 
 T_ApiResponse = TypeVar("T_ApiResponse", bound="ApiResponse")
 
@@ -71,3 +72,16 @@ class ResponseIterator:
         self.url = next_resp
 
         return cur_resp
+
+
+class ConnectionObject:
+    def __init__(self, base_url=CADS_API_URL, api_key=CADS_API_KEY, session=requests.Session()):
+        self.base_url = base_url
+        self.session = session
+        self.api_key = api_key
+
+    @property
+    def headers(self) -> Dict[str, str]:
+        if self.api_key is None:
+            raise ValueError("A valid API key is needed to access this resource")
+        return {"PRIVATE-TOKEN": self.api_key}

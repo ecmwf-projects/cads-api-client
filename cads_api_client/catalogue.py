@@ -2,15 +2,14 @@
 import functools
 
 from cads_api_client.processes import Process
+from cads_api_client.utils import ConnectionObject
 
 
-class Collection:
-    def __init__(self, collection_id, base_url, session, headers):
+class Collection(ConnectionObject):
+    def __init__(self, collection_id, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.collection_id = collection_id
-        self.base_url = base_url
-        self.session = session
-        self.headers = headers
-        self.url = f"{base_url}/catalogue/v1/collections/{collection_id}"
+        self.url = f"{self.base_url}/catalogue/v1/collections/{collection_id}"
 
     def __repr__(self):
         return f"Collection(collection_id={self.id})"

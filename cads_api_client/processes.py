@@ -3,27 +3,27 @@ import logging
 from typing import Any, Dict, List
 
 from cads_api_client.jobs import Job
-
+from cads_api_client.utils import ConnectionObject
 
 logger = logging.Logger(__name__)
 
+from settings import RETRIEVE_DIR, API_VERSION
 
-class Process:
-    def __init__(self, pid, base_url, session, headers):
+
+class Process(ConnectionObject):
+    def __init__(self, pid, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.pid = pid
-        self.session = session
-        self.headers = headers
-        self.base_url = base_url
-        self.url = f"{base_url}/retrieve/v1/processes/{pid}"   # TODO from settings
-        self._constraints_url = f"{self.url}/constraints"
-        self._execute_url = f"{self.url}/execute"
+        self._url = f"{self.base_url}/{RETRIEVE_DIR}/{API_VERSION}/processes/{pid}"
+        self._constraints_url = f"{self._url}/constraints"
+        self._execute_url = f"{self._url}/execute"
 
     def __repr__(self):
         return f"Process(pid={self.pid})"
 
     @functools.cached_property
     def _response(self):
-        return self.session.get(self.url)
+        return self.session.get(self._url)
 
     def json(self):
         return self._response.json()
