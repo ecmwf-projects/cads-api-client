@@ -41,9 +41,10 @@ logger = logging.getLogger(__name__)
 
 class Job(ConnectionObject):
 
-    def __init__(self, job_id, *args, request=None, sleep_max=120, **kwargs):
+    def __init__(self, job_id, *args, request=None, response=None, sleep_max=120, **kwargs):
         super().__init__(*args, **kwargs)
         self.request = request
+        self.response = response
         self.sleep_max = sleep_max
         self.job_id = job_id
         self.url = f"{self.base_url}/{RETRIEVE_DIR}/v{API_VERSION}/jobs/{job_id}"
@@ -53,7 +54,7 @@ class Job(ConnectionObject):
 
     @functools.cached_property
     def _response(self):
-        return self.session.get(self.url)
+        return self.response if self.response else self.session.get(self.url)
 
     def json(self):
         return self._response.json()
@@ -64,7 +65,8 @@ class Job(ConnectionObject):
 
     @functools.cached_property
     def _monitor_href(self):
-        url = get_link_href(self._response, rel="monitor")
+        rel = "monitor" if self._response.request.method == "POST" else "self"
+        url = get_link_href(self._response, rel=rel)
         return url
 
     @multiurl.robust

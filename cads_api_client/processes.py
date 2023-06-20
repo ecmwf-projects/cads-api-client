@@ -51,4 +51,5 @@ class Process(ConnectionObject):
         execute_resp = self.session.post(self._execute_url, json=json, headers=self.headers)
         execute_resp.raise_for_status()
         job_id = execute_resp.json()["jobID"]
-        return Job(job_id=job_id, request=inputs, base_url=self.base_url, session=self.session, api_key=self.api_key)
+        return Job(job_id=job_id, request=inputs, response=execute_resp,
+                   base_url=self.base_url, session=self.session, api_key=self.api_key)
