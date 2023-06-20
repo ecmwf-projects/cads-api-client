@@ -4,7 +4,7 @@ from typing import Dict, Any, Optional, List, Type, TypeVar
 
 import attrs
 import requests
-from settings import CADS_API_URL, CADS_API_KEY
+from cads_api_client.settings import CADS_API_URL, CADS_API_KEY
 
 T_ApiResponse = TypeVar("T_ApiResponse", bound="ApiResponse")
 

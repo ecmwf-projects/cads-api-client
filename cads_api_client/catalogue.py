@@ -2,14 +2,15 @@
 import functools
 
 from cads_api_client.processes import Process
+from cads_api_client.settings import CATALOGUE_DIR, API_VERSION
 from cads_api_client.utils import ConnectionObject
 
 
 class Collection(ConnectionObject):
-    def __init__(self, collection_id, *args, **kwargs):
+    def __init__(self, collection_id: str, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.collection_id = collection_id
-        self.url = f"{self.base_url}/catalogue/v1/collections/{collection_id}"
+        self.url = f"{self.base_url}/{CATALOGUE_DIR}/v{API_VERSION}/collections/{collection_id}"
 
     def __repr__(self):
         return f"Collection(collection_id={self.id})"
@@ -23,7 +24,8 @@ class Collection(ConnectionObject):
 
     @property
     def id(self):
-        return self._response.json().get("id")
+        # return self._response.json().get("id")
+        return self.collection_id
 
     def retrieve_process(self) -> Process:
-        return Process(self.id, base_url=self.base_url, session=self.session, headers=self.headers)
+        return Process(self.id, base_url=self.base_url, session=self.session, api_key=self.api_key)

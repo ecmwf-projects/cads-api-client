@@ -46,7 +46,7 @@ class Job(ConnectionObject):
         self.request = request
         self.sleep_max = sleep_max
         self.job_id = job_id
-        self.url = f"{self.base_url}/{RETRIEVE_DIR}/{API_VERSION}/jobs/{job_id}"
+        self.url = f"{self.base_url}/{RETRIEVE_DIR}/v{API_VERSION}/jobs/{job_id}"
 
     def __repr__(self):
         return f"Job(job_id={self.job_id})"
@@ -108,7 +108,7 @@ class Job(ConnectionObject):
         return int(size)
 
     @multiurl.robust
-    def wait_on_results(self, retry_options: Dict[str, Any] = {}) -> None:
+    def wait_on_results(self) -> Response:
         """
         Poll periodically the current request for its status (accepted, running, successful, failed) until it has been
         processed (successful, failed). The wait time increases automatically from 1 second up to ``sleep_max``.
@@ -122,9 +122,9 @@ class Job(ConnectionObject):
 
         """
         sleep = 1.0
-        last_status = self.status   # _robust_status(retry_options=retry_options)
+        last_status = self.status
         while True:
-            status = self.status  # _robust_status(retry_options=retry_options)
+            status = self.status
             if last_status != status:
                 logger.debug(f"status has been updated to {status}")
             if status == "successful":

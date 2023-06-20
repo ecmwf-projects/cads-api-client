@@ -38,11 +38,12 @@ logging.getLogger("multiurl.http").setLevel(logging.WARNING)
 # params
 MAX_DOWNLOADS = 2
 MAX_UPDATES = 5
+TARGET = "/tmp"
 
 # init
 client = ApiClient(base_url=CADS_API_ROOT_URL, key="00112233-4455-6677-c899-aabbccddeeff")
-collection = client.collection("reanalysis-era5-pressure-levels")
-accepted_licences=[{"id": "licence-to-use-copernicus-products", "revision": 12}]
+collection_id = "reanalysis-era5-pressure-levels"
+accepted_licences = [{"id": "licence-to-use-copernicus-products", "revision": 12}]
 requests = [
     dict(product_type="reanalysis",
          variable="temperature",
@@ -59,10 +60,8 @@ print(f"Requests: {len(requests)}\n"\
       f"Concurrent downloads: {MAX_DOWNLOADS}")
 
 client = ApiClient(base_url=CADS_API_ROOT_URL, key="00112233-4455-6677-c899-aabbccddeeff")
-collection = client.collection("reanalysis-era5-pressure-levels")
-target = "/tmp"
-results = collection.multi_retrieve(requests=requests, accepted_licences=accepted_licences, 
-                                    target=target, max_updates=10, max_downloads=2)
+results = client.retrieve(collection_id=collection_id, requests=requests, accepted_licenses=accepted_licences,
+                          target=TARGET, max_updates=MAX_UPDATES, max_downloads=MAX_DOWNLOADS)
 
 
 print("YEAR | " + "{:>20}".format("HASH") + " | PATH")
@@ -71,3 +70,5 @@ for request_hash, result in results.items():
     print(f"{request['year']} | {request_hash:20} | {download.get('path')}")
 
 results
+
+

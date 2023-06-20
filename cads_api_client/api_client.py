@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 
 import attrs
 import requests
 
 from cads_api_client.catalogue import Collection
 from cads_api_client.jobs import Job
+from cads_api_client.multi_retrieve import multi_retrieve
 from cads_api_client.processes import Process
 from cads_api_client.settings import CADS_API_URL, CADS_API_KEY, CATALOGUE_DIR, PROFILES_DIR, RETRIEVE_DIR
 from cads_api_client.utils import ResponseIterator
@@ -53,7 +54,7 @@ class ApiClient:
     def process(self, process_id: str) -> Process:
         return Process(pid=process_id, base_url=self.base_url, headers=self._headers(), session=self.session)
 
-    def jobs(self, params: Dict[str, Any] = {}):
+    def jobs(self):
         url = f"{self.base_url}/{self.retrieve_dir}/v{self.version}/jobs"
         for page in ResponseIterator(url, session=self.session, headers=self._headers()):
             for job in page.json()["jobs"]:
@@ -62,6 +63,19 @@ class ApiClient:
 
     def job(self, job_id: str) -> Job:
         return Job(job_id, base_url=self.base_url, headers=self._headers(), session=self.session)
+
+    def retrieve(self, collection_id: str, requests: List[dict], accepted_licenses: List[dict],
+                 target: Optional[str] = None,
+                 max_updates: Optional[int] = 10, max_downloads: Optional[int] = 2):
+        collection = self.collection(collection_id=collection_id)
+        if len(requests) == 1:
+            return collection.retrieve_process()\
+                             .execute(inputs=requests[0], accepted_licences=accepted_licenses)\
+                             .download(target=target)
+        else:
+            results = multi_retrieve(collection=collection, requests=requests, accepted_licenses=accepted_licenses,
+                                     target=target, max_updates=max_updates, max_downloads=max_downloads)
+        return results
 
     def profile(self) -> Dict[str, Any]:
         url = f"{self.base_url}/{self.profiles_dir}/v{self.version}/account"

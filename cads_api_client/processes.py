@@ -7,14 +7,14 @@ from cads_api_client.utils import ConnectionObject
 
 logger = logging.Logger(__name__)
 
-from settings import RETRIEVE_DIR, API_VERSION
+from cads_api_client.settings import RETRIEVE_DIR, API_VERSION
 
 
 class Process(ConnectionObject):
     def __init__(self, pid, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.pid = pid
-        self._url = f"{self.base_url}/{RETRIEVE_DIR}/{API_VERSION}/processes/{pid}"
+        self._url = f"{self.base_url}/{RETRIEVE_DIR}/v{API_VERSION}/processes/{pid}"
         self._constraints_url = f"{self._url}/constraints"
         self._execute_url = f"{self._url}/execute"
 
@@ -30,9 +30,10 @@ class Process(ConnectionObject):
 
     @property
     def id(self) -> str:
-        process_id = self.json()["id"]
-        assert isinstance(process_id, str)
-        return process_id
+        # process_id = self.json()["id"]
+        # assert isinstance(process_id, str)
+        # return process_id
+        return self.pid
 
     def valid_values(self, request: Dict[str, Any] = {}) -> Dict[str, Any]:
         response = self.session.post(self._constraints_url, json={"inputs": request})
@@ -49,5 +50,5 @@ class Process(ConnectionObject):
         json = {"inputs": inputs, "acceptedLicences": accepted_licences}
         execute_resp = self.session.post(self._execute_url, json=json, headers=self.headers)
         execute_resp.raise_for_status()
-        job_id = execute_resp.json()["id"]
-        return Job(job_id=job_id, request=inputs, base_url=self.base_url, session=self.session, headers=self.headers)
+        job_id = execute_resp.json()["jobID"]
+        return Job(job_id=job_id, request=inputs, base_url=self.base_url, session=self.session, api_key=self.api_key)

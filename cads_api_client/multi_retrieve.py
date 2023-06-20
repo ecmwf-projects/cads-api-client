@@ -7,10 +7,8 @@ import threading
 from dataclasses import dataclass
 from typing import Any, List, Dict, TypeVar, Tuple
 
-from cads_api_client.jobs import ProcessingFailedError
-from cads_api_client.api_client import JobsAPIClient
-
-Collection = TypeVar("Collection", bound="cads_api_client.catalogue.Collection")
+from cads_api_client.catalogue import Collection
+from cads_api_client.jobs import ProcessingFailedError, Job
 
 # params
 QUEUE_GET_PUT_TIMEOUT_S = 10
@@ -29,36 +27,39 @@ def _hash(request: dict):
 
 
 # API client calls
-def _submit_and_wait(collection: Collection, request: dict,
-                     *args, **kwargs) -> Tuple[JobsAPIClient, str]:
+def _submit_and_wait(collection: Collection, request: dict, accepted_licenses,
+                     *args, **kwargs) -> Tuple[Job, str]:
 
     # submit request
     req_id = _hash(request)
     logging.debug(f"{req_id} - Sending request")
-    job = collection.submit(**request)  # TODO: set timeout
+    process = collection.retrieve_process()
+    job = process.execute(inputs=request, accepted_licences=accepted_licenses)  # TODO: set timeout
     # req_uid = job.request_uid
 
     # wait on result
     logging.debug(f"{req_id} - {job.id} - Waiting on result")
     try:
-        job_status = job.wait_on_results(*args, **kwargs)   # TODO: set timeout
+        job_results = job.wait_on_results(*args, **kwargs)   # TODO: set timeout
     except ProcessingFailedError:
-        job_status = "failed"
-
+        # job_status = "failed"
+        pass
+    finally:
+        job_status = job.status
     logging.debug(f"{req_id} - {job.id} - Job {job_status}")
 
     return job, job_status
 
 
-def _download(job: JobsAPIClient, *args, **kwargs) -> str:
+def _download(job: Job, *args, **kwargs) -> str:
     logging.debug(f"{job.id} - Downloading")
-    path = job._robust_download(*args, **kwargs)
+    path = job.download(*args, **kwargs)
     logging.debug(f"{job.id} - Downloaded")
     return path
 
 
 # producer/consumer pattern
-def _producer(collection: Collection,
+def _producer(collection: Collection, accepted_licenses,
               requests_queue: queue.Queue, downloads_queue: queue.Queue, working_queue: queue.Queue,
               *args, **kwargs) -> List[TaskResult]:
     logging.debug("Producer starting")
@@ -69,7 +70,7 @@ def _producer(collection: Collection,
         # handle exception inside task because a single job that fails could give error for the entire task (thread)
         # TODO decorator?
         try:
-            res, good = _submit_and_wait(collection, request, downloads_queue, *args, **kwargs), True
+            res, good = _submit_and_wait(collection, request, accepted_licenses, downloads_queue, *args, **kwargs), True
             job, job_status = res
             if job_status == "successful":
                 downloads_queue.put(job, timeout=QUEUE_GET_PUT_TIMEOUT_S)
@@ -99,9 +100,8 @@ def _consumer(downloads_queue: queue.Queue, working_q: queue.Queue,
 
 
 # multi-threading orchestrator
-def multi_retrieve(collection: Collection, requests: List[dict],
-                   target: str, retry_options: Dict[str, Any],  # target_folder
-                   max_updates: int, max_downloads: int):  # max_submit / max_download
+def multi_retrieve(collection: Collection, requests: List[dict], accepted_licenses: List[dict], target: str,
+                   max_updates: int, max_downloads: int):
 
     # initialize queues and events for concurrency
     requests_q = queue.Queue()
@@ -125,14 +125,12 @@ def multi_retrieve(collection: Collection, requests: List[dict],
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_updates + max_downloads) as executor:
         for i in range(max_updates):
             p_futures.append(
-                executor.submit(_producer, collection, requests_q, downloads_q, working_q,
-                                retry_options=retry_options)
+                executor.submit(_producer, collection, accepted_licenses, requests_q, downloads_q, working_q)
             )
 
         for i in range(max_downloads):
             c_futures.append(
-                executor.submit(_consumer, downloads_q, working_q,
-                                target=target, retry_options=retry_options)
+                executor.submit(_consumer, downloads_q, working_q, target=target)
             )
 
     results = _format_results(p_futures=p_futures, c_futures=c_futures)
