@@ -28,4 +28,4 @@ class Collection(ConnectionObject):
         return self.collection_id
 
     def retrieve_process(self) -> Process:
-        return Process(self.id, base_url=self.base_url, session=self.session, api_key=self.api_key)
+        return Process(pid=self.id, base_url=self.base_url, session=self.session, api_key=self.api_key)
