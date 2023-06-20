@@ -17,26 +17,25 @@ from cads_api_client.settings import RETRIEVE_DIR, API_VERSION
 
 logger = logging.getLogger(__name__)
 
-# def cond_cached(func):
-#     """
-#     Cache response for a remote job request only if 'status' field is equal to 'successful' or 'failed'.
-#     """
-#     @functools.wraps(func)
-#     def wrap(self, *args, **kwargs):
-#         name = func.__name__
-#         if not hasattr(self, name):
-#             values = func(self, *args, **kwargs)
-#             setattr(self, name, values)
-#         else:
-#             response = getattr(self, name)
-#             if response.json()["status"] not in ('successful', 'failed'):
-#                 response = func(self, *args, **kwargs)
-#                 setattr(self, name, response)
-#             response.raise_for_status()
-#         return getattr(self, name)
-#
-#     return wrap
-#
+
+def cond_cached(func):
+    """
+    Cache monitor response for a remote job only if 'status' field is equal to 'successful' or 'failed'.
+    """
+    @functools.wraps(func)
+    def wrap(self, *args, **kwargs):
+        name = '_' + func.__name__
+        if not hasattr(self, name):
+            response = func(self, *args, **kwargs)
+            setattr(self, name, response)
+        else:
+            response = getattr(self, name)
+            if response.json()["status"] not in ('successful', 'failed'):
+                response = func(self, *args, **kwargs)
+                setattr(self, name, response)
+            response.raise_for_status()
+        return getattr(self, name)
+    return wrap
 
 
 class Job(ConnectionObject):
@@ -70,6 +69,7 @@ class Job(ConnectionObject):
         return url
 
     @multiurl.robust
+    @cond_cached
     def _monitor_response(self) -> Response:
         """
         Send request to get information about the remote job.
@@ -85,7 +85,7 @@ class Job(ConnectionObject):
 
     @property
     @multiurl.robust
-    def results(self):
+    def results(self) -> Response:
         if self.status not in ("successful", "failed"):
             raise Exception(f"Result not ready, job is {self.status}")
         try:
