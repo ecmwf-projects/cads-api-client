@@ -24,7 +24,7 @@ class APIClient(ConnectionObject):
     base_url: str = CADS_API_URL
     api_key: str = CADS_API_KEY
 
-    def collections(self, params: Dict[str, Any]):     # TODO limit parameter
+    def collections(self, params: Dict[str, Any] = None):     # TODO limit parameter
         url = f"{self.base_url}/{CATALOGUE_DIR}/v{API_VERSION}/datasets"
         for page in ResponseIterator(url, session=self.session, headers=self.headers, params=params):
             for collection in page.json()["collections"]:
@@ -56,7 +56,7 @@ class APIClient(ConnectionObject):
     def job(self, job_id: str) -> Job:
         return Job(job_id, base_url=self.base_url, headers=self.headers, session=self.session)
 
-    def retrieve(self, collection_id: str, inputs: List[dict], accepted_licenses: List[dict],
+    def retrieve(self, collection_id: str, inputs: List[dict], accepted_licences: List[dict],
                  target: Optional[str] = None,
                  max_updates: Optional[int] = 10, max_downloads: Optional[int] = 2):
         """
@@ -71,7 +71,7 @@ class APIClient(ConnectionObject):
         collection_id: Collection id
         inputs: List of requests to be submitted to the retrieve api. The accepted values can be found by calling the
          :meth:`Process.valid_values` method for :class:`Process`.
-        accepted_licenses
+        accepted_licences
         target: Local download folder
         max_updates: Number of max concurrent job status updates
         max_downloads: Number of max concurrent downloads
@@ -83,11 +83,12 @@ class APIClient(ConnectionObject):
         """
         collection = self.collection(collection_id=collection_id)
         if len(inputs) == 1:
-            return collection.retrieve_process()\
-                             .execute(inputs=inputs[0], accepted_licences=accepted_licenses)\
-                             .download(target=target)
+            job = collection.retrieve_process()\
+                             .execute(inputs=inputs[0], accepted_licences=accepted_licences)
+            job.wait_on_results()
+            return job.download(target=target)     # TODO auto wait
         else:
-            results = multi_retrieve(collection=collection, requests=inputs, accepted_licenses=accepted_licenses,
+            results = multi_retrieve(collection=collection, requests=inputs, accepted_licenses=accepted_licences,
                                      target=target, max_updates=max_updates, max_downloads=max_downloads)
         return results
 

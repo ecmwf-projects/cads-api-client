@@ -20,7 +20,7 @@ import json
 import logging
 import os
 
-from cads_api_client import ApiClient
+from cads_api_client import APIClient
 # from cads_api_client.multi_retrieve import multi_retrieve
 
 # env vars
@@ -41,7 +41,7 @@ MAX_UPDATES = 5
 TARGET = "/tmp"
 
 # init
-client = ApiClient(base_url=CADS_API_ROOT_URL, key="00112233-4455-6677-c899-aabbccddeeff")
+client = APIClient(base_url=CADS_API_ROOT_URL, api_key="00112233-4455-6677-c899-aabbccddeeff")
 collection_id = "reanalysis-era5-pressure-levels"
 accepted_licences = [{"id": "licence-to-use-copernicus-products", "revision": 12}]
 requests = [
@@ -59,8 +59,8 @@ print(f"Requests: {len(requests)}\n"\
       f"Concurrent updates: {MAX_UPDATES}\n"\
       f"Concurrent downloads: {MAX_DOWNLOADS}")
 
-client = ApiClient(base_url=CADS_API_ROOT_URL, key="00112233-4455-6677-c899-aabbccddeeff")
-results = client.retrieve(collection_id=collection_id, requests=requests, accepted_licenses=accepted_licences,
+client = APIClient(base_url=CADS_API_ROOT_URL, api_key="00112233-4455-6677-c899-aabbccddeeff")
+results = client.retrieve(collection_id=collection_id, inputs=requests, accepted_licences=accepted_licences,
                           target=TARGET, max_updates=MAX_UPDATES, max_downloads=MAX_DOWNLOADS)
 
 

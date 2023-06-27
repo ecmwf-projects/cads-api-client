@@ -157,7 +157,7 @@ class Job(ConnectionObject):
         target: Optional[str] = None,
         timeout: int = 60,
         retry_options: Dict[str, Any] = {},
-    ) -> str:
+    ) -> str:  # TODO auto wait
         if not os.path.exists(target_folder):
             raise ValueError("Selected folder does not exists!")
         elif not os.path.isdir(target_folder):
