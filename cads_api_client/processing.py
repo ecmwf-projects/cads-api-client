@@ -331,26 +331,30 @@ class Results(ApiResponse):
 
     def download(
         self,
+        target_folder: str = '.',
         target: Optional[str] = None,
         timeout: int = 60,
         retry_options: Dict[str, Any] = {},
     ) -> str:
+        if not os.path.exists(target_folder):
+            raise ValueError("Selected folder does not exists!")
+        elif not os.path.isdir(target_folder):
+            raise ValueError("A folder must be specified instead of file.")
         result_href = self.get_result_href()
         url = urllib.parse.urljoin(self.response.url, result_href)
-        if not target or os.path.isdir(target):
-            urlparts = urllib.parse.urlparse(url)
-            dirname = target if target else ''
-            filename = urlparts.path.strip("/").split("/")[-1]
-            target = os.path.join(dirname, filename)
+        if target is None:
+            parts = urllib.parse.urlparse(url)
+            target = parts.path.strip("/").split("/")[-1]
+        target_path = os.path.join(target_folder, target)
         # FIXME add retry and progress bar
         retry_options = retry_options.copy()
         maximum_tries = retry_options.pop("maximum_tries", None)
         if maximum_tries is not None:
             retry_options["maximum_retries"] = maximum_tries
         multiurl.download(
-            url, stream=True, target=target, timeout=timeout, **retry_options
+            url, stream=True, target=target_path, timeout=timeout, **retry_options
         )
-        target_size = os.path.getsize(target)
+        target_size = os.path.getsize(target_path)
         size = self.get_result_size()
         if size:
             if target_size != size:
@@ -358,7 +362,7 @@ class Results(ApiResponse):
                     "Download failed: downloaded %s byte(s) out of %s"
                     % (target_size, size)
                 )
-        return target
+        return target_path
 
 
 class Processing:
