@@ -5,7 +5,7 @@ import logging
 import queue
 import threading
 from dataclasses import dataclass
-from typing import Any, List, Dict, TypeVar
+from typing import Any, List, Dict, TypeVar, Tuple
 
 from cads_api_client.processing import ProcessingFailedError, Remote
 
@@ -29,8 +29,7 @@ def _hash(request: dict):
 
 # API client calls
 def _submit_and_wait(collection: Collection, request: dict,
-                     downloads_queue: queue.Queue,
-                     *args, **kwargs) -> Remote:
+                     *args, **kwargs) -> Tuple[Remote, str]:
 
     # submit request
     req_id = _hash(request)
@@ -46,10 +45,8 @@ def _submit_and_wait(collection: Collection, request: dict,
         job_status = "failed"
 
     logging.debug(f"{req_id} - {job.id} - Job {job_status}")
-    if job_status == "successful":
-        downloads_queue.put(job, timeout=QUEUE_GET_PUT_TIMEOUT_S)
 
-    return job
+    return job, job_status
 
 
 def _download(job: Remote, *args, **kwargs) -> str:
@@ -61,30 +58,37 @@ def _download(job: Remote, *args, **kwargs) -> str:
 
 # producer/consumer pattern
 def _producer(collection: Collection,
-              requests_queue: queue.Queue, downloads_queue: queue.Queue, end_event: threading.Event,
+              requests_queue: queue.Queue, downloads_queue: queue.Queue, working_queue: queue.Queue,
               *args, **kwargs) -> List[TaskResult]:
     logging.debug("Producer starting")
     results = []
     while not requests_queue.empty():
+        working_queue.put(True)
         request = requests_queue.get(timeout=QUEUE_GET_PUT_TIMEOUT_S)
         # handle exception inside task because a single job that fails could give error for the entire task (thread)
         # TODO decorator?
         try:
             res, good = _submit_and_wait(collection, request, downloads_queue, *args, **kwargs), True
+            job, job_status = res
+            if job_status == "successful":
+                downloads_queue.put(job, timeout=QUEUE_GET_PUT_TIMEOUT_S)
         except BaseException as e:
             res, good = str(e), False
         results.append(TaskResult(good=good, input=request, output=res))
-    end_event.set()
+        working_queue.get()
+
+    # end_event.set()
     return results
 
 
-def _consumer(downloads_queue: queue.Queue, end_event: threading.Event,
+def _consumer(downloads_queue: queue.Queue, working_q: queue.Queue,
               *args, **kwargs) -> List[TaskResult]:
     logging.debug("Consumer starting")
     results = []
-    while not end_event.is_set() or not downloads_queue.empty():
-        job = downloads_queue.get(timeout=QUEUE_GET_PUT_TIMEOUT_S)
+    while not working_q.empty() or not downloads_queue.empty():
+        job = downloads_queue.get()  # no timeout for get as queue can be empty
         # handle exception inside task because a single job that fails could give error for the entire task (thread)
+        # TODO decorator?
         try:
             res, good = _download(job, *args, **kwargs), True
         except BaseException as e:
@@ -95,15 +99,21 @@ def _consumer(downloads_queue: queue.Queue, end_event: threading.Event,
 
 # multi-threading orchestrator
 def multi_retrieve(collection: Collection, requests: List[dict],
-                   target: str, retry_options: Dict[str, Any],
-                   max_updates: int, max_downloads: int):
+                   target: str, retry_options: Dict[str, Any],  # target_folder
+                   max_updates: int, max_downloads: int):  # max_submit / max_download
 
     # initialize queues and events for concurrency
     requests_q = queue.Queue()
-    downloads_q = queue.Queue(maxsize=max_downloads)
-    # we still need an event in case all requests are extracted from the queue but they are not fed into the
-    # downloads queue yet (see stop condition for consumer)
-    end_event = threading.Event()
+    downloads_q = queue.Queue()
+    # we don't need maxsize as concurrency is handled by the number  of threads instantiated in the pool.
+    working_q = queue.Queue(maxsize=max_updates)
+    # edge cases:
+    # a) when all requests are extracted from the requests queue and not yet fed into the downloads queue, we cannot
+    #    use the fact that both the queues are empty as a stop condition.
+    # b) when the download queue is empty and the last request has been extracted from the requests queue, but not
+    #    yet submitted into the downloads queue (still waiting for results) we cannot set an end event in one of the
+    #    threads to be used a stop condition (consumers would end while the last producer hasn't terminated yet)
+    # that's why we need to monitor the execution status of the producer threads through the working queue.
 
     # put requests into queue
     for request in requests:
@@ -114,13 +124,13 @@ def multi_retrieve(collection: Collection, requests: List[dict],
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_updates + max_downloads) as executor:
         for i in range(max_updates):
             p_futures.append(
-                executor.submit(_producer, collection, requests_q, downloads_q, end_event,
+                executor.submit(_producer, collection, requests_q, downloads_q, working_q,
                                 retry_options=retry_options)
             )
 
         for i in range(max_downloads):
             c_futures.append(
-                executor.submit(_consumer, downloads_q, end_event,
+                executor.submit(_consumer, downloads_q, working_q,
                                 target=target, retry_options=retry_options)
             )
 
