@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional
 import attrs
 import requests
 
-from . import processing
+from . import multi_retrieve, processing
 
 
 @attrs.define
@@ -79,9 +79,7 @@ class Collection(processing.ApiResponse):
         for request in requests:
             request.update({"accepted_licences": accepted_licences})
 
-        from .multi_retrieve import multi_retrieve
-
-        return multi_retrieve(
+        return multi_retrieve.multi_retrieve(
             collection=self,
             requests=requests,
             target=target,

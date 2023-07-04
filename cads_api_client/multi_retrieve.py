@@ -2,12 +2,14 @@ import concurrent.futures
 import logging
 import queue
 from dataclasses import dataclass
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, TypeVar
 
 import _queue
 
-from .catalogue import Collection
 from .processing import ProcessingFailedError, Remote
+
+Collection = TypeVar("Collection")
+
 
 # params
 QUEUE_GET_PUT_TIMEOUT_S = 10
