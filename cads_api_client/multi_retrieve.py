@@ -112,16 +112,16 @@ def _consumer(
 def multi_retrieve(
     collection: Collection,
     requests: List[dict],
-    target: str,
+    target: str | None,
     retry_options: Dict[str, Any],  # target_folder
-    max_updates: int,
-    max_downloads: int,
-):  # max_submit / max_download
+    max_submit: int,
+    max_download: int,
+):
     # initialize queues and events for concurrency
     requests_q = queue.Queue()
     downloads_q = queue.Queue()
     # we don't need maxsize as concurrency is handled by the number  of threads instantiated in the pool.
-    working_q = queue.Queue(maxsize=max_updates)
+    working_q = queue.Queue(maxsize=max_submit)
     # edge cases:
     # a) when all requests are extracted from the requests queue and not yet fed into the downloads queue,
     #    we cannot use the fact that both the queues are empty as a stop condition.
@@ -138,9 +138,9 @@ def multi_retrieve(
     # producer / consumer
     p_futures, c_futures = [], []
     with concurrent.futures.ThreadPoolExecutor(
-        max_workers=max_updates + max_downloads
+        max_workers=max_submit + max_download
     ) as executor:
-        for i in range(max_updates):
+        for i in range(max_submit):
             p_futures.append(
                 executor.submit(
                     _producer,
@@ -152,7 +152,7 @@ def multi_retrieve(
                 )
             )
 
-        for i in range(max_downloads):
+        for i in range(max_download):
             c_futures.append(
                 executor.submit(
                     _consumer,

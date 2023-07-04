@@ -84,8 +84,8 @@ class Collection(processing.ApiResponse):
             requests=requests,
             target=target,
             retry_options=retry_options,
-            max_updates=max_updates,
-            max_downloads=max_downloads,
+            max_submit=max_updates,
+            max_download=max_downloads,
         )
 
 
