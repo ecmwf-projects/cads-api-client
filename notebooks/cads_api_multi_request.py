@@ -67,11 +67,11 @@ print(
 
 client = ApiClient(url=CADS_API_ROOT_URL, key="00112233-4455-6677-c899-aabbccddeeff")
 collection = client.collection("reanalysis-era5-pressure-levels")
-target = "/tmp"
+target_folder = "/tmp"
 results = collection.multi_retrieve(
     requests=requests,
     accepted_licences=accepted_licences,
-    target=target,
+    target_folder=target_folder,
     max_updates=10,
     max_downloads=2,
 )

@@ -2,7 +2,7 @@ import concurrent.futures
 import logging
 import queue
 from dataclasses import dataclass
-from typing import Any, Dict, List, Tuple, TypeVar
+from typing import Any, Dict, List, Optional, Tuple, TypeVar
 
 import _queue
 
@@ -112,10 +112,10 @@ def _consumer(
 def multi_retrieve(
     collection: Collection,
     requests: List[dict],
-    target: str | None,
-    retry_options: Dict[str, Any],  # target_folder
-    max_submit: int,
-    max_download: int,
+    target_folder: Optional[str] = ".",
+    retry_options: Dict[str, Any] = {},
+    max_submit: int = 10,
+    max_download: int = 2,
 ):
     # initialize queues and events for concurrency
     requests_q = queue.Queue()
@@ -158,7 +158,7 @@ def multi_retrieve(
                     _consumer,
                     downloads_q,
                     working_q,
-                    target=target,
+                    target_folder=target_folder,
                     retry_options=retry_options,
                 )
             )

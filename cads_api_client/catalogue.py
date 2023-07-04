@@ -64,16 +64,16 @@ class Collection(processing.ApiResponse):
 
     def multi_retrieve(
         self,
-        target: Optional[str] = None,
+        target_folder: Optional[str] = ".",
         retry_options: Dict[str, Any] = {},
         accepted_licences: List[Dict[str, Any]] = [],
         requests: List[Dict] | Dict = [],
         max_updates: int = 10,
         max_downloads: int = 2,
-    ):  # TODO in retrieve (composite pattern)
-        if target and len(requests) > 1 and not os.path.isdir(target):
+    ):
+        if target_folder and not os.path.isdir(target_folder):
             raise ValueError(
-                f"The target parameter path must be a directory ({target} given instead)"
+                f"The target parameter path must be a directory ({target_folder} given instead)"
             )
 
         for request in requests:
@@ -82,7 +82,7 @@ class Collection(processing.ApiResponse):
         return multi_retrieve.multi_retrieve(
             collection=self,
             requests=requests,
-            target=target,
+            target_folder=target_folder,
             retry_options=retry_options,
             max_submit=max_updates,
             max_download=max_downloads,

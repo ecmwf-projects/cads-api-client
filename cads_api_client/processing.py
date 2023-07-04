@@ -242,16 +242,26 @@ class Remote:
         return results
 
     def _download_result(
-        self, target: Optional[str] = None, retry_options: Dict[str, Any] = {}
+        self,
+        target: Optional[str] = None,
+        target_folder: str = ".",
+        retry_options: Dict[str, Any] = {},
     ) -> str:
         results: Results = multiurl.robust(self.make_results, **retry_options)(self.url)
-        return results.download(target, retry_options=retry_options)
+        return results.download(
+            target=target, target_folder=target_folder, retry_options=retry_options
+        )
 
     def download(
-        self, target: Optional[str] = None, retry_options: Dict[str, Any] = {}
+        self,
+        target: Optional[str] = None,
+        target_folder: str = ".",
+        retry_options: Dict[str, Any] = {},
     ) -> str:
         self.wait_on_result(retry_options=retry_options)
-        return self._download_result(target, retry_options=retry_options)
+        return self._download_result(
+            target=target, target_folder=target_folder, retry_options=retry_options
+        )
 
 
 @attrs.define
