@@ -67,7 +67,7 @@ class Collection(processing.ApiResponse):
         target_folder: Optional[str] = ".",
         retry_options: Dict[str, Any] = {},
         accepted_licences: List[Dict[str, Any]] = [],
-        requests: List[Dict] | Dict = [],
+        requests: List[Dict] = [],
         max_updates: int = 10,
         max_downloads: int = 2,
     ):
