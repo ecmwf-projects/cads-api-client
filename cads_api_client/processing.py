@@ -130,29 +130,6 @@ class Process(ApiResponse):
         return response.json
 
 
-def cond_cached(func):
-    """
-    Cache response for a remote job request only if 'status' field is equal to 'successful' or 'failed'.
-    """
-    @functools.wraps(func)
-    def wrap(self, *args, **kwargs):
-        name = "_" + func.__name__
-        if not hasattr(self, name):
-            values = func(self, *args, **kwargs)
-            setattr(self, name, values)
-        else:
-            response = getattr(self, name)
-            if response.json()["status"] not in ('successful', 'failed'):
-                response = func(self, *args, **kwargs)
-                setattr(self, name, response)
-            response.raise_for_status()
-        return getattr(self, name)
-
-    return wrap
-
-
-# TODO add enum for status
-
 class Remote:
     def __init__(
         self,
@@ -171,8 +148,8 @@ class Remote:
         return self.url.rpartition("/")[2]
 
     @property
-    @cond_cached
     def response(self):
+        # TODO: cache responses for a timeout (possibly reported by the server)
         response = self.session.get(self.url, headers=self.headers)
         response.raise_for_status()
         return response
@@ -183,16 +160,7 @@ class Remote:
 
     @property
     def status(self) -> str:
-        # # TODO: cache responses for a timeout (possibly reported by the server)
-        # requests_response = self.session.get(self.url, headers=self.headers)
-        # requests_response.raise_for_status()
-        # json = requests_response.json()
-        # return json["status"]  # type: ignore
-        return self.response.json()["status"]
-
-    # @cond_cached
-    # def _robust_response(self, retry_options: Dict[str, Any] = {}) -> str:
-    #     return multiurl.robust(self.session.get, **retry_options)(self.url, headers=self.headers)
+        return self.response.json()["status"]   # type: ignore
 
     def _robust_status(self, retry_options: Dict[str, Any] = {}) -> str:
         # TODO: cache responses for a timeout (possibly reported nby the server)

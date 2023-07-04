@@ -19,7 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.4.0] - 2023-06-14
 ### Added
 - Support for multiple requests to the CADS API client [COPDS-1112](https://jira.ecmwf.int/browse/COPDS-1112)
-- `Remote.response` property added (cached when job status is `successful` or `failed`)
+- `Remote.response` property added
+- `target_folder` parameter added to `Results.download`
 
 ### Changed
 - `Remote.wait_on_result` returns status
