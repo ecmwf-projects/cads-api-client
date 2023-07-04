@@ -1,12 +1,11 @@
 import datetime
+import os.path
 from typing import Any, Dict, List, Optional
 
 import attrs
 import requests
-import os.path
 
 from . import processing
-from . import multi_retrieve
 
 
 @attrs.define
@@ -64,24 +63,32 @@ class Collection(processing.ApiResponse):
         return remote.download(target, retry_options=retry_options)
 
     def multi_retrieve(
-            self,
-            target: Optional[str] = None,
-            retry_options: Dict[str, Any] = {},
-            accepted_licences: List[Dict[str, Any]] = [],
-            requests: List[Dict] | Dict = [],
-            max_updates: int = 10,
-            max_downloads: int = 2,
+        self,
+        target: Optional[str] = None,
+        retry_options: Dict[str, Any] = {},
+        accepted_licences: List[Dict[str, Any]] = [],
+        requests: List[Dict] | Dict = [],
+        max_updates: int = 10,
+        max_downloads: int = 2,
     ):  # TODO in retrieve (composite pattern)
-
         if target and len(requests) > 1 and not os.path.isdir(target):
-            raise ValueError(f"The target parameter path must be a directory ({target} given instead)")
+            raise ValueError(
+                f"The target parameter path must be a directory ({target} given instead)"
+            )
 
         for request in requests:
-            request.update({'accepted_licences': accepted_licences})
+            request.update({"accepted_licences": accepted_licences})
 
-        return multi_retrieve.multi_retrieve(collection=self, requests=requests,
-                                             target=target, retry_options=retry_options,
-                                             max_updates=max_updates, max_downloads=max_downloads)
+        from .multi_retrieve import multi_retrieve
+
+        return multi_retrieve(
+            collection=self,
+            requests=requests,
+            target=target,
+            retry_options=retry_options,
+            max_updates=max_updates,
+            max_downloads=max_downloads,
+        )
 
 
 class Catalogue:

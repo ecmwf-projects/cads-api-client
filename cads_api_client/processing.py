@@ -160,7 +160,7 @@ class Remote:
 
     @property
     def status(self) -> str:
-        return self.response.json()["status"]   # type: ignore
+        return self.response.json()["status"]  # type: ignore
 
     def _robust_status(self, retry_options: Dict[str, Any] = {}) -> str:
         # TODO: cache responses for a timeout (possibly reported nby the server)
@@ -172,10 +172,13 @@ class Remote:
         return json["status"]  # type: ignore
         # return self._robust_response(retry_options=retry_options).json()["status"]  # type: ignore
 
-    def wait_on_result(self, retry_options: Dict[str, Any] = {}) -> None:
+    def wait_on_result(self, retry_options: Dict[str, Any] = {}) -> str:
         """
-        Poll periodically the current request for its status (accepted, running, successful, failed) until it has been
-        processed (successful, failed). The wait time increases automatically from 1 second up to ``sleep_max``.
+        Wait job until finished.
+
+        Poll periodically the current request for its status (accepted, running, successful, failed) until
+        it has been processed (successful, failed). The wait time increases automatically from 1 second up
+        to ``sleep_max``.
 
         Parameters
         ----------
@@ -183,7 +186,7 @@ class Remote:
 
         Returns
         -------
-
+        Job status (successful, failed)
         """
         sleep = 1.0
         last_status = self._robust_status(retry_options=retry_options)
@@ -300,7 +303,7 @@ class Results(ApiResponse):
     def download(
         self,
         target: Optional[str] = None,
-        target_folder: str = '.',
+        target_folder: str = ".",
         timeout: int = 60,
         retry_options: Dict[str, Any] = {},
     ) -> str:
