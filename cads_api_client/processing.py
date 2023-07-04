@@ -299,8 +299,8 @@ class Results(ApiResponse):
 
     def download(
         self,
-        target_folder: str = '.',
         target: Optional[str] = None,
+        target_folder: str = '.',
         timeout: int = 60,
         retry_options: Dict[str, Any] = {},
     ) -> str:

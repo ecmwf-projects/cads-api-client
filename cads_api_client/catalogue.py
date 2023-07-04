@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional
 
 import attrs
 import requests
+import os.path
 
 from . import processing
 from . import multi_retrieve
