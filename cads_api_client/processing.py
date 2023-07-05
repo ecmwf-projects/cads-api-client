@@ -148,15 +148,15 @@ class Remote:
         return self.url.rpartition("/")[2]
 
     @property
-    def response(self):
+    def response(self) -> requests.Response:
         # TODO: cache responses for a timeout (possibly reported by the server)
         response = self.session.get(self.url, headers=self.headers)
         response.raise_for_status()
         return response
 
     @functools.cached_property
-    def id(self):
-        return self.response.json()["jobID"]
+    def id(self) -> str:
+        return self.response.json()["jobID"]  # type: ignore
 
     @property
     def status(self) -> str:

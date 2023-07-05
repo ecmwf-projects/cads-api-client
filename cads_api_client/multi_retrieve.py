@@ -1,14 +1,18 @@
+from __future__ import annotations
+
 import concurrent.futures
 import logging
 import queue
+from concurrent.futures import Future
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple, TypeVar
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
-import _queue
+from _queue import Empty  # type: ignore
 
 from .processing import ProcessingFailedError, Remote
 
-Collection = TypeVar("Collection")
+if TYPE_CHECKING:
+    from .catalogue import Collection
 
 
 # params
@@ -23,13 +27,13 @@ class TaskResult:
     output: Any
 
 
-def _hash(request: dict):
+def _hash(request: Dict[str, Any]) -> int:
     return hash(", ".join(f"{k}={v}" for k, v in request.items()))
 
 
 # API client calls
 def _submit_and_wait(
-    collection: Collection, request: dict, *args, **kwargs
+    collection: Collection, request: Dict[str, Any], *args: Any, **kwargs: Any
 ) -> Tuple[Remote, str]:
     # submit request
     req_id = _hash(request)
@@ -49,7 +53,7 @@ def _submit_and_wait(
     return job, job_status
 
 
-def _download(job: Remote, *args, **kwargs) -> str:
+def _download(job: Remote, *args: Any, **kwargs: Any) -> str:
     logging.debug(f"{job.id} - Downloading")
     path = job._download_result(*args, **kwargs)
     logging.debug(f"{job.id} - Downloaded")
@@ -59,11 +63,11 @@ def _download(job: Remote, *args, **kwargs) -> str:
 # producer/consumer pattern
 def _producer(
     collection: Collection,
-    requests_queue: queue.Queue,
-    downloads_queue: queue.Queue,
-    working_queue: queue.Queue,
-    *args,
-    **kwargs,
+    requests_queue: queue.Queue[Dict[str, Any]],
+    downloads_queue: queue.Queue[Remote],
+    working_queue: queue.Queue[bool],
+    *args: Any,
+    **kwargs: Any,
 ) -> List[TaskResult]:
     logging.debug("Producer starting")
     results = []
@@ -82,7 +86,7 @@ def _producer(
             if job_status == "successful":
                 downloads_queue.put(job, timeout=QUEUE_GET_PUT_TIMEOUT_S)
         except BaseException as e:
-            res, good = str(e), False
+            res, good = str(e), False  # type: ignore
         results.append(TaskResult(good=good, input=request, output=res))
         working_queue.get()
 
@@ -91,7 +95,10 @@ def _producer(
 
 
 def _consumer(
-    downloads_queue: queue.Queue, working_q: queue.Queue, *args, **kwargs
+    downloads_queue: queue.Queue[Remote],
+    working_q: queue.Queue[bool],
+    *args: Any,
+    **kwargs: Any,
 ) -> List[TaskResult]:
     logging.debug("Consumer starting")
     results = []
@@ -116,12 +123,12 @@ def multi_retrieve(
     retry_options: Dict[str, Any] = {},
     max_submit: int = 10,
     max_download: int = 2,
-):
+) -> Dict[int, Any]:
     # initialize queues and events for concurrency
-    requests_q = queue.Queue()
-    downloads_q = queue.Queue()
+    requests_q: queue.Queue[Dict[str, Any]] = queue.Queue()
+    downloads_q: queue.Queue[Remote] = queue.Queue()
     # we don't need maxsize as concurrency is handled by the number  of threads instantiated in the pool.
-    working_q = queue.Queue(maxsize=max_submit)
+    working_q: queue.Queue[bool] = queue.Queue(maxsize=max_submit)
     # edge cases:
     # a) when all requests are extracted from the requests queue and not yet fed into the downloads queue,
     #    we cannot use the fact that both the queues are empty as a stop condition.
@@ -168,7 +175,9 @@ def multi_retrieve(
     return results
 
 
-def _format_results(p_futures, c_futures):
+def _format_results(
+    p_futures: List[Future[List[TaskResult]]], c_futures: List[Future[List[TaskResult]]]
+) -> Dict[int, Any]:
     _c_path_map, results = {}, {}
 
     for c_fut in c_futures:
@@ -180,7 +189,7 @@ def _format_results(p_futures, c_futures):
                     _c_path_map.update({job.id: {"path": res}})
                 else:  # failed downloads
                     _c_path_map.update({job.id: {"exception": res}})
-        except _queue.Empty:
+        except Empty:
             logging.debug("_queue.Empty")
 
     for p_fut in p_futures:
@@ -202,7 +211,7 @@ def _format_results(p_futures, c_futures):
                     results.update(
                         {_hash(req): {"request": req, "job": {"exception": res}}}
                     )
-        except _queue.Empty:
+        except Empty:
             logging.debug("_queue.Empty")
 
     return results

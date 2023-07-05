@@ -70,7 +70,7 @@ class Collection(processing.ApiResponse):
         requests: List[Dict[str, Any]] = [],
         max_updates: int = 10,
         max_downloads: int = 2,
-    ):
+    ) -> Dict[int, Any]:
         if target_folder and not os.path.isdir(target_folder):
             raise ValueError(
                 f"The target parameter path must be a directory ({target_folder} given instead)"
