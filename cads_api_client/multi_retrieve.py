@@ -75,7 +75,7 @@ def _producer(
         # TODO decorator?
         try:
             res, good = (
-                _submit_and_wait(collection, request, downloads_queue, *args, **kwargs),
+                _submit_and_wait(collection, request, *args, **kwargs),
                 True,
             )
             job, job_status = res
@@ -193,8 +193,8 @@ def _format_results(p_futures, c_futures):
                         {
                             _hash(req): {
                                 "request": req,
-                                "job": {"id": res.id, "status": res.status},
-                                "download": _c_path_map.get(res.id, {}),
+                                "job": {"id": res[0].id, "status": res[1]},
+                                "download": _c_path_map.get(res[0].id, {}),
                             }
                         }
                     )
