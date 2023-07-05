@@ -111,7 +111,7 @@ def _consumer(
 # multi-threading orchestrator
 def multi_retrieve(
     collection: Collection,
-    requests: List[Dict[Any, Any]],
+    requests: List[Dict[str, Any]],
     target_folder: Optional[str] = ".",
     retry_options: Dict[str, Any] = {},
     max_submit: int = 10,
