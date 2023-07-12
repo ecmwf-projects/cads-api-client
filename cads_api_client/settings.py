@@ -4,7 +4,7 @@ import os
 import os.path
 from typing import Dict
 
-CONFIG_FILENAME = ".cads-api-client"
+CONFIG_FILENAME = ".cads-api-client.json"
 CONFIG_PATH = os.path.join(os.getenv("HOME", "."), CONFIG_FILENAME)
 
 
