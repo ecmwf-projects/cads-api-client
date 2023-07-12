@@ -11,5 +11,6 @@ dependencies:
 - attrs
 - pip
 - requests
+- pydantic-settings
 - pip:
   - multiurl
