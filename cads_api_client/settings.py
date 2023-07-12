@@ -1,3 +1,4 @@
+import functools
 import json
 import os
 import os.path
@@ -6,6 +7,7 @@ CONF_FN = ".cads-api-client.json"
 CONF_PATH = os.path.join(os.getenv("HOME", "."), CONF_FN)
 
 
+@functools.lru_cache
 def getconf(path) -> dict:
     config = {}
     if os.path.exists(path):
