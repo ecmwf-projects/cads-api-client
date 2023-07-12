@@ -1,14 +1,11 @@
 import functools
-import os
 from typing import Any, Dict, List, Optional
 
 import attrs
 import requests
+from settings import CADS_API_KEY, CADS_API_URL
 
 from . import catalogue, processing, profile
-
-CADS_API_URL = os.getenv("CADS_API_URL", "http://localhost:8080/api")
-CADS_API_KEY = os.getenv("CADS_API_KEY")
 
 
 @attrs.define(slots=False)
