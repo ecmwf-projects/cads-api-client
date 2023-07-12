@@ -2,13 +2,14 @@ import functools
 import json
 import os
 import os.path
+from typing import Dict
 
 CONFIG_FILENAME = ".cads-api-client"
 CONFIG_PATH = os.path.join(os.getenv("HOME", "."), CONFIG_FILENAME)
 
 
 @functools.lru_cache
-def get_config(path) -> dict:
+def get_config(path: str) -> Dict[str, str]:
     config = {}
     if os.path.exists(path):
         with open(path, "r") as fin:
