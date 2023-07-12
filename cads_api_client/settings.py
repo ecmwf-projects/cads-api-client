@@ -3,7 +3,7 @@ import json
 import os
 import os.path
 
-CONFIG_FILENAME = ".cads-api-client.json"
+CONFIG_FILENAME = ".cads-api-client"
 CONFIG_PATH = os.path.join(os.getenv("HOME", "."), CONFIG_FILENAME)
 
 
