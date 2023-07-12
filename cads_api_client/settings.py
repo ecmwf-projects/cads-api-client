@@ -19,7 +19,7 @@ def get_config(path: str) -> Dict[str, str]:
 
 CADS_API_URL = (
     os.getenv("CADS_API_URL")
-    or get_config(CONFIG_PATH).get("CADS_API_URL")
+    or get_config(CONFIG_PATH).get("url")
     or "http://localhost:8080/api"
 )
-CADS_API_KEY = os.getenv("CADS_API_KEY") or get_config(CONFIG_PATH).get("CADS_API_KEY")
+CADS_API_KEY = os.getenv("CADS_API_KEY") or get_config(CONFIG_PATH).get("key")
