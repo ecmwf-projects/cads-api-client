@@ -3,9 +3,11 @@ from typing import Any, Dict, List, Optional
 
 import attrs
 import requests
-from settings import CADS_API_KEY, CADS_API_URL
 
-from . import catalogue, processing, profile
+from . import catalogue, processing, profile, settings
+
+CADS_API_KEY, CADS_API_URL = settings.CADS_API_KEY, settings.CADS_API_URL
+# TODO fix tests
 
 
 @attrs.define(slots=False)

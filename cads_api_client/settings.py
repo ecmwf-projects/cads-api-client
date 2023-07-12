@@ -3,12 +3,12 @@ import json
 import os
 import os.path
 
-CONF_FN = ".cads-api-client.json"
-CONF_PATH = os.path.join(os.getenv("HOME", "."), CONF_FN)
+CONFIG_FILENAME = ".cads-api-client.json"
+CONFIG_PATH = os.path.join(os.getenv("HOME", "."), CONFIG_FILENAME)
 
 
 @functools.lru_cache
-def getconf(path) -> dict:
+def get_config(path) -> dict:
     config = {}
     if os.path.exists(path):
         with open(path, "r") as fin:
@@ -18,13 +18,7 @@ def getconf(path) -> dict:
 
 CADS_API_URL = (
     os.getenv("CADS_API_URL")
-    or getconf(CONF_PATH).get("CADS_API_URL")
-    or "http://cds2-dev.copernicus-climate.eu/api"
+    or get_config(CONFIG_PATH).get("CADS_API_URL")
+    or "http://localhost:8080/api"
 )
-CADS_API_KEY = (
-    os.getenv("CADS_API_KEY")
-    or getconf(CONF_PATH).get("CADS_API_KEY")
-    or "00112233-4455-6677-c899-aabbccddeeff"
-)
-
-# TODO pydantic-settings?
+CADS_API_KEY = os.getenv("CADS_API_KEY") or get_config(CONFIG_PATH).get("CADS_API_KEY")
