@@ -1,4 +1,5 @@
 import os
+from typing import Any
 
 import pytest
 
@@ -21,3 +22,14 @@ def api_key() -> str:
 @pytest.fixture
 def request_year() -> str:
     return os.environ.get("CADS_TEST_YEAR", "2016")
+
+
+@pytest.fixture()
+def temp_environ() -> Any:
+    """Create a modifiable environment that affect only the test scope."""
+    old_environ = dict(os.environ)
+
+    yield os.environ
+
+    os.environ.clear()
+    os.environ.update(old_environ)

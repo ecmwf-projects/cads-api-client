@@ -1,47 +1,48 @@
-import os
-from importlib import reload
+import json
+import unittest
+import unittest.mock
+from typing import Any
 
-import cads_api_client.api_client
-import cads_api_client.settings
+from cads_api_client import api_client, config
 
-dummy_conf = {
-    "CADS_API_URL": "https://www.youtube.com/watch?v=dQw4w9WgXcQ&pp=ygUIcmlja3JvbGw%3D",
-    "CADS_API_KEY": "42",
-}
-
-defaults = {"CADS_API_URL": "http://localhost:8080/api", "CADS_API_KEY": None}
-
-
-# import json
-# CONF_PATH = "/tmp/.cads-api-client.json"
-# with open(CONF_PATH, "w") as fout:
-#     json.dump(dummy_conf, fout)
+client_conf = {"url": "https://wikipedia.org", "key": "1337"}
+env_conf = {"CADS_API_URL": "https://news.ycombinator.com/", "CADS_API_KEY": "42"}
+file_conf = {"url": "https://tinyurl.com/ycku5mx4", "key": "314"}
+default_conf = {"url": "http://localhost:8080/api", "key": None}
 
 
-def test_precedence() -> None:
-    # kwargs overwrites env, file, defaults
-    client = cads_api_client.api_client.ApiClient(
-        key=dummy_conf["CADS_API_KEY"], url=dummy_conf["CADS_API_URL"]
-    )
-    assert client.url == dummy_conf["CADS_API_URL"]
-    assert client.key == dummy_conf["CADS_API_KEY"]
+def test_client_overwrite(temp_environ) -> None:
+    """Client parameters overwrite environment variables, configuration file and defaults."""
+    config.settings, config.config = None, None
+    client = api_client.ApiClient(key=client_conf["key"], url=client_conf["url"])
+    assert client.url == client_conf["url"]
+    assert client.key == client_conf["key"]
 
-    # env overwrites file, defaults
-    os.environ["CADS_API_URL"] = dummy_conf["CADS_API_URL"]
-    os.environ["CADS_API_KEY"] = dummy_conf["CADS_API_KEY"]
-    reload(cads_api_client.settings)
-    reload(cads_api_client.api_client)
-    client = cads_api_client.api_client.ApiClient()
-    assert client.url == dummy_conf["CADS_API_URL"]
-    assert client.key == dummy_conf["CADS_API_KEY"]
-    os.environ.pop("CADS_API_URL")
-    os.environ.pop("CADS_API_KEY")
 
-    # TODO file overwrites defaults
+def test_env_overwrite(temp_environ: Any) -> None:
+    """Environment variables overwrite configuration file and defaults."""
+    config.settings, config.config = None, None
+    temp_environ["CADS_API_URL"] = env_conf["CADS_API_URL"]
+    temp_environ["CADS_API_KEY"] = env_conf["CADS_API_KEY"]
+    settings = config.get_settings()
+    assert settings["url"] == env_conf["CADS_API_URL"]
+    assert settings["key"] == env_conf["CADS_API_KEY"]
 
-    # defaults
-    reload(cads_api_client.settings)
-    reload(cads_api_client.api_client)
-    client = cads_api_client.api_client.ApiClient()
-    assert client.url == defaults["CADS_API_URL"]
-    assert client.key == defaults["CADS_API_KEY"]
+
+def test_file_overwrite() -> None:
+    """Configuration file overwrites defaults."""
+    config.settings, config.config = None, None
+    mock_file = unittest.mock.mock_open(read_data=json.dumps(file_conf))
+    # Assign the mock file object to the built-in `open` function
+    # Any code that calls `open` will use the mock file object
+    with unittest.mock.patch("os.path.exists", unittest.mock.Mock(return_value=True)):
+        with unittest.mock.patch("builtins.open", mock_file):
+            settings = config.get_settings()
+            assert settings == file_conf
+
+
+def test_defaults():
+    config.settings, config.config = None, None
+    with unittest.mock.patch("os.path.exists", unittest.mock.Mock(return_value=False)):
+        settings = config.get_settings()
+        assert settings == default_conf

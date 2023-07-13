@@ -4,10 +4,13 @@ from typing import Any, Dict, List, Optional
 import attrs
 import requests
 
-from . import catalogue, processing, profile, settings
+from . import catalogue, config, processing, profile
 
-CADS_API_KEY, CADS_API_URL = settings.CADS_API_KEY, settings.CADS_API_URL
-# TODO fix tests
+settings = config.get_settings()
+# note: as this module is in __init__, config.get_settings() is always called,
+# so global variable `settings` is always initialized
+
+CADS_API_KEY, CADS_API_URL = settings["url"], settings["key"]
 
 
 @attrs.define(slots=False)
