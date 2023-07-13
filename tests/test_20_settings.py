@@ -11,9 +11,9 @@ file_conf = {"url": "https://tinyurl.com/ycku5mx4", "key": "314"}
 default_conf = {"url": "http://localhost:8080/api", "key": None}
 
 
-def test_client_overwrite(temp_environ) -> None:
+def test_client_overwrite(temp_environ: Any) -> None:
     """Client parameters overwrite environment variables, configuration file and defaults."""
-    config.settings, config.config = None, None
+    config.settings, config.config = None, None  # type: ignore
     client = api_client.ApiClient(key=client_conf["key"], url=client_conf["url"])
     assert client.url == client_conf["url"]
     assert client.key == client_conf["key"]
@@ -21,7 +21,7 @@ def test_client_overwrite(temp_environ) -> None:
 
 def test_env_overwrite(temp_environ: Any) -> None:
     """Environment variables overwrite configuration file and defaults."""
-    config.settings, config.config = None, None
+    config.settings, config.config = None, None  # type: ignore
     temp_environ["CADS_API_URL"] = env_conf["CADS_API_URL"]
     temp_environ["CADS_API_KEY"] = env_conf["CADS_API_KEY"]
     settings = config.get_settings()
@@ -31,7 +31,7 @@ def test_env_overwrite(temp_environ: Any) -> None:
 
 def test_file_overwrite() -> None:
     """Configuration file overwrites defaults."""
-    config.settings, config.config = None, None
+    config.settings, config.config = None, None  # type: ignore
     mock_file = unittest.mock.mock_open(read_data=json.dumps(file_conf))
     # Assign the mock file object to the built-in `open` function
     # Any code that calls `open` will use the mock file object
@@ -41,8 +41,8 @@ def test_file_overwrite() -> None:
             assert settings == file_conf
 
 
-def test_defaults():
-    config.settings, config.config = None, None
+def test_defaults() -> None:
+    config.settings, config.config = None, None  # type: ignore
     with unittest.mock.patch("os.path.exists", unittest.mock.Mock(return_value=False)):
         settings = config.get_settings()
         assert settings == default_conf

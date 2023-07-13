@@ -5,8 +5,8 @@ from typing import Dict
 
 CONFIG_PATH = os.path.join(os.getenv("HOME", "."), ".cads-api-client.json")
 
-settings = None  # cache settings
-config = None  # cache config file
+settings = None
+config = None  # type: ignore
 
 
 def get_config(path: str) -> Dict[str, str]:
@@ -19,7 +19,7 @@ def get_config(path: str) -> Dict[str, str]:
     return config
 
 
-def get_settings():
+def get_settings() -> Dict[str, str]:
     global settings
     if not settings:
         settings = {
@@ -28,4 +28,4 @@ def get_settings():
             or "http://localhost:8080/api",
             "key": os.getenv("CADS_API_KEY") or get_config(CONFIG_PATH).get("key"),
         }
-    return settings
+    return settings  # type: ignore
