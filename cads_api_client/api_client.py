@@ -6,34 +6,34 @@ import requests
 
 from . import catalogue, config, processing, profile
 
-settings = config.get_settings()
-# note: as this module is in __init__, config.get_settings() is always called,
-# so global variable `settings` is always initialized
-
-CADS_API_KEY, CADS_API_URL = settings["url"], settings["key"]
-
 
 @attrs.define(slots=False)
 class ApiClient:
-    key: Optional[str] = CADS_API_KEY
-    url: str = CADS_API_URL
+    key: Optional[str] = None
+    url: Optional[str] = None
     session: requests.Session = attrs.field(factory=requests.Session)
 
+    def get_url(self) -> str:
+        return self.url or config.get_config("url")
+
+    def get_key(self) -> str:
+        return self.key or config.get_config("key")
+
     def _headers(self) -> Dict[str, str]:
-        if self.key is None:
+        if self.get_key() is None:
             raise ValueError("A valid API key is needed to access this resource")
-        return {"PRIVATE-TOKEN": self.key}
+        return {"PRIVATE-TOKEN": self.get_key()}
 
     @functools.cached_property
     def catalogue_api(self) -> catalogue.Catalogue:
         return catalogue.Catalogue(
-            f"{self.url}/catalogue", headers=self._headers(), session=self.session
+            f"{self.get_url()}/catalogue", headers=self._headers(), session=self.session
         )
 
     @functools.cached_property
     def retrieve_api(self) -> processing.Processing:
         return processing.Processing(
-            f"{self.url}/retrieve", headers=self._headers(), session=self.session
+            f"{self.get_key()}/retrieve", headers=self._headers(), session=self.session
         )
 
     def collections(self, **params: Dict[str, Any]) -> catalogue.Collections:
@@ -44,7 +44,7 @@ class ApiClient:
 
     @functools.cached_property
     def profile_api(self) -> profile.Profile:
-        return profile.Profile(f"{self.url}/profiles", headers=self._headers())
+        return profile.Profile(f"{self.get_key()}/profiles", headers=self._headers())
 
     def processes(self, **params: Dict[str, Any]) -> processing.ProcessList:
         return self.retrieve_api.processes(params=params)

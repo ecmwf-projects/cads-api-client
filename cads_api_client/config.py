@@ -1,31 +1,33 @@
 import json
 import os
-import os.path
 from typing import Dict
 
-CONFIG_PATH = os.path.join(os.getenv("HOME", "."), ".cads-api-client.json")
-
-settings = None
-config = None  # type: ignore
+CONFIG: Dict[str, str] = {}
 
 
-def get_config(path: str) -> Dict[str, str]:
-    global config
-    if config is None:
-        config = {}
-        if os.path.exists(path):
-            with open(path, "r") as fin:
-                config = json.load(fin)
+def read_configuration_file(
+    config_path: str, config: Dict[str, str] = CONFIG
+) -> Dict[str, str]:
+    if not config:
+        # Default config
+        config["url"] = "http://localhost:8080/api"
+        config_path = os.path.expanduser(config_path)
+        try:
+            with open(config_path) as fin:
+                config.update(json.load(fin))
+        except FileNotFoundError:
+            raise
+        except Exception:
+            raise ValueError(f"failed to parse {config_path!r} file")
     return config
 
 
-def get_settings() -> Dict[str, str]:
-    global settings
-    if not settings:
-        settings = {
-            "url": os.getenv("CADS_API_URL")
-            or get_config(CONFIG_PATH).get("url")
-            or "http://localhost:8080/api",
-            "key": os.getenv("CADS_API_KEY") or get_config(CONFIG_PATH).get("key"),
-        }
-    return settings  # type: ignore
+def get_config(
+    key: str,
+    config_path: str = "~/.cads-api-client.json",
+    config: Dict[str, str] = CONFIG,
+) -> str:
+    return (
+        os.getenv(f"CADS_API_{key.upper()}")
+        or read_configuration_file(config_path, config)[key]
+    )
