@@ -20,9 +20,10 @@ class ApiClient:
         return self.key or config.get_config("key")
 
     def _headers(self) -> Dict[str, str]:
-        if self.get_key() is None:
+        key = self.get_key()
+        if key is None:
             raise ValueError("A valid API key is needed to access this resource")
-        return {"PRIVATE-TOKEN": self.get_key()}
+        return {"PRIVATE-TOKEN": key}
 
     @functools.cached_property
     def catalogue_api(self) -> catalogue.Catalogue:
@@ -33,18 +34,18 @@ class ApiClient:
     @functools.cached_property
     def retrieve_api(self) -> processing.Processing:
         return processing.Processing(
-            f"{self.get_key()}/retrieve", headers=self._headers(), session=self.session
+            f"{self.get_url()}/retrieve", headers=self._headers(), session=self.session
         )
+
+    @functools.cached_property
+    def profile_api(self) -> profile.Profile:
+        return profile.Profile(f"{self.get_url()}/profiles", headers=self._headers())
 
     def collections(self, **params: Dict[str, Any]) -> catalogue.Collections:
         return self.catalogue_api.collections(params=params)
 
     def collection(self, collection_id: str) -> catalogue.Collection:
         return self.catalogue_api.collection(collection_id)
-
-    @functools.cached_property
-    def profile_api(self) -> profile.Profile:
-        return profile.Profile(f"{self.get_key()}/profiles", headers=self._headers())
 
     def processes(self, **params: Dict[str, Any]) -> processing.ProcessList:
         return self.retrieve_api.processes(params=params)
