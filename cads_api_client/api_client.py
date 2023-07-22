@@ -1,48 +1,51 @@
 import functools
-import os
 from typing import Any, Dict, List, Optional
 
 import attrs
 import requests
 
-from . import catalogue, processing, profile
-
-CADS_API_URL = os.getenv("CADS_API_URL", "http://localhost:8080/api")
-CADS_API_KEY = os.getenv("CADS_API_KEY")
+from . import catalogue, config, processing, profile
 
 
 @attrs.define(slots=False)
 class ApiClient:
-    key: Optional[str] = CADS_API_KEY
-    url: str = CADS_API_URL
+    key: Optional[str] = None
+    url: Optional[str] = None
     session: requests.Session = attrs.field(factory=requests.Session)
 
+    def get_url(self) -> str:
+        return self.url or config.get_config("url")
+
+    def get_key(self) -> str:
+        return self.key or config.get_config("key")
+
     def _headers(self) -> Dict[str, str]:
-        if self.key is None:
+        key = self.get_key()
+        if key is None:
             raise ValueError("A valid API key is needed to access this resource")
-        return {"PRIVATE-TOKEN": self.key}
+        return {"PRIVATE-TOKEN": key}
 
     @functools.cached_property
     def catalogue_api(self) -> catalogue.Catalogue:
         return catalogue.Catalogue(
-            f"{self.url}/catalogue", headers=self._headers(), session=self.session
+            f"{self.get_url()}/catalogue", headers=self._headers(), session=self.session
         )
 
     @functools.cached_property
     def retrieve_api(self) -> processing.Processing:
         return processing.Processing(
-            f"{self.url}/retrieve", headers=self._headers(), session=self.session
+            f"{self.get_url()}/retrieve", headers=self._headers(), session=self.session
         )
+
+    @functools.cached_property
+    def profile_api(self) -> profile.Profile:
+        return profile.Profile(f"{self.get_url()}/profiles", headers=self._headers())
 
     def collections(self, **params: Dict[str, Any]) -> catalogue.Collections:
         return self.catalogue_api.collections(params=params)
 
     def collection(self, collection_id: str) -> catalogue.Collection:
         return self.catalogue_api.collection(collection_id)
-
-    @functools.cached_property
-    def profile_api(self) -> profile.Profile:
-        return profile.Profile(f"{self.url}/profiles", headers=self._headers())
 
     def processes(self, **params: Dict[str, Any]) -> processing.ProcessList:
         return self.retrieve_api.processes(params=params)
