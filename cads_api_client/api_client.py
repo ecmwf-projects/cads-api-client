@@ -69,6 +69,18 @@ class ApiClient:
             **request,
         )
 
+    def submit_and_wait_on_results_many(
+        self, requests: Dict[str, Any]
+    ) -> processing.Results:
+        import dask
+
+        results = []
+        for request in requests:
+            submit_and_wait = dask.delayed(self.retrieve_api.submit_and_wait_on_result)  # type: ignore
+            result = submit_and_wait(**request)
+            results.append((result, request))
+        return dask.compute(results)  # type: ignore
+
     def get_requests(self, **params: Dict[str, Any]) -> processing.JobList:
         return self.retrieve_api.jobs(params=params)
 
