@@ -125,10 +125,10 @@ def multi_retrieve(
     max_download: int = 2,
 ) -> Dict[int, Any]:
     # initialize queues and events for concurrency
-    requests_q: queue.Queue[Dict[str, Any]] = queue.Queue()
-    downloads_q: queue.Queue[Remote] = queue.Queue()
+    requests_queue: queue.Queue[Dict[str, Any]] = queue.Queue()
+    downloads_queue: queue.Queue[Remote] = queue.Queue()
     # we don't need maxsize as concurrency is handled by the number  of threads instantiated in the pool.
-    working_q: queue.Queue[bool] = queue.Queue(maxsize=max_submit)
+    working_queue: queue.Queue[bool] = queue.Queue(maxsize=max_submit)
     # edge cases:
     # a) when all requests are extracted from the requests queue and not yet fed into the downloads queue,
     #    we cannot use the fact that both the queues are empty as a stop condition.
@@ -140,47 +140,50 @@ def multi_retrieve(
 
     # put requests into queue
     for request in requests:
-        requests_q.put(request)
+        requests_queue.put(request)
 
     # producer / consumer
-    p_futures, c_futures = [], []
+    producer_results, consumer_results = [], []
     with concurrent.futures.ThreadPoolExecutor(
         max_workers=max_submit + max_download
     ) as executor:
         for i in range(max_submit):
-            p_futures.append(
+            producer_results.append(
                 executor.submit(
                     _producer,
                     collection,
-                    requests_q,
-                    downloads_q,
-                    working_q,
+                    requests_queue,
+                    downloads_queue,
+                    working_queue,
                     retry_options=retry_options,
                 )
             )
 
         for i in range(max_download):
-            c_futures.append(
+            consumer_results.append(
                 executor.submit(
                     _consumer,
-                    downloads_q,
-                    working_q,
+                    downloads_queue,
+                    working_queue,
                     target_folder=target_folder,
                     retry_options=retry_options,
                 )
             )
 
-    results = _format_results(p_futures=p_futures, c_futures=c_futures)
+    results = _format_results(
+        producer_results=producer_results, consumer_results=consumer_results
+    )
 
     return results
 
 
 def _format_results(
-    p_futures: List[Future[List[TaskResult]]], c_futures: List[Future[List[TaskResult]]]
+    producer_results: List[Future[List[TaskResult]]],
+    consumer_results: List[Future[List[TaskResult]]],
 ) -> Dict[int, Any]:
     _c_path_map, results = {}, {}
 
-    for c_fut in c_futures:
+    for c_fut in consumer_results:
         try:
             c_results = c_fut.result()
             for r in c_results:
@@ -192,7 +195,7 @@ def _format_results(
         except Empty:
             logging.debug("_queue.Empty")
 
-    for p_fut in p_futures:
+    for p_fut in producer_results:
         try:
             p_results = p_fut.result()
             for r in p_results:
