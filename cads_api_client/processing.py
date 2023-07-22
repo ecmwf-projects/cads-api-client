@@ -368,6 +368,15 @@ class Processing:
 
     # convenience methods
 
+    def submit(self, collection_id: str, **request: Any) -> Remote:
+        status_info = self.process_execute(collection_id, request)
+        return status_info.make_remote()
+
+    def submit_and_wait_on_result(self, collection_id: str, **request: Any) -> Results:
+        remote = self.submit(collection_id, **request)
+        remote.wait_on_result()
+        return remote.make_results()
+
     def make_remote(self, job_id: str) -> Remote:
         url = f"{self.url}/jobs/{job_id}"
         return Remote(url, headers=self.headers, session=self.session)
