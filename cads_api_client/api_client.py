@@ -69,6 +69,13 @@ class ApiClient:
             **request,
         )
 
+    def submit_and_wait_on_result(
+        self, collection_id: str, retry_options: Dict[str, Any] = {}, **request: Any
+    ) -> processing.Results:
+        return self.retrieve_api.submit_and_wait_on_result(
+            collection_id, retry_options=retry_options, **request
+        )
+
     def submit_and_wait_on_results_many(
         self, requests: Dict[str, Any]
     ) -> processing.Results:

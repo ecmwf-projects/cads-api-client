@@ -51,9 +51,10 @@ class ApiResponse:
         *args: Any,
         raise_for_status: bool = True,
         session: requests.Session = requests.api,  # type: ignore
+        retry_options: Dict[str, Any] = {"maximum_tries": 2, "retry_after": 10},
         **kwargs: Any,
     ) -> T_ApiResponse:
-        response = session.request(*args, **kwargs)
+        response = multiurl.robust(session.request(*args, **kwargs), **retry_options)
         if raise_for_status:
             cads_raise_for_status(response)
         self = cls(response, headers=kwargs.get("headers", {}), session=session)
@@ -114,13 +115,19 @@ class Process(ApiResponse):
         self,
         inputs: Dict[str, Any],
         accepted_licences: List[Dict[str, Any]] = [],
+        retry_options: Dict[str, Any] = {},
         **kwargs: Any,
     ) -> StatusInfo:
         assert "json" not in kwargs
         url = f"{self.response.request.url}/execute"
         json = {"inputs": inputs, "acceptedLicences": accepted_licences}
         return StatusInfo.from_request(
-            "post", url, json=json, headers=self.headers, **kwargs
+            "post",
+            url,
+            json=json,
+            headers=self.headers,
+            retry_options=retry_options,
+            **kwargs,
         )
 
     def valid_values(self, request: Dict[str, Any] = {}) -> Dict[str, Any]:
@@ -334,7 +341,11 @@ class Processing:
         )
 
     def process_execute(
-        self, process_id: str, inputs: Dict[str, Any], **kwargs: Any
+        self,
+        process_id: str,
+        inputs: Dict[str, Any],
+        retry_options: Dict[str, Any] = {},
+        **kwargs: Any,
     ) -> StatusInfo:
         assert "json" not in kwargs
         url = f"{self.url}/processes/{process_id}/execute"
@@ -345,6 +356,7 @@ class Processing:
             json={"inputs": inputs},
             headers={**self.headers, **headers},
             session=self.session,
+            retry_options=retry_options,
             **kwargs,
         )
 
@@ -368,13 +380,19 @@ class Processing:
 
     # convenience methods
 
-    def submit(self, collection_id: str, **request: Any) -> Remote:
-        status_info = self.process_execute(collection_id, request)
+    def submit(
+        self, collection_id: str, retry_options: Dict[str, Any] = {}, **request: Any
+    ) -> Remote:
+        status_info = self.process_execute(
+            collection_id, request, retry_options=retry_options
+        )
         return status_info.make_remote()
 
-    def submit_and_wait_on_result(self, collection_id: str, **request: Any) -> Results:
-        remote = self.submit(collection_id, **request)
-        remote.wait_on_result()
+    def submit_and_wait_on_result(
+        self, collection_id: str, retry_options: Dict[str, Any] = {}, **request: Any
+    ) -> Results:
+        remote = self.submit(collection_id, retry_options=retry_options, **request)
+        remote.wait_on_result(retry_options=retry_options)
         return remote.make_results()
 
     def make_remote(self, job_id: str) -> Remote:
