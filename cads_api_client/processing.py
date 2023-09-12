@@ -54,7 +54,7 @@ class ApiResponse:
         retry_options: Dict[str, Any] = {"maximum_tries": 2, "retry_after": 10},
         **kwargs: Any,
     ) -> T_ApiResponse:
-        response = multiurl.robust(session.request(*args, **kwargs), **retry_options)
+        response = multiurl.robust(session.request, **retry_options)(*args, **kwargs)
         if raise_for_status:
             cads_raise_for_status(response)
         self = cls(response, headers=kwargs.get("headers", {}), session=session)
