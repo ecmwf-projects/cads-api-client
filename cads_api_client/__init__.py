@@ -24,6 +24,6 @@ except ImportError:  # pragma: no cover
 
 from .api_client import ApiClient
 from .catalogue import Catalogue
-from .processing import Processing, Remote
+from .processing import Processing, Remote, Results
 
-__all__ = ["__version__", "Catalogue", "Processing", "Remote", "ApiClient"]
+__all__ = ["__version__", "ApiClient", "Catalogue", "Processing", "Remote", "Results"]

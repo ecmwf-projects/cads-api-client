@@ -261,7 +261,7 @@ class JobList(ApiResponse):
 
 @attrs.define
 class Results(ApiResponse):
-    # needed to usr this class in `multiurl.robust`
+    # needed to use this class in `multiurl.robust`
     @property
     def status_code(self) -> int:
         return self.response.status_code
