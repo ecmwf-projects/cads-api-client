@@ -155,12 +155,19 @@ class Remote:
         return self.url.rpartition("/")[2]
 
     @property
+    def response(self) -> requests.Response:
+        # TODO: cache responses for a timeout (possibly reported by the server)
+        response = self.session.get(self.url, headers=self.headers)
+        response.raise_for_status()
+        return response
+
+    @functools.cached_property
+    def id(self) -> str:
+        return self.response.json()["jobID"]  # type: ignore
+
+    @property
     def status(self) -> str:
-        # TODO: cache responses for a timeout (possibly reported nby the server)
-        requests_response = self.session.get(self.url, headers=self.headers)
-        requests_response.raise_for_status()
-        json = requests_response.json()
-        return json["status"]  # type: ignore
+        return self.response.json()["status"]  # type: ignore
 
     def _robust_status(self, retry_options: Dict[str, Any] = {}) -> str:
         # TODO: cache responses for a timeout (possibly reported nby the server)
@@ -170,8 +177,24 @@ class Remote:
         requests_response.raise_for_status()
         json = requests_response.json()
         return json["status"]  # type: ignore
+        # return self._robust_response(retry_options=retry_options).json()["status"]  # type: ignore
 
-    def wait_on_result(self, retry_options: Dict[str, Any] = {}) -> None:
+    def wait_on_result(self, retry_options: Dict[str, Any] = {}) -> str:
+        """
+        Wait job until finished.
+
+        Poll periodically the current request for its status (accepted, running, successful, failed) until
+        it has been processed (successful, failed). The wait time increases automatically from 1 second up
+        to ``sleep_max``.
+
+        Parameters
+        ----------
+        retry_options: retry options for the ``robust`` method in ``multiurl`` library.
+
+        Returns
+        -------
+        Job status (successful, failed)
+        """
         sleep = 1.0
         last_status = self._robust_status(retry_options=retry_options)
         while True:
@@ -198,6 +221,7 @@ class Remote:
                 raise ProcessingFailedError(f"Unknown API state {status!r}")
             logger.debug(f"result not ready, waiting for {sleep} seconds")
             time.sleep(sleep)
+        return status
 
     def build_status_info(self) -> StatusInfo:
         return StatusInfo.from_request(
@@ -225,16 +249,26 @@ class Remote:
         return results
 
     def _download_result(
-        self, target: Optional[str] = None, retry_options: Dict[str, Any] = {}
+        self,
+        target: Optional[str] = None,
+        target_folder: str = ".",
+        retry_options: Dict[str, Any] = {},
     ) -> str:
         results: Results = multiurl.robust(self.make_results, **retry_options)(self.url)
-        return results.download(target, retry_options=retry_options)
+        return results.download(
+            target=target, target_folder=target_folder, retry_options=retry_options
+        )
 
     def download(
-        self, target: Optional[str] = None, retry_options: Dict[str, Any] = {}
+        self,
+        target: Optional[str] = None,
+        target_folder: str = ".",
+        retry_options: Dict[str, Any] = {},
     ) -> str:
         self.wait_on_result(retry_options=retry_options)
-        return self._download_result(target, retry_options=retry_options)
+        return self._download_result(
+            target=target, target_folder=target_folder, retry_options=retry_options
+        )
 
 
 @attrs.define
@@ -286,24 +320,29 @@ class Results(ApiResponse):
     def download(
         self,
         target: Optional[str] = None,
+        target_folder: str = ".",
         timeout: int = 60,
         retry_options: Dict[str, Any] = {},
     ) -> str:
+        if not os.path.exists(target_folder):
+            raise ValueError("Selected folder does not exists!")
+        elif not os.path.isdir(target_folder):
+            raise ValueError("A folder must be specified instead of file.")
         result_href = self.get_result_href()
         url = urllib.parse.urljoin(self.response.url, result_href)
         if target is None:
             parts = urllib.parse.urlparse(url)
             target = parts.path.strip("/").split("/")[-1]
-
+        target_path = os.path.join(target_folder, target)
         # FIXME add retry and progress bar
         retry_options = retry_options.copy()
         maximum_tries = retry_options.pop("maximum_tries", None)
         if maximum_tries is not None:
             retry_options["maximum_retries"] = maximum_tries
         multiurl.download(
-            url, stream=True, target=target, timeout=timeout, **retry_options
+            url, stream=True, target=target_path, timeout=timeout, **retry_options
         )
-        target_size = os.path.getsize(target)
+        target_size = os.path.getsize(target_path)
         size = self.get_result_size()
         if size:
             if target_size != size:
@@ -311,7 +350,7 @@ class Results(ApiResponse):
                     "Download failed: downloaded %s byte(s) out of %s"
                     % (target_size, size)
                 )
-        return target
+        return target_path
 
 
 class Processing:

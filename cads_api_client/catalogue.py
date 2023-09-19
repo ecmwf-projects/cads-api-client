@@ -1,10 +1,11 @@
 import datetime
+import os.path
 from typing import Any, Dict, List, Optional
 
 import attrs
 import requests
 
-from . import processing
+from . import multi_retrieve, processing
 
 
 @attrs.define
@@ -60,6 +61,32 @@ class Collection(processing.ApiResponse):
     ) -> str:
         remote = self.submit(accepted_licences=accepted_licences, **request)
         return remote.download(target, retry_options=retry_options)
+
+    def multi_retrieve(
+        self,
+        target_folder: Optional[str] = ".",
+        retry_options: Dict[str, Any] = {},
+        accepted_licences: List[Dict[str, Any]] = [],
+        requests: List[Dict[str, Any]] = [],
+        max_updates: int = 10,
+        max_downloads: int = 2,
+    ) -> Dict[int, Any]:
+        if target_folder and not os.path.isdir(target_folder):
+            raise ValueError(
+                f"The target parameter path must be a directory ({target_folder} given instead)"
+            )
+
+        for request in requests:
+            request.update({"accepted_licences": accepted_licences})
+
+        return multi_retrieve.multi_retrieve(
+            collection=self,
+            requests=requests,
+            target_folder=target_folder,
+            retry_options=retry_options,
+            max_submit=max_updates,
+            max_download=max_downloads,
+        )
 
 
 class Catalogue:
