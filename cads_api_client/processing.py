@@ -82,7 +82,7 @@ class ApiResponse:
         assert len(rels) <= 1
         if len(rels) == 1:
             out = self.from_request(
-                "get", url=rels[0]["href"], headers=self.headers, session=self.session
+                "get", rels[0]["href"], headers=self.headers, session=self.session
             )
         else:
             out = None
