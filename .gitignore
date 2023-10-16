@@ -4,8 +4,8 @@ version.py
 # Sphinx automatic generation of API
 docs/_api/
 
-# download tests
-*.grib
+# Combined environments
+ci/combined-environment-*.yml
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,jupyternotebooks,vim,visualstudiocode,pycharm,emacs,linux,macos,windows
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,jupyternotebooks,vim,visualstudiocode,pycharm,emacs,linux,macos,windows
@@ -197,7 +197,7 @@ fabric.properties
 # Editor-based Rest Client
 .idea/httpRequests
 
-# Android studio 3.1 serialized cache file
+# Android studio 3.1+ serialized cache file
 .idea/caches/build_file_checksums.ser
 
 ### PyCharm Patch ###

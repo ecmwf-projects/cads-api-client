@@ -6,13 +6,14 @@ dependencies:
 - make
 - mypy
 - myst-parser
-- pre-commit
 - pip
+- pre-commit
 - pydata-sphinx-theme
 - pytest
 - pytest-cov
 - sphinx
 - sphinx-autoapi
+# DO NOT EDIT ABOVE THIS LINE, ADD DEPENDENCIES BELOW
 - types-requests
 - pip:
   - responses
