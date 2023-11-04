@@ -181,6 +181,8 @@ class Remote:
             if status == "successful":
                 break
             elif status == "failed":
+                # workaround for the server-side 404 due to database replicas out od sync
+                time.sleep(1)
                 results = multiurl.robust(self.make_results, **retry_options)(self.url)
                 info = results.json
                 error_message = "processing failed"
@@ -207,8 +209,9 @@ class Remote:
     def make_results(self, url: Optional[str] = None) -> Results:
         if url is None:
             url = self.url
-        if self.status not in ("successful", "failed"):
-            raise Exception(f"Result not ready, job is {self.status}")
+        status = self.status
+        if status not in ("successful", "failed"):
+            raise ValueError(f"Result not ready, job is {status}")
         request_response = self.session.get(url, headers=self.headers)
         response = ApiResponse(request_response, session=self.session)
         try:
@@ -393,6 +396,8 @@ class Processing:
     ) -> Results:
         remote = self.submit(collection_id, retry_options=retry_options, **request)
         remote.wait_on_result(retry_options=retry_options)
+        # workaround for the server-side 404 due to database replicas out od sync
+        time.sleep(1)
         return remote.make_results()
 
     def make_remote(self, job_id: str) -> Remote:
