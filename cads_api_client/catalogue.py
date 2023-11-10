@@ -42,23 +42,18 @@ class Collection(processing.ApiResponse):
             "get", url, headers=self.headers, session=self.session
         )
 
-    def submit(
-        self, accepted_licences: List[Dict[str, Any]] = [], **request: Any
-    ) -> processing.Remote:
+    def submit(self, **request: Any) -> processing.Remote:
         retrieve_process = self.retrieve_process()
-        status_info = retrieve_process.execute(
-            inputs=request, accepted_licences=accepted_licences, session=self.session
-        )
+        status_info = retrieve_process.execute(inputs=request, session=self.session)
         return status_info.make_remote()
 
     def retrieve(
         self,
         target: Optional[str] = None,
         retry_options: Dict[str, Any] = {},
-        accepted_licences: List[Dict[str, Any]] = [],
         **request: Any,
     ) -> str:
-        remote = self.submit(accepted_licences=accepted_licences, **request)
+        remote = self.submit(**request)
         return remote.download(target, retry_options=retry_options)
 
 

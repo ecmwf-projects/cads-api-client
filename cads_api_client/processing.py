@@ -114,13 +114,12 @@ class Process(ApiResponse):
     def execute(
         self,
         inputs: Dict[str, Any],
-        accepted_licences: List[Dict[str, Any]] = [],
         retry_options: Dict[str, Any] = {},
         **kwargs: Any,
     ) -> StatusInfo:
         assert "json" not in kwargs
         url = f"{self.response.request.url}/execute"
-        json = {"inputs": inputs, "acceptedLicences": accepted_licences}
+        json = {"inputs": inputs}
         return StatusInfo.from_request(
             "post",
             url,
