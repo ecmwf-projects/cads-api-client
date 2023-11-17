@@ -257,7 +257,6 @@ def responses_add() -> None:
             json_params_matcher(
                 {
                     "inputs": {"variable": "temperature", "year": "2022"},
-                    "acceptedLicences": [],
                 }
             )
         ],

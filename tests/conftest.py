@@ -13,8 +13,13 @@ def api_root_url() -> str:
 
 @pytest.fixture
 def api_key() -> str:
-    # default to anonymous access for tests
-    return os.getenv("CADS_API_KEY") or "00112233-4455-6677-c899-aabbccddeeff"
+    # default to test user 1
+    return os.getenv("CADS_API_KEY") or "00000000-0000-4000-a000-000000000000"
+
+
+@pytest.fixture
+def api_key_anon() -> str:
+    return "00112233-4455-6677-c899-aabbccddeeff"
 
 
 @pytest.fixture

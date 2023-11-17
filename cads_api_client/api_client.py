@@ -1,5 +1,5 @@
 import functools
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import attrs
 import requests
@@ -58,14 +58,12 @@ class ApiClient:
         collection_id: str,
         target: Optional[str] = None,
         retry_options: Dict[str, Any] = {},
-        accepted_licences: List[Dict[str, Any]] = [],
         **request: Any,
     ) -> str:
         collection = self.collection(collection_id)
         return collection.retrieve(
             target,
             retry_options=retry_options,
-            accepted_licences=accepted_licences,
             **request,
         )
 

@@ -5,15 +5,15 @@ CADS API Python client
 The `ApiClient` needs the `url` to the API root and a valid API `key` to access protected resources.
 You can also set the `CADS_API_URL` and `CADS_API_KEY` environment variables.
 
-It is possible (but not recommended) to use the API key of the anonymous user
-`00112233-4455-6677-c899-aabbccddeeff`. This is used in anonymous tests and
+It is possible (but not recommended) to use the API key of one of the test users,
+`00000000-0000-4000-a000-000000000000`. This is used in anonymous tests and
 it is designed to be the least performant option to access the system.
 
 Draft Python API:
 
 ```python
 >>> import os
->>> cads_api_key = os.getenv("CADS_API_KEY", "00112233-4455-6677-c899-aabbccddeeff")
+>>> cads_api_key = os.getenv("CADS_API_KEY", "00000000-0000-4000-a000-000000000000")
 
 >>> import cads_api_client
 >>> client = cads_api_client.ApiClient(cads_api_key)
@@ -21,7 +21,6 @@ Draft Python API:
 >>> collection.end_datetime()
 datetime.datetime(2022, 7, 20, 23, 0)
 >>> remote = client.retrieve(
-...     accepted_licences=[{"id": "licence-to-use-copernicus-products", "revision": 12}],
 ...     collection_id="reanalysis-era5-pressure-levels",
 ...     product_type="reanalysis",
 ...     variable="temperature",
@@ -33,7 +32,6 @@ datetime.datetime(2022, 7, 20, 23, 0)
 ...     target="tmp1-era5.grib",
 ... )  # blocks
 >>> remote = collection.submit(
-...     accepted_licences=[{"id": "licence-to-use-copernicus-products", "revision": 12}],
 ...     variable="temperature",
 ...     product_type="reanalysis",
 ...     year="2021",

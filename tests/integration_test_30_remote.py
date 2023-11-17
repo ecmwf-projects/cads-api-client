@@ -1,5 +1,3 @@
-from typing import Any
-
 import py
 
 from cads_api_client import catalogue, processing
@@ -54,16 +52,12 @@ def test_collection_retrieve_with_url_cds_adaptor(
 ) -> None:
     collection_id = "test-adaptor-url"
     headers = {"PRIVATE-TOKEN": api_key}
-    accepted_licences: list[dict[str, Any]] = [
-        {"id": "licence-to-use-copernicus-products", "revision": 12}
-    ]
 
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
     target = str(tmpdir.join("wfde1.zip"))
 
     res = dataset.retrieve(
-        accepted_licences=accepted_licences,
         variable="grid_point_altitude",
         reference_dataset="cru",
         version="2.1",
@@ -77,7 +71,6 @@ def test_collection_retrieve_with_url_cds_adaptor(
     target = str(tmpdir.join("wfde2.zip"))
 
     res = dataset.retrieve(
-        accepted_licences=accepted_licences,
         variable="grid_point_altitude",
         reference_dataset="cru",
         version="2.1",
@@ -94,16 +87,12 @@ def test_collection_retrieve_with_direct_mars_cds_adaptor(
 ) -> None:
     collection_id = "test-adaptor-direct-mars"
     headers = {"PRIVATE-TOKEN": api_key}
-    accepted_licences: list[dict[str, Any]] = [
-        {"id": "licence-to-use-copernicus-products", "revision": 12}
-    ]
 
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
     target = str(tmpdir.join("era5-complete.grib"))
 
     res = dataset.retrieve(
-        accepted_licences=accepted_licences,
         levelist=1,
         dataset="reanalysis",
         time="00:00:00",
@@ -126,16 +115,12 @@ def test_collection_retrieve_with_mars_cds_adaptor(
 ) -> None:
     collection_id = "test-adaptor-mars"
     headers = {"PRIVATE-TOKEN": api_key}
-    accepted_licences: list[dict[str, Any]] = [
-        {"id": "licence-to-use-copernicus-products", "revision": 12}
-    ]
 
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
     target = str(tmpdir.join("era5.grib"))
 
     res = dataset.retrieve(
-        accepted_licences=accepted_licences,
         product_type="reanalysis",
         variable="2m_temperature",
         year=request_year,
@@ -155,16 +140,12 @@ def test_collection_retrieve_with_legacy_cds_adaptor(
 ) -> None:
     collection_id = "test-adaptor-legacy"
     headers = {"PRIVATE-TOKEN": api_key}
-    accepted_licences: list[dict[str, Any]] = [
-        {"id": "licence-to-use-copernicus-products", "revision": 12}
-    ]
 
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
     target = str(tmpdir.join("era5.grib"))
 
     res = dataset.retrieve(
-        accepted_licences=accepted_licences,
         product_type="reanalysis",
         variable="temperature",
         year=request_year,
