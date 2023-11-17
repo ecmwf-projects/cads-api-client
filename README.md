@@ -21,7 +21,6 @@ Draft Python API:
 >>> collection.end_datetime()
 datetime.datetime(2022, 7, 20, 23, 0)
 >>> remote = client.retrieve(
-...     accepted_licences=[{"id": "licence-to-use-copernicus-products", "revision": 12}],
 ...     collection_id="reanalysis-era5-pressure-levels",
 ...     product_type="reanalysis",
 ...     variable="temperature",
@@ -33,7 +32,6 @@ datetime.datetime(2022, 7, 20, 23, 0)
 ...     target="tmp1-era5.grib",
 ... )  # blocks
 >>> remote = collection.submit(
-...     accepted_licences=[{"id": "licence-to-use-copernicus-products", "revision": 12}],
 ...     variable="temperature",
 ...     product_type="reanalysis",
 ...     year="2021",
@@ -67,8 +65,7 @@ Advanced usage:
 ...         "day": "03",
 ...         "time": "00:00",
 ...         "level": "1000",
-...     },
-...     accepted_licences=[{"id": "licence-to-use-copernicus-products", "revision": 12}],
+...     }
 ... )  # doesn't block
 >>> remote = status_info.make_remote()
 >>> remote_url = remote.url
