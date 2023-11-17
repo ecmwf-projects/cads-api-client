@@ -49,39 +49,6 @@ datetime.datetime(2022, 7, 20, 23, 0)
 
 ```
 
-Advanced usage:
-
-```python
->>> headers = {"PRIVATE-TOKEN": cads_api_key}
->>> cads_api_root_url = client.url
->>> processing = cads_api_client.Processing(f"{cads_api_root_url}/retrieve", headers=headers)
->>> process = processing.process("reanalysis-era5-pressure-levels")
->>> status_info = process.execute(
-...     inputs={
-...         "variable": "temperature",
-...         "product_type": "reanalysis",
-...         "year": "2022",
-...         "month": "01",
-...         "day": "03",
-...         "time": "00:00",
-...         "level": "1000",
-...     }
-... )  # doesn't block
->>> remote = status_info.make_remote()
->>> remote_url = remote.url
->>> remote.request_uid
-'...'
->>> remote.status  # the request is in the CADS cache
-'...'
->>> del remote
->>> remote_replica = cads_api_client.Remote(remote_url)
->>> remote_unknown = processing.job("ffffffff-4455-6677-8899-aabbccddeeff").make_remote()
-Traceback (most recent call last):
-...
-RuntimeError: 404 Client Error: ...
-
-```
-
 ## Workflow for developers/contributors
 
 For best experience create a new conda environment (e.g. DEVELOP) with Python 3.10:
