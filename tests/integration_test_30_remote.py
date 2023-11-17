@@ -1,5 +1,3 @@
-from typing import Any
-
 import py
 
 from cads_api_client import catalogue, processing
