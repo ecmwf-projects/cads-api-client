@@ -1,5 +1,5 @@
 import functools
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import attrs
 import requests
