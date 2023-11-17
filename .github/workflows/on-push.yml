@@ -188,14 +188,14 @@ jobs:
     - name: Install package
       run: |
         python -m pip install --upgrade pip
-        python -m pip install build twine
+        python -m pip install --upgrade build twine
     - name: Build distribution
       run: |
         python -m build
     - name: Check wheels
       run: |
         cd dist || exit
-        python -m pip install cads_api_client*.whl || exit
+        python -m pip install --upgrade cads_api_client*.whl || exit
         python -m twine check --strict * || exit
         python -c "import cads_api_client" || exit
         cd ..
