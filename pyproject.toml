@@ -13,11 +13,7 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Topic :: Scientific/Engineering"
 ]
-dependencies = [
-  "attrs",
-  "multiurl",
-  "requests"
-]
+dependencies = ["attrs", "multiurl", "requests"]
 description = "CADS API Python client"
 dynamic = ["version"]
 license = {file = "LICENSE"}
@@ -32,10 +28,7 @@ strict = true
 
 [[tool.mypy.overrides]]
 ignore_missing_imports = true
-module = [
-  "multiurl.*",
-  "py.*"
-]
+module = ["multiurl.*", "py.*"]
 
 [tool.ruff]
 ignore = [
@@ -65,6 +58,9 @@ convention = "numpy"
 
 [tool.setuptools]
 packages = ["cads_api_client"]
+
+[tool.setuptools.package-data]
+"cads_api_client" = ["py.typed"]
 
 [tool.setuptools_scm]
 write_to = "cads_api_client/version.py"
