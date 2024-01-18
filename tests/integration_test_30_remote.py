@@ -1,4 +1,5 @@
 import py
+import pytest
 
 from cads_api_client import catalogue, processing
 
@@ -135,6 +136,7 @@ def test_collection_retrieve_with_mars_cds_adaptor(
     assert res.endswith(target)
 
 
+@pytest.mark.skip(reason="discontinued adaptor")
 def test_collection_retrieve_with_legacy_cds_adaptor(
     api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
 ) -> None:
