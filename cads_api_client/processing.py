@@ -74,9 +74,7 @@ class ApiResponse:
                 continue
             severity = message.get("severity", "notset").upper()
             level = logging.getLevelName(severity)
-            if not isinstance(level, int):
-                level = 20  # Unknown severity: use INFO
-            logger.log(level, content)
+            logger.log(level if isinstance(level, int) else 20, content)
 
     def get_links(self, rel: Optional[str] = None) -> List[Dict[str, str]]:
         links = []
