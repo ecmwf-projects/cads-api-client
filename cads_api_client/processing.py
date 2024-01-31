@@ -58,14 +58,13 @@ class ApiResponse:
         if raise_for_status:
             cads_raise_for_status(response)
         self = cls(response, headers=kwargs.get("headers", {}), session=session)
-        self.log_messages
+        self.log_messages()
         return self
 
     @functools.cached_property
     def json(self) -> Dict[str, Any]:
         return self.response.json()  # type: ignore
 
-    @property
     def log_messages(self) -> None:
         messages = (
             self.json.get("metadata", {}).get("datasetMetadata", {}).get("messages", [])
@@ -74,7 +73,9 @@ class ApiResponse:
             if not (content := message.get("content")):
                 continue
             severity = message.get("severity", "notset").upper()
-            level = logging.getLevelNamesMapping().get(severity, 0)
+            level = logging.getLevelName(severity)
+            if not isinstance(level, int):
+                level = 0
             logger.log(level, content)
 
     def get_links(self, rel: Optional[str] = None) -> List[Dict[str, str]]:
