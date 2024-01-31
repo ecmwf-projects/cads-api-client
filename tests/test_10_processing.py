@@ -154,7 +154,12 @@ PROCESS_JSON = {
                 {
                     "date": "2023-12-12T13:00:00",
                     "severity": "warning",
-                    "content": "This is a message",
+                    "content": "This is a warning",
+                },
+                {
+                    "date": "2023-12-12T13:00:00",
+                    "severity": "success",
+                    "content": "This is a success",
                 },
             ]
         }
@@ -332,12 +337,12 @@ def test_log_messages(caplog: pytest.LogCaptureFixture) -> None:
 
     catalogue = cads_api_client.Catalogue(CATALOGUE_URL)
     collection = catalogue.collection(COLLECTION_ID)
-    process = collection.retrieve_process()
-
-    assert process.response.json() == PROCESS_JSON
 
     with caplog.at_level(logging.DEBUG, logger="cads_api_client.processing"):
+        process = collection.retrieve_process()
         _ = process.execute(inputs={"variable": "temperature", "year": "2022"})
+
     assert caplog.record_tuples == [
-        ("cads_api_client.processing", 30, "This is a message")
+        ("cads_api_client.processing", 30, "This is a warning"),
+        ("cads_api_client.processing", 20, "This is a success"),
     ]

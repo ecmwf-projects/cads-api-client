@@ -78,9 +78,9 @@ def test_log_messages(
     collection_id = "test-adaptor-dummy"
     headers = {"PRIVATE-TOKEN": api_key}
     proc = processing.Processing(f"{api_root_url}/retrieve", headers=headers)
-    process = proc.process(collection_id)
 
     with caplog.at_level(logging.DEBUG, logger="cads_api_client.processing"):
+        process = proc.process(collection_id)
         _ = process.execute(inputs={})
 
     expected_record_tuples = [
