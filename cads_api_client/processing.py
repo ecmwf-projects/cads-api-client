@@ -13,7 +13,7 @@ import requests
 
 T_ApiResponse = TypeVar("T_ApiResponse", bound="ApiResponse")
 
-logger = logging.Logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class ProcessingFailedError(RuntimeError):
@@ -58,11 +58,24 @@ class ApiResponse:
         if raise_for_status:
             cads_raise_for_status(response)
         self = cls(response, headers=kwargs.get("headers", {}), session=session)
+        self.log_messages
         return self
 
     @functools.cached_property
     def json(self) -> Dict[str, Any]:
         return self.response.json()  # type: ignore
+
+    @property
+    def log_messages(self) -> None:
+        messages = (
+            self.json.get("metadata", {}).get("datasetMetadata", {}).get("messages", [])
+        )
+        for message in messages:
+            if not (content := message.get("content")):
+                continue
+            severity = message.get("severity", "notset").upper()
+            level = logging.getLevelNamesMapping().get(severity, 0)
+            logger.log(level, content)
 
     def get_links(self, rel: Optional[str] = None) -> List[Dict[str, str]]:
         links = []

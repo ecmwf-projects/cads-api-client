@@ -1,3 +1,6 @@
+import logging
+
+import pytest
 import responses
 from responses.matchers import json_params_matcher
 
@@ -143,6 +146,17 @@ PROCESS_JSON = {
     "outputs": {
         "download_url": {
             "schema": {"type": "string", "format": "url"},
+        }
+    },
+    "metadata": {
+        "datasetMetadata": {
+            "messages": [
+                {
+                    "date": "2023-12-12T13:00:00",
+                    "severity": "warning",
+                    "content": "This is a message",
+                },
+            ]
         }
     },
 }
@@ -310,3 +324,20 @@ def test_wait_on_result() -> None:
     collection = catalogue.collection(COLLECTION_ID)
     remote = collection.submit(variable="temperature", year="2022")
     remote.wait_on_result()
+
+
+@responses.activate
+def test_log_messages(caplog: pytest.LogCaptureFixture) -> None:
+    responses_add()
+
+    catalogue = cads_api_client.Catalogue(CATALOGUE_URL)
+    collection = catalogue.collection(COLLECTION_ID)
+    process = collection.retrieve_process()
+
+    assert process.response.json() == PROCESS_JSON
+
+    with caplog.at_level(logging.DEBUG, logger="cads_api_client.processing"):
+        _ = process.execute(inputs={"variable": "temperature", "year": "2022"})
+    assert caplog.record_tuples == [
+        ("cads_api_client.processing", 30, "This is a message")
+    ]
