@@ -190,6 +190,8 @@ class Remote:
             if last_status != status:
                 logger.debug(f"status has been updated to {status}")
             if status == "successful":
+                # workaround for the server-side 404 due to database replicas out od sync
+                time.sleep(1)
                 break
             elif status == "failed":
                 # workaround for the server-side 404 due to database replicas out od sync
@@ -407,8 +409,6 @@ class Processing:
     ) -> Results:
         remote = self.submit(collection_id, retry_options=retry_options, **request)
         remote.wait_on_result(retry_options=retry_options)
-        # workaround for the server-side 404 due to database replicas out od sync
-        time.sleep(1)
         return remote.make_results()
 
     def make_remote(self, job_id: str) -> Remote:
