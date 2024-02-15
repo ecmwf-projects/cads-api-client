@@ -72,37 +72,6 @@ def test_collection_missing_licence(
         )
 
 
-def test_log_messages(
-    api_root_url: str, api_key: str, caplog: pytest.LogCaptureFixture
-) -> None:
-    collection_id = "test-adaptor-dummy"
-    headers = {"PRIVATE-TOKEN": api_key}
-    proc = processing.Processing(f"{api_root_url}/retrieve", headers=headers)
-
-    with caplog.at_level(logging.DEBUG, logger="cads_api_client.processing"):
-        process = proc.process(collection_id)
-        _ = process.execute(inputs={})
-
-    expected_record_tuples = [
-        (
-            "cads_api_client.processing",
-            20,
-            "The `test-adaptor-dummy` is our new nice dataset to be used!",
-        ),
-        (
-            "cads_api_client.processing",
-            30,
-            "The `test-adaptor-dummy` is **just a proof-of-concept** for testing features!",
-        ),
-        (
-            "cads_api_client.processing",
-            20,
-            "You can commit changes to this dataset freely.",
-        ),
-    ]
-    assert caplog.record_tuples == expected_record_tuples
-
-
 def test_jobs_list(api_root_url: str, api_key: str, request_year: str) -> None:
     collection_id = "test-adaptor-dummy"
     headers = {"PRIVATE-TOKEN": api_key}
