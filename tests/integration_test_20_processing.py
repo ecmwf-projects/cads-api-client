@@ -1,5 +1,3 @@
-import logging
-
 import pytest
 
 from cads_api_client import processing
