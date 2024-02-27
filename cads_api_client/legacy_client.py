@@ -13,7 +13,7 @@ class LegacyClient(cdsapi.legacy_client.LegacyClient):  # type: ignore[misc]
     @classmethod
     def raise_not_implemented_error(self) -> None:
         raise NotImplementedError(
-            "Thi is a beta version. This functionality has not been implemented yet."
+            "This is a beta version. This functionality has not been implemented yet."
         )
 
     @functools.cached_property
