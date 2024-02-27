@@ -4,12 +4,12 @@ import functools
 import warnings
 from typing import Any, overload
 
-import cdsapi.legacy_client
+import cdsapi.abstract_legacy_client
 
 from . import api_client, processing
 
 
-class LegacyClient(cdsapi.legacy_client.LegacyClient):  # type: ignore[misc]
+class LegacyApiClient(cdsapi.abstract_legacy_client.AbstractLegacyClient):  # type: ignore[misc]
     @classmethod
     def raise_not_implemented_error(self) -> None:
         raise NotImplementedError(
