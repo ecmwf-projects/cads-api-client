@@ -30,7 +30,7 @@ strict = true
 
 [[tool.mypy.overrides]]
 ignore_missing_imports = true
-module = ["multiurl.*", "py.*"]
+module = ["cdsapi.*", "multiurl.*", "py.*"]
 
 [tool.ruff]
 # Same as Black.
