@@ -45,7 +45,8 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
 
         if kwargs:
             warnings.warn(
-                f"This is a beta version, the following parameters are not implemented yet: {kwargs}",
+                "This is a beta version."
+                f" The following parameters have not been implemented yet: {kwargs}.",
                 UserWarning,
             )
 
