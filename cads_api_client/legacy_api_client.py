@@ -40,8 +40,8 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
     ) -> None:
         kwargs.update(zip(LEGACY_KWARGS, args))
 
-        self.session = kwargs.pop("session", requests.Session())
         self.url, self.key, _ = cdsapi.api.get_url_key_verify(url, key, None)
+        self.session = kwargs.pop("session", requests.Session())
 
         if kwargs:
             warnings.warn(
