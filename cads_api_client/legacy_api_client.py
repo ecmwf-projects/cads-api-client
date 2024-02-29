@@ -90,6 +90,18 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
     def status(self, context=None):  # type: ignore
         self.raise_not_implemented_error()
 
+    def info(self, *args, **kwargs):  # type: ignore
+        self.raise_not_implemented_error()
+
+    def warning(self, *args, **kwargs):  # type: ignore
+        self.raise_not_implemented_error()
+
+    def error(self, *args, **kwargs):  # type: ignore
+        self.raise_not_implemented_error()
+
+    def debug(self, *args, **kwargs):  # type: ignore
+        self.raise_not_implemented_error()
+
     def download(self, results, targets=None):  # type: ignore
         self.raise_not_implemented_error()
 
