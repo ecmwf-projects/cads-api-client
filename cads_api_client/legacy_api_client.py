@@ -4,16 +4,50 @@ import functools
 import warnings
 from typing import Any, overload
 
-import cdsapi
+import cdsapi.api
 import requests
 
 from . import api_client, processing
 
+LEGACY_KWARGS = [
+    "quiet",
+    "debug",
+    "verify",
+    "timeout",
+    "progress",
+    "full_stack",
+    "delete",
+    "retry_max",
+    "sleep_max",
+    "wait_until_complete",
+    "info_callback",
+    "warning_callback",
+    "error_callback",
+    "debug_callback",
+    "metadata",
+    "forget",
+    "session",
+]
 
-class LegacyApiClient(cdsapi.Client):  # type: ignore[misc]
+
+class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
     def __new__(cls, *args: Any, **kwargs: Any) -> LegacyApiClient:
         instantiated: LegacyApiClient = super().__new__(cls)
         return instantiated
+
+    def __init__(
+        self, url: str | None, key: str | None, *args: Any, **kwargs: Any
+    ) -> None:
+        kwargs.update(zip(LEGACY_KWARGS, args))
+
+        self.session = kwargs.pop("session", requests.Session())
+        self.url, self.key, _ = cdsapi.api.get_url_key_verify(url, key, None)
+
+        if kwargs:
+            warnings.warn(
+                f"This is a beta version, the following parameters are not implemented yet: {kwargs}",
+                UserWarning,
+            )
 
     def _initialize_session(self, session: requests.Session) -> requests.Session:
         return session
@@ -26,12 +60,6 @@ class LegacyApiClient(cdsapi.Client):  # type: ignore[misc]
 
     @functools.cached_property
     def client(self) -> api_client.ApiClient:
-        warnings.warn(
-            "This is a beta version."
-            " `url`, `key`, and `session` are the only legacy parameters currently implemented."
-            " Any other parameter is silently ignored.",
-            UserWarning,
-        )
         return api_client.ApiClient(url=self.url, key=self.key, session=self.session)
 
     @overload
