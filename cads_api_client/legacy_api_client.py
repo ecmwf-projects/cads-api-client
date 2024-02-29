@@ -11,10 +11,6 @@ from . import api_client, processing
 
 
 class LegacyApiClient(cdsapi.Client):  # type: ignore[misc]
-    def __new__(cls, *args: Any, **kwargs: Any) -> Any:
-        instantiated: LegacyApiClient = super().__new__(cls)
-        return instantiated
-
     def _initialize_session(self, session: requests.Session) -> requests.Session:
         return session
 
