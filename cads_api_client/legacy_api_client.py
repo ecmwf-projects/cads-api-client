@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import functools
 import warnings
 from typing import Any, overload
 
@@ -46,6 +45,9 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
 
         self.url, self.key, _ = cdsapi.api.get_url_key_verify(url, key, None)
         self.session = kwargs.pop("session", requests.Session())
+        self.client = api_client.ApiClient(
+            url=self.url, key=self.key, session=self.session
+        )
 
         if kwargs:
             warnings.warn(
@@ -60,10 +62,6 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
             "This is a beta version. This functionality has not been implemented yet."
         )
 
-    @functools.cached_property
-    def client(self) -> api_client.ApiClient:
-        return api_client.ApiClient(url=self.url, key=self.key, session=self.session)
-
     @overload
     def retrieve(self, name: str, request: dict[str, Any], target: str) -> str:
         ...
@@ -77,9 +75,10 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
     def retrieve(
         self, name: str, request: dict[str, Any], target: str | None = None
     ) -> str | processing.Remote:
-        collection = self.client.collection(name)
-        remote = collection.submit(**request)
-        return remote if target is None else remote.download(target)
+        if target is None:
+            collection = self.client.collection(name)
+            return collection.submit(**request)
+        return self.client.retrieve(name, target, **request)
 
     def service(self, name, *args, **kwargs):  # type: ignore
         self.raise_not_implemented_error()
