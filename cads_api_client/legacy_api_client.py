@@ -36,7 +36,11 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
         return instantiated
 
     def __init__(
-        self, url: str | None = None, key: str | None = None, *args: Any, **kwargs: Any
+        self,
+        url: str | None = None,
+        key: str | None = None,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
         kwargs.update(zip(LEGACY_KWARGS, args))
 
