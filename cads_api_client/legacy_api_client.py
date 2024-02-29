@@ -54,9 +54,6 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
                 UserWarning,
             )
 
-    def _initialize_session(self, session: requests.Session) -> requests.Session:
-        return session
-
     @classmethod
     def raise_not_implemented_error(self) -> None:
         raise NotImplementedError(
