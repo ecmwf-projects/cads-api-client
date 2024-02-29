@@ -4,12 +4,16 @@ import functools
 import warnings
 from typing import Any, overload
 
-import cdsapi.abstract_legacy_client
+import cdsapi
+import requests
 
 from . import api_client, processing
 
 
-class LegacyApiClient(cdsapi.abstract_legacy_client.AbstractLegacyClient):  # type: ignore[misc]
+class LegacyApiClient(cdsapi.Client):  # type: ignore[misc]
+    def _initialize_session(self, session: requests.Session) -> requests.Session:
+        return session
+
     @classmethod
     def raise_not_implemented_error(self) -> None:
         raise NotImplementedError(
