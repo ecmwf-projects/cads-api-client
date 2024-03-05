@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 import warnings
 from typing import Any, overload
 
@@ -49,6 +50,11 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
             url=self.url, key=self.key, session=self.session
         )
 
+        self.retry_options = {
+            "maximum_tries": kwargs.pop("retry_max", 500),
+            "retry_after": kwargs.pop("sleep_max", 120),
+        }
+
         if kwargs:
             warnings.warn(
                 "This is a beta version."
@@ -75,8 +81,18 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
     ) -> str | processing.Remote:
         if target is None:
             collection = self.client.collection(name)
-            return collection.submit(**request)
-        return self.client.retrieve(name, target, **request)
+            remote = collection.submit(**request)
+            remote.download = functools.partial(  # type: ignore[method-assign]
+                remote.download,
+                retry_options=self.retry_options,
+            )
+            return remote
+        return self.client.retrieve(
+            collection_id=name,
+            target=target,
+            retry_options=self.retry_options,
+            **request,
+        )
 
     def service(self, name, *args, **kwargs):  # type: ignore
         self.raise_not_implemented_error()
