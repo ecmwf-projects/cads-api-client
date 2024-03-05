@@ -31,7 +31,7 @@ LEGACY_KWARGS = [
 
 class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
     def __new__(cls, *args: Any, **kwargs: Any) -> LegacyApiClient:
-        instantiated: LegacyApiClient = super().__new__(cls)
+        instantiated: LegacyApiClient = super(cdsapi.api.Client, cls).__new__(cls)
         return instantiated
 
     def __init__(
