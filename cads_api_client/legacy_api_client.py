@@ -63,14 +63,12 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
         )
 
     @overload
-    def retrieve(self, name: str, request: dict[str, Any], target: str) -> str:
-        ...
+    def retrieve(self, name: str, request: dict[str, Any], target: str) -> str: ...
 
     @overload
     def retrieve(
-        self, name: str, request: dict[str, Any], target: None
-    ) -> processing.Remote:
-        ...
+        self, name: str, request: dict[str, Any], target: None = ...
+    ) -> processing.Remote: ...
 
     def retrieve(
         self, name: str, request: dict[str, Any], target: str | None = None
