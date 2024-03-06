@@ -255,12 +255,12 @@ class Remote:
 
 @attrs.define
 class StatusInfo(ApiResponse):
-    def make_remote(self) -> Remote:
+    def make_remote(self, **kwargs: Any) -> Remote:
         if self.response.request.method == "POST":
             url = self.get_link_href(rel="monitor")
         else:
             url = self.get_link_href(rel="self")
-        return Remote(url, headers=self.headers, session=self.session)
+        return Remote(url, headers=self.headers, session=self.session, **kwargs)
 
 
 @attrs.define
@@ -332,6 +332,7 @@ class Results(ApiResponse):
 
 class Processing:
     supported_api_version = "v1"
+    sleep_max: int = 120
 
     def __init__(
         self,
@@ -402,7 +403,9 @@ class Processing:
         status_info = self.process_execute(
             collection_id, request, retry_options=retry_options
         )
-        return status_info.make_remote()
+        return status_info.make_remote(
+            retry_options=retry_options, sleep_max=self.sleep_max
+        )
 
     def submit_and_wait_on_result(
         self, collection_id: str, retry_options: Dict[str, Any] = {}, **request: Any
@@ -413,10 +416,14 @@ class Processing:
 
     def make_remote(self, job_id: str) -> Remote:
         url = f"{self.url}/jobs/{job_id}"
-        return Remote(url, headers=self.headers, session=self.session)
+        return Remote(
+            url, headers=self.headers, session=self.session, sleep_max=self.sleep_max
+        )
 
     def download_result(
         self, job_id: str, target: Optional[str], retry_options: Dict[str, Any]
     ) -> str:
         # NOTE: the remote waits for the result to be available
-        return self.make_remote(job_id).download(target, retry_options=retry_options)
+        return self.make_remote(job_id, sleep_max=self.sleep_max).download(
+            target, retry_options=retry_options
+        )
