@@ -332,7 +332,6 @@ class Results(ApiResponse):
 
 class Processing:
     supported_api_version = "v1"
-    sleep_max: int = 120
 
     def __init__(
         self,
@@ -340,12 +339,14 @@ class Processing:
         force_exact_url: bool = False,
         headers: Dict[str, Any] = {},
         session: requests.Session = requests.api,  # type: ignore
+        sleep_max: int = 120,
     ) -> None:
         if not force_exact_url:
             url = f"{url}/{self.supported_api_version}"
         self.url = url
         self.headers = headers
         self.session = session
+        self.sleep_max = sleep_max
 
     def processes(self, params: Dict[str, Any] = {}) -> ProcessList:
         url = f"{self.url}/processes"
@@ -424,6 +425,4 @@ class Processing:
         self, job_id: str, target: Optional[str], retry_options: Dict[str, Any]
     ) -> str:
         # NOTE: the remote waits for the result to be available
-        return self.make_remote(job_id, sleep_max=self.sleep_max).download(
-            target, retry_options=retry_options
-        )
+        return self.make_remote(job_id).download(target, retry_options=retry_options)
