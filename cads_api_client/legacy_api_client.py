@@ -96,9 +96,7 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
             retry_options=self.retry_options,
         )
         result.download = partial_download  # type: ignore[method-assign]
-        if target is None:
-            return result
-        return result.download(target)
+        return result if target is None else result.download(target)
 
     def service(self, name, *args, **kwargs):  # type: ignore
         self.raise_not_implemented_error()
