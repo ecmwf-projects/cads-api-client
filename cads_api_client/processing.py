@@ -404,9 +404,7 @@ class Processing:
         status_info = self.process_execute(
             collection_id, request, retry_options=retry_options
         )
-        return status_info.make_remote(
-            retry_options=retry_options, sleep_max=self.sleep_max
-        )
+        return status_info.make_remote(sleep_max=self.sleep_max)
 
     def submit_and_wait_on_result(
         self, collection_id: str, retry_options: Dict[str, Any] = {}, **request: Any
