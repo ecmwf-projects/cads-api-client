@@ -46,13 +46,16 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
 
         self.url, self.key, _ = cdsapi.api.get_url_key_verify(url, key, None)
         self.session = kwargs.pop("session", requests.Session())
-        self.timeout = kwargs.pop("timeout", 60)
-        self.retry_max = kwargs.pop("retry_max", 500)
         self.sleep_max = kwargs.pop("sleep_max", 120)
         self.client = api_client.ApiClient(
-            url=self.url, key=self.key, session=self.session
+            url=self.url,
+            key=self.key,
+            session=self.session,
+            sleep_max=self.sleep_max,
         )
 
+        self.timeout = kwargs.pop("timeout", 60)
+        self.retry_max = kwargs.pop("retry_max", 500)
         self.retry_options = {
             "maximum_tries": self.retry_max,
             "retry_after": self.sleep_max,
