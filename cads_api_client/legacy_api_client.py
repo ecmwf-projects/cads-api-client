@@ -46,14 +46,11 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
 
         self.url, self.key, _ = cdsapi.api.get_url_key_verify(url, key, None)
         self.session = kwargs.pop("session", requests.Session())
+        self.retry_max = kwargs.pop("retry_max", 500)
+        self.sleep_max = kwargs.pop("sleep_max", 120)
         self.client = api_client.ApiClient(
             url=self.url, key=self.key, session=self.session
         )
-
-        self.retry_options = {
-            "maximum_tries": kwargs.pop("retry_max", 500),
-            "retry_after": kwargs.pop("sleep_max", 120),
-        }
 
         if kwargs:
             warnings.warn(
@@ -74,25 +71,26 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
     @overload
     def retrieve(
         self, name: str, request: dict[str, Any], target: None = ...
-    ) -> processing.Remote: ...
+    ) -> processing.Results: ...
 
     def retrieve(
         self, name: str, request: dict[str, Any], target: str | None = None
-    ) -> str | processing.Remote:
-        if target is None:
-            collection = self.client.collection(name)
-            remote = collection.submit(**request)
-            remote.download = functools.partial(  # type: ignore[method-assign]
-                remote.download,
-                retry_options=self.retry_options,
-            )
-            return remote
-        return self.client.retrieve(
-            collection_id=name,
-            target=target,
-            retry_options=self.retry_options,
-            **request,
+    ) -> str | processing.Results:
+        retry_options = {
+            "maximum_tries": self.retry_max,
+            "retry_after": self.sleep_max,
+        }
+        result = self.client.submit_and_wait_on_result(
+            collection_id=name, retry_options=retry_options, **request
         )
+        if target is not None:
+            return result.download(target, retry_options=retry_options)
+
+        result.download = functools.partial(  # type: ignore[method-assign]
+            result.download,
+            retry_options=retry_options,
+        )
+        return result
 
     def service(self, name, *args, **kwargs):  # type: ignore
         self.raise_not_implemented_error()
