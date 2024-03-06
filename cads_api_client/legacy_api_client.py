@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import functools
 import warnings
-from typing import Any, overload
+from typing import Any, Callable, overload
 
 import cdsapi.api
 import requests
@@ -45,9 +46,20 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
 
         self.url, self.key, _ = cdsapi.api.get_url_key_verify(url, key, None)
         self.session = kwargs.pop("session", requests.Session())
+        self.sleep_max = kwargs.pop("sleep_max", 120)
         self.client = api_client.ApiClient(
-            url=self.url, key=self.key, session=self.session
+            url=self.url,
+            key=self.key,
+            session=self.session,
+            sleep_max=self.sleep_max,
         )
+
+        self.timeout = kwargs.pop("timeout", 60)
+        self.retry_max = kwargs.pop("retry_max", 500)
+        self.retry_options = {
+            "maximum_tries": self.retry_max,
+            "retry_after": self.sleep_max,
+        }
 
         if kwargs:
             warnings.warn(
@@ -68,15 +80,23 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
     @overload
     def retrieve(
         self, name: str, request: dict[str, Any], target: None = ...
-    ) -> processing.Remote: ...
+    ) -> processing.Results: ...
 
     def retrieve(
         self, name: str, request: dict[str, Any], target: str | None = None
-    ) -> str | processing.Remote:
-        if target is None:
-            collection = self.client.collection(name)
-            return collection.submit(**request)
-        return self.client.retrieve(name, target, **request)
+    ) -> str | processing.Results:
+        result = self.client.submit_and_wait_on_result(
+            collection_id=name,
+            retry_options=self.retry_options,
+            **request,
+        )
+        partial_download: Callable[..., str] = functools.partial(
+            result.download,
+            timeout=self.timeout,
+            retry_options=self.retry_options,
+        )
+        result.download = partial_download  # type: ignore[method-assign]
+        return result if target is None else result.download(target)
 
     def service(self, name, *args, **kwargs):  # type: ignore
         self.raise_not_implemented_error()
