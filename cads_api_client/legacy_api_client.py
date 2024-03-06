@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import functools
 import warnings
-from typing import Any, overload
+from typing import Any, Callable, overload
 
 import cdsapi.api
 import requests
@@ -46,11 +46,17 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
 
         self.url, self.key, _ = cdsapi.api.get_url_key_verify(url, key, None)
         self.session = kwargs.pop("session", requests.Session())
+        self.timeout = kwargs.pop("timeout", 60)
         self.retry_max = kwargs.pop("retry_max", 500)
         self.sleep_max = kwargs.pop("sleep_max", 120)
         self.client = api_client.ApiClient(
             url=self.url, key=self.key, session=self.session
         )
+
+        self.retry_options = {
+            "maximum_tries": self.retry_max,
+            "retry_after": self.sleep_max,
+        }
 
         if kwargs:
             warnings.warn(
@@ -76,21 +82,20 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
     def retrieve(
         self, name: str, request: dict[str, Any], target: str | None = None
     ) -> str | processing.Results:
-        retry_options = {
-            "maximum_tries": self.retry_max,
-            "retry_after": self.sleep_max,
-        }
         result = self.client.submit_and_wait_on_result(
-            collection_id=name, retry_options=retry_options, **request
+            collection_id=name,
+            retry_options=self.retry_options,
+            **request,
         )
-        if target is not None:
-            return result.download(target, retry_options=retry_options)
-
-        result.download = functools.partial(  # type: ignore[method-assign]
+        partial_download: Callable[..., str] = functools.partial(
             result.download,
-            retry_options=retry_options,
+            timeout=self.timeout,
+            retry_options=self.retry_options,
         )
-        return result
+        result.download = partial_download  # type: ignore[method-assign]
+        if target is None:
+            return result
+        return result.download(target)
 
     def service(self, name, *args, **kwargs):  # type: ignore
         self.raise_not_implemented_error()
