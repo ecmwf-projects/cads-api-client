@@ -1,4 +1,3 @@
-import json
 from typing import Any, Dict
 
 from . import processing
@@ -18,9 +17,8 @@ class Profile:
 
     def accept_licence(self, licence_id: str, revision: int) -> Dict[str, Any]:
         url = f"{self.url}/account/licences/{licence_id}"
-        data = json.dumps({"revision": revision})
         response = processing.ApiResponse.from_request(
-            "put", url, headers=self.headers, data=data
+            "put", url, headers=self.headers, json={"revision": revision}
         )
         return response.json
 
