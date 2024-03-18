@@ -105,5 +105,5 @@ class ApiClient:
     def accepted_licences(self) -> Dict[str, Any]:
         return self.profile_api.accepted_licences()
 
-    def accept_licence(self, licence_id: str) -> Dict[str, Any]:
-        return self.profile_api.accept_licence(licence_id)
+    def accept_licence(self, licence_id: str, revision: int) -> Dict[str, Any]:
+        return self.profile_api.accept_licence(licence_id, revision=revision)

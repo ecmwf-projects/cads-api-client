@@ -15,9 +15,11 @@ class Profile:
         response = processing.ApiResponse.from_request("get", url, headers=self.headers)
         return response.json
 
-    def accept_licence(self, licence_id: str) -> Dict[str, Any]:
+    def accept_licence(self, licence_id: str, revision: int) -> Dict[str, Any]:
         url = f"{self.url}/account/licences/{licence_id}"
-        response = processing.ApiResponse.from_request("put", url, headers=self.headers)
+        response = processing.ApiResponse.from_request(
+            "put", url, headers=self.headers, json={"revision": revision}
+        )
         return response.json
 
     def accepted_licences(self) -> Dict[str, Any]:
