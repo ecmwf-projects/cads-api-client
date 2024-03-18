@@ -2,6 +2,7 @@ import os
 from typing import Any
 
 import pytest
+import requests
 
 
 @pytest.fixture
@@ -12,9 +13,21 @@ def api_root_url() -> str:
 
 
 @pytest.fixture
-def api_key() -> str:
+def api_key(api_root_url: str) -> str:
+    if key := os.getenv("CADS_API_KEY"):
+        return key
+
     # default to test user 1
-    return os.getenv("CADS_API_KEY") or "00000000-0000-4000-a000-000000000000"
+    key = "00000000-0000-4000-a000-000000000000"
+
+    # Accept all licences
+    result = requests.get(f"{api_root_url}/catalogue/v1/vocabularies/licences")
+    requests.patch(
+        f"{api_root_url}/profiles/v1/account/licences",
+        json=result.json(),
+        headers={"PRIVATE-TOKEN": key},
+    )
+    return key
 
 
 @pytest.fixture
