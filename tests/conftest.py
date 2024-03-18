@@ -23,7 +23,9 @@ def api_key(api_root_url: str) -> str:
     # Accept all licences
     result = requests.get(f"{api_root_url}/catalogue/v1/vocabularies/licences")
     result = requests.patch(
-        api_root_url, json=result.json(), headers={"PRIVATE-TOKEN": key}
+        f"{api_root_url}/profiles/v1/account/licences",
+        json=result.json(),
+        headers={"PRIVATE-TOKEN": key},
     )
     return key
 
