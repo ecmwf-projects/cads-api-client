@@ -184,11 +184,10 @@ class Remote:
 
     def wait_on_result(self, retry_options: Dict[str, Any] = {}) -> None:
         sleep = 1.0
-        last_status = self._robust_status(retry_options=retry_options)
+        status = None
         while True:
-            status = self._robust_status(retry_options=retry_options)
-            if last_status != status:
-                logger.debug(f"status has been updated to {status}")
+            if status != (status := self._robust_status(retry_options=retry_options)):
+                logger.info(f"status has been updated to {status}")
             if status == "successful":
                 # workaround for the server-side 404 due to database replicas out od sync
                 time.sleep(1)
