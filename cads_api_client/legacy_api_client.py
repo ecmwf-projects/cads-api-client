@@ -31,12 +31,13 @@ LEGACY_KWARGS = [
     "session",
 ]
 
+LOGGER = logging.getLogger(__name__)
 F = TypeVar("F", bound=Callable[..., Any])
 
 
 class LoggingContext:
-    def __init__(self, quiet: bool, debug: bool) -> None:
-        self.logger = processing.logger
+    def __init__(self, logger: logging.Logger, quiet: bool, debug: bool) -> None:
+        self.logger = logger
         self.old_level = self.logger.level
 
         if quiet:
@@ -103,7 +104,9 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
                 UserWarning,
             )
 
-        with LoggingContext(quiet=self.quiet, debug=self._debug) as logger:
+        with LoggingContext(
+            logger=LOGGER, quiet=self.quiet, debug=self._debug
+        ) as logger:
             logger.debug(
                 "CDSAPI %s",
                 {
@@ -125,7 +128,9 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
     def logging_decorator(self, func: F) -> F:
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
-            with LoggingContext(quiet=self.quiet, debug=self._debug):
+            with LoggingContext(
+                logger=processing.logger, quiet=self.quiet, debug=self._debug
+            ):
                 return func(*args, **kwargs)
 
         return cast(F, wrapper)
@@ -141,12 +146,11 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
     def retrieve(
         self, name: str, request: dict[str, Any], target: str | None = None
     ) -> str | processing.Results:
-        with LoggingContext(quiet=self.quiet, debug=self._debug):
-            result = self.client.submit_and_wait_on_result(
-                collection_id=name,
-                retry_options=self.retry_options,
-                **request,
-            )
+        result = self.logging_decorator(self.client.submit_and_wait_on_result)(
+            collection_id=name,
+            retry_options=self.retry_options,
+            **request,
+        )
         partial_download: Callable[..., str] = functools.partial(
             result.download,
             timeout=self.timeout,
