@@ -37,21 +37,21 @@ F = TypeVar("F", bound=Callable[..., Any])
 
 class LoggingContext:
     def __init__(self, logger: logging.Logger, quiet: bool, debug: bool) -> None:
-        self.logger = logger
-        self.old_level = self.logger.level
-
+        self.old_level = logger.level
         if quiet:
-            self.logger.setLevel(logging.WARNING)
+            logger.setLevel(logging.WARNING)
         else:
-            self.logger.setLevel(logging.DEBUG if debug else logging.INFO)
+            logger.setLevel(logging.DEBUG if debug else logging.INFO)
 
         self.new_handlers = []
-        if not self.logger.handlers:
+        if not logger.handlers:
             formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
             handler = logging.StreamHandler()
             handler.setFormatter(formatter)
-            self.logger.addHandler(handler)
+            logger.addHandler(handler)
             self.new_handlers.append(handler)
+
+        self.logger = logger
 
     def __enter__(self) -> logging.Logger:
         return self.logger
