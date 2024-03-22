@@ -160,27 +160,46 @@ class Remote:
         self.sleep_max = sleep_max
         self.headers = headers
         self.session = session
+        self.log_start_time = None
+
+    def log_metadata(self, metadata: dict[str, Any]) -> None:
+        logs = metadata.get("log", [])
+        for self.log_start_time, message in sorted(logs):
+            level = 20
+            for severity in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"):
+                if message.startswith(severity):
+                    level = logging.getLevelName(severity)
+                    message = message.replace(severity, "", 1).lstrip(":").lstrip()
+                    break
+            logger.log(level, message)
 
     @functools.cached_property
     def request_uid(self) -> str:
         return self.url.rpartition("/")[2]
 
+    def _get_status(self, robust: bool, **retry_options: Any) -> str:
+        # TODO: cache responses for a timeout (possibly reported nby the server)
+        get = self.session.get
+        if robust:
+            get = multiurl.robust(get, **retry_options)
+
+        params = {"log": True}
+        if self.log_start_time:
+            params["logStartTime"] = self.log_start_time
+
+        logger.debug(f"GET {self.url}")
+        requests_response = get(url=self.url, headers=self.headers, params=params)
+        requests_response.raise_for_status()
+        json = requests_response.json()
+        self.log_metadata(json.get("metadata", {}))
+        return str(json["status"])
+
     @property
     def status(self) -> str:
-        # TODO: cache responses for a timeout (possibly reported nby the server)
-        requests_response = self.session.get(self.url, headers=self.headers)
-        requests_response.raise_for_status()
-        json = requests_response.json()
-        return json["status"]  # type: ignore
+        return self._get_status(robust=False)
 
     def _robust_status(self, retry_options: Dict[str, Any] = {}) -> str:
-        # TODO: cache responses for a timeout (possibly reported nby the server)
-        requests_response = multiurl.robust(self.session.get, **retry_options)(
-            self.url, headers=self.headers
-        )
-        requests_response.raise_for_status()
-        json = requests_response.json()
-        return json["status"]  # type: ignore
+        return self._get_status(robust=True, **retry_options)
 
     def wait_on_result(self, retry_options: Dict[str, Any] = {}) -> None:
         sleep = 1.0
