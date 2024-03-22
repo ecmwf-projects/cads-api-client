@@ -179,20 +179,16 @@ class Remote:
 
     def _get_status(self, robust: bool, **retry_options: Any) -> str:
         # TODO: cache responses for a timeout (possibly reported nby the server)
-        func = self.session.get
+        get = self.session.get
         if robust:
-            func = multiurl.robust(func, **retry_options)
+            get = multiurl.robust(get, **retry_options)
 
         params = {"log": True}
         if self.log_start_time:
             params["logStartTime"] = self.log_start_time
 
         logger.debug(f"GET {self.url}")
-        requests_response = func(
-            url=self.url,
-            headers=self.headers,
-            params=params,
-        )
+        requests_response = get(url=self.url, headers=self.headers, params=params)
         requests_response.raise_for_status()
         json = requests_response.json()
         self.log_metadata(json.get("metadata", {}))
