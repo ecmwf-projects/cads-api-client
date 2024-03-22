@@ -213,8 +213,8 @@ JOB_SUCCESSFUL_JSON = {
     ],
     "metadata": {
         "log": [
-            ["2024-02-09T09:14:47.811223", "this is log"],
-            ["2024-02-09T09:14:50.811223", "WARNING: this is a warning log"],
+            ["2024-02-09T09:14:47.811223", "This is a log"],
+            ["2024-02-09T09:14:50.811223", "WARNING: This is a warning log"],
         ]
     },
 }
@@ -356,7 +356,7 @@ def test_log_messages(caplog: pytest.LogCaptureFixture) -> None:
             10,
             "GET http://localhost:8080/api/retrieve/v1/jobs/9bfc1362-2832-48e1-a235-359267420bb2",
         ),
-        ("cads_api_client.processing", 20, "this is log"),
-        ("cads_api_client.processing", 30, "this is a warning log"),
+        ("cads_api_client.processing", 20, "This is a log"),
+        ("cads_api_client.processing", 30, "This is a warning log"),
         ("cads_api_client.processing", 20, "status has been updated to successful"),
     ]
