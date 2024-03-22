@@ -129,7 +129,7 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             with LoggingContext(
-                logger=processing.logger, quiet=self.quiet, debug=self._debug
+                logger=processing.LOGGER, quiet=self.quiet, debug=self._debug
             ):
                 return func(*args, **kwargs)
 
