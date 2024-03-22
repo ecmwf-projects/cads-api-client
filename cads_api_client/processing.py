@@ -162,8 +162,8 @@ class Remote:
         self.session = session
         self.log_start_time = None
 
-    def log_metadata(self, json: dict[str, Any]) -> None:
-        logs = json.get("metadata", {}).get("log", [])
+    def log_metadata(self, metadata: dict[str, Any]) -> None:
+        logs = metadata.get("log", [])
         for self.log_start_time, message in sorted(logs):
             level = 20
             for severity in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"):
@@ -195,7 +195,7 @@ class Remote:
         )
         requests_response.raise_for_status()
         json = requests_response.json()
-        self.log_metadata(json)
+        self.log_metadata(json.get("metadata", {}))
         return str(json["status"])
 
     @property
