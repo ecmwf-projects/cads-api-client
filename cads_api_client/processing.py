@@ -169,7 +169,7 @@ class Remote:
             for severity in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"):
                 if message.startswith(severity):
                     level = logging.getLevelName(severity)
-                    message = message.replace(severity, "").lstrip(":").lstrip()
+                    message = message.replace(severity, "", 1).lstrip(":").lstrip()
                     break
             logger.log(level, message)
 
