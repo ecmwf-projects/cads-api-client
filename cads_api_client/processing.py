@@ -13,7 +13,7 @@ import requests
 
 T_ApiResponse = TypeVar("T_ApiResponse", bound="ApiResponse")
 
-LOGGER = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class ProcessingFailedError(RuntimeError):
@@ -74,7 +74,7 @@ class ApiResponse:
                 continue
             severity = message.get("severity", "notset").upper()
             level = logging.getLevelName(severity)
-            LOGGER.log(level if isinstance(level, int) else 20, content)
+            logger.log(level if isinstance(level, int) else 20, content)
 
     def get_links(self, rel: Optional[str] = None) -> List[Dict[str, str]]:
         links = []
@@ -171,7 +171,7 @@ class Remote:
                     level = logging.getLevelName(severity)
                     message = message.replace(severity, "").lstrip(":").lstrip()
                     break
-            LOGGER.log(level, message)
+            logger.log(level, message)
 
     @functools.cached_property
     def request_uid(self) -> str:
@@ -187,7 +187,7 @@ class Remote:
         if self.log_start_time:
             params["logStartTime"] = self.log_start_time
 
-        LOGGER.debug(f"GET {self.url}")
+        logger.debug(f"GET {self.url}")
         requests_response = func(
             url=self.url,
             headers=self.headers,
@@ -210,7 +210,7 @@ class Remote:
         status = None
         while True:
             if status != (status := self._robust_status(retry_options=retry_options)):
-                LOGGER.info(f"status has been updated to {status}")
+                logger.info(f"status has been updated to {status}")
             if status == "successful":
                 # workaround for the server-side 404 due to database replicas out od sync
                 time.sleep(1)
@@ -233,7 +233,7 @@ class Remote:
                     sleep = self.sleep_max
             else:
                 raise ProcessingFailedError(f"Unknown API state {status!r}")
-            LOGGER.debug(f"result not ready, waiting for {sleep} seconds")
+            logger.debug(f"result not ready, waiting for {sleep} seconds")
             time.sleep(sleep)
 
     def build_status_info(self) -> StatusInfo:
