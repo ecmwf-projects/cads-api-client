@@ -1,5 +1,12 @@
+from __future__ import annotations
+
 import datetime
 from typing import Any, Dict, List, Optional
+
+try:
+    from typing import Self
+except ImportError:
+    from typing_extensions import Self
 
 import attrs
 import requests
@@ -12,10 +19,10 @@ class Collections(processing.ApiResponse):
     def collection_ids(self) -> List[str]:
         return [collection["id"] for collection in self.json["collections"]]
 
-    def next(self) -> Optional[processing.ApiResponse]:
+    def next(self) -> Optional[Self]:
         return self.from_rel_href(rel="next")
 
-    def prev(self) -> Optional[processing.ApiResponse]:
+    def prev(self) -> Optional[Self]:
         return self.from_rel_href(rel="prev")
 
 
@@ -74,7 +81,7 @@ class Catalogue:
         self.session = session
 
     def collections(self, params: Dict[str, Any] = {}) -> Collections:
-        url = f"{self.url}/collections"
+        url = f"{self.url}/datasets"
         return Collections.from_request("get", url, params=params, session=self.session)
 
     def collection(self, collection_id: str) -> Collection:

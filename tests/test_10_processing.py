@@ -11,7 +11,7 @@ JOB_RUNNING_ID = "9bfc1362-2832-48e1-a235-359267420bb1"
 JOB_SUCCESSFUL_ID = "9bfc1362-2832-48e1-a235-359267420bb2"
 
 CATALOGUE_URL = "http://localhost:8080/api/catalogue"
-COLLECTIONS_URL = "http://localhost:8080/api/catalogue/v1/collections"
+COLLECTIONS_URL = "http://localhost:8080/api/catalogue/v1/datasets"
 COLLECTION_URL = (
     "http://localhost:8080/api/catalogue/v1/collections/reanalysis-era5-pressure-levels"
 )

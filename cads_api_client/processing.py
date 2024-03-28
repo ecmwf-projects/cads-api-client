@@ -7,6 +7,11 @@ import time
 import urllib
 from typing import Any, Dict, List, Optional, Type, TypeVar
 
+try:
+    from typing import Self
+except ImportError:
+    from typing_extensions import Self
+
 import attrs
 import multiurl
 import requests
@@ -89,7 +94,7 @@ class ApiResponse:
             raise RuntimeError(f"link not found or not unique {kwargs}")
         return links[0]["href"]
 
-    def from_rel_href(self, rel: str) -> Optional[ApiResponse]:
+    def from_rel_href(self, rel: str) -> Optional[Self]:
         rels = self.get_links(rel=rel)
         assert len(rels) <= 1
         if len(rels) == 1:
