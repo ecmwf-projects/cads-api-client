@@ -10,6 +10,7 @@ def test_collections(api_root_url: str) -> None:
     assert "collections" in res.json
     assert isinstance(res.json["collections"], list)
     assert "links" in res.json
+    assert isinstance(res.json["links"], list)
 
     collection_ids = res.collection_ids()
     while len(collection_ids) != res.json["numberMatched"]:
