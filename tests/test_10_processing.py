@@ -157,7 +157,7 @@ PROCESS_JSON = {
                     "content": "This is a warning message",
                 },
                 {
-                    "date": "2023-12-12T13:00:00",
+                    "date": "2023-12-12T14:00:00",
                     "severity": "success",
                     "content": "This is a success message",
                 },
@@ -349,8 +349,16 @@ def test_log_messages(caplog: pytest.LogCaptureFixture) -> None:
         remote.wait_on_result()
 
     assert caplog.record_tuples == [
-        ("cads_api_client.processing", 30, "This is a warning message"),
-        ("cads_api_client.processing", 20, "This is a success message"),
+        (
+            "cads_api_client.processing",
+            30,
+            "[2023-12-12T13:00:00] This is a warning message",
+        ),
+        (
+            "cads_api_client.processing",
+            20,
+            "[2023-12-12T14:00:00] This is a success message",
+        ),
         (
             "cads_api_client.processing",
             10,

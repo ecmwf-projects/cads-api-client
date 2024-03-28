@@ -77,6 +77,8 @@ class ApiResponse:
         for message in messages:
             if not (content := message.get("content")):
                 continue
+            if date := message.get("date"):
+                content = f"[{date}] {content}"
             severity = message.get("severity", "notset").upper()
             level = logging.getLevelName(severity)
             logger.log(level if isinstance(level, int) else 20, content)
