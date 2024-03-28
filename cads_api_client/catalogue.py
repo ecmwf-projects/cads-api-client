@@ -74,7 +74,7 @@ class Catalogue:
         self.session = session
 
     def collections(self, params: Dict[str, Any] = {}) -> Collections:
-        url = f"{self.url}/datasets"
+        url = f"{self.url}/collections"
         return Collections.from_request("get", url, params=params, session=self.session)
 
     def collection(self, collection_id: str) -> Collection:
