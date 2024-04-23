@@ -94,7 +94,7 @@ def test_collection_retrieve_with_direct_mars_cds_adaptor(
     target = str(tmpdir.join("era5-complete.grib"))
 
     res = dataset.retrieve(
-        levelist=1,
+        levelist="1",
         dataset="reanalysis",
         time="00:00:00",
         param="155",
