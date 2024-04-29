@@ -14,8 +14,7 @@ dependencies:
 - sphinx
 - sphinx-autoapi
 # DO NOT EDIT ABOVE THIS LINE, ADD DEPENDENCIES BELOW
+- cdsapi >= 0.7.0
 - types-requests
 - pip:
   - responses
-# FIXME: install from B-Open fork until the PR gets merged
-  - git+https://github.com/bopen/cdsapi.git@COPDS-1531-beta-api
