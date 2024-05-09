@@ -31,7 +31,9 @@ class DownloadError(RuntimeError):
 
 def error_json_to_message(error_json: dict[str, Any]) -> str:
     error_messages = [
-        str(error_json[k]) for k in ("title", "traceback", "detail") if k in error_json
+        str(error_json[key])
+        for key in ("title", "traceback", "detail")
+        if key in error_json
     ]
     if trace_id := error_json.get("trace_id"):
         error_messages.append(f"Trace ID is {trace_id}")
