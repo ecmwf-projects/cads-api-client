@@ -29,6 +29,15 @@ class DownloadError(RuntimeError):
     pass
 
 
+def error_json_to_message(error_json: dict[str, Any]) -> str:
+    error_messages = [
+        str(error_json[k]) for k in ("title", "traceback", "detail") if k in error_json
+    ]
+    if trace_id := error_json.get("trace_id"):
+        error_messages.append(f"Trace ID is {trace_id}")
+    return "\n".join(error_messages)
+
+
 def cads_raise_for_status(response: requests.Response) -> None:
     if response.status_code > 499:
         response.raise_for_status()
@@ -39,7 +48,9 @@ def cads_raise_for_status(response: requests.Response) -> None:
         except Exception:
             pass
         if error_json is not None:
-            raise RuntimeError(f"{response.status_code} Client Error: {error_json}")
+            raise RuntimeError(
+                f"{response.status_code} Client Error: {error_json_to_message(error_json)}"
+            )
         else:
             response.raise_for_status()
 
@@ -231,14 +242,7 @@ class Remote:
                 # workaround for the server-side 404 due to database replicas out od sync
                 time.sleep(1)
                 results = multiurl.robust(self.make_results, **retry_options)(self.url)
-                info = results.json
-                error_message = "processing failed"
-                if info.get("title"):
-                    error_message = f'{info["title"]}'
-                if info.get("detail"):
-                    error_message = error_message + f': {info["detail"]}'
-                raise ProcessingFailedError(error_message)
-                break
+                raise ProcessingFailedError(error_json_to_message(results.json))
             elif status in ("accepted", "running"):
                 sleep *= 1.5
                 if sleep > self.sleep_max:
