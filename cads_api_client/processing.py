@@ -59,7 +59,14 @@ class ApiResponse:
         retry_options: Dict[str, Any] = {"maximum_tries": 2, "retry_after": 10},
         **kwargs: Any,
     ) -> T_ApiResponse:
+        method = kwargs["method"] if "method" in kwargs else args[0]
+        url = kwargs["url"] if "url" in kwargs else args[1]
+        inputs = kwargs.get("json", {}).get("inputs", {})
+        logger.debug(f"{method.upper()} {url} {inputs}")
+
         response = multiurl.robust(session.request, **retry_options)(*args, **kwargs)
+        logger.debug(f"REPLY {response.text}")
+
         if raise_for_status:
             cads_raise_for_status(response)
         self = cls(response, headers=kwargs.get("headers", {}), session=session)
@@ -168,6 +175,7 @@ class Remote:
         self.headers = headers
         self.session = session
         self.log_start_time = None
+        logger.debug(f"Request UID is {self.request_uid}")
 
     def log_metadata(self, metadata: dict[str, Any]) -> None:
         logs = metadata.get("log", [])
@@ -196,6 +204,7 @@ class Remote:
 
         logger.debug(f"GET {self.url}")
         requests_response = get(url=self.url, headers=self.headers, params=params)
+        logger.debug(f"REPLY {requests_response.text}")
         requests_response.raise_for_status()
         json = requests_response.json()
         self.log_metadata(json.get("metadata", {}))

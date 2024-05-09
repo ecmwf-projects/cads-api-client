@@ -1,3 +1,4 @@
+import json
 import logging
 
 import pytest
@@ -338,7 +339,7 @@ def test_wait_on_result() -> None:
 
 
 @responses.activate
-def test_log_messages(caplog: pytest.LogCaptureFixture) -> None:
+def test_remote_logs(caplog: pytest.LogCaptureFixture) -> None:
     responses_add()
 
     catalogue = cads_api_client.Catalogue(CATALOGUE_URL)
@@ -349,6 +350,16 @@ def test_log_messages(caplog: pytest.LogCaptureFixture) -> None:
         remote.wait_on_result()
 
     assert caplog.record_tuples == [
+        (
+            "cads_api_client.processing",
+            10,
+            "GET http://localhost:8080/api/retrieve/v1/processes/reanalysis-era5-pressure-levels {}",
+        ),
+        (
+            "cads_api_client.processing",
+            10,
+            f"REPLY {json.dumps(PROCESS_JSON)}",
+        ),
         (
             "cads_api_client.processing",
             30,
@@ -362,7 +373,31 @@ def test_log_messages(caplog: pytest.LogCaptureFixture) -> None:
         (
             "cads_api_client.processing",
             10,
+            (
+                "POST http://localhost:8080/api/retrieve/v1/processes/"
+                "reanalysis-era5-pressure-levels/execute "
+                "{'variable': 'temperature', 'year': '2022'}"
+            ),
+        ),
+        (
+            "cads_api_client.processing",
+            10,
+            f"REPLY {json.dumps(JOB_SUCCESSFUL_JSON)}",
+        ),
+        (
+            "cads_api_client.processing",
+            10,
+            "Request UID is 9bfc1362-2832-48e1-a235-359267420bb2",
+        ),
+        (
+            "cads_api_client.processing",
+            10,
             "GET http://localhost:8080/api/retrieve/v1/jobs/9bfc1362-2832-48e1-a235-359267420bb2",
+        ),
+        (
+            "cads_api_client.processing",
+            10,
+            f"REPLY {json.dumps(JOB_SUCCESSFUL_JSON)}",
         ),
         ("cads_api_client.processing", 20, "This is a log"),
         ("cads_api_client.processing", 30, "This is a warning log"),
