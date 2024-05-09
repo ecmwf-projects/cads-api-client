@@ -74,7 +74,6 @@ class ApiResponse:
         url = kwargs["url"] if "url" in kwargs else args[1]
         inputs = kwargs.get("json", {}).get("inputs", {})
         logger.debug(f"{method.upper()} {url} {inputs}")
-
         response = multiurl.robust(session.request, **retry_options)(*args, **kwargs)
         logger.debug(f"REPLY {response.text}")
 
@@ -263,7 +262,11 @@ class Remote:
         status = self.status
         if status not in ("successful", "failed"):
             raise ValueError(f"Result not ready, job is {status}")
+
+        logger.debug(f"GET {url}")
         request_response = self.session.get(url, headers=self.headers)
+        logger.debug(f"REPLY {request_response.text}")
+
         response = ApiResponse(request_response, session=self.session)
         try:
             results_url = response.get_link_href(rel="results")
