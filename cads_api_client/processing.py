@@ -29,6 +29,17 @@ class DownloadError(RuntimeError):
     pass
 
 
+def error_json_to_message(error_json: dict[str, Any]) -> str:
+    error_messages = [
+        str(error_json[key])
+        for key in ("title", "traceback", "detail")
+        if key in error_json
+    ]
+    if trace_id := error_json.get("trace_id"):
+        error_messages.append(f"Trace ID is {trace_id}")
+    return "\n".join(error_messages)
+
+
 def cads_raise_for_status(response: requests.Response) -> None:
     if response.status_code > 499:
         response.raise_for_status()
@@ -39,7 +50,9 @@ def cads_raise_for_status(response: requests.Response) -> None:
         except Exception:
             pass
         if error_json is not None:
-            raise RuntimeError(f"{response.status_code} Client Error: {error_json}")
+            raise RuntimeError(
+                f"{response.status_code} Client Error: {error_json_to_message(error_json)}"
+            )
         else:
             response.raise_for_status()
 
@@ -59,7 +72,13 @@ class ApiResponse:
         retry_options: Dict[str, Any] = {"maximum_tries": 2, "retry_after": 10},
         **kwargs: Any,
     ) -> T_ApiResponse:
+        method = kwargs["method"] if "method" in kwargs else args[0]
+        url = kwargs["url"] if "url" in kwargs else args[1]
+        inputs = kwargs.get("json", {}).get("inputs", {})
+        logger.debug(f"{method.upper()} {url} {inputs}")
         response = multiurl.robust(session.request, **retry_options)(*args, **kwargs)
+        logger.debug(f"REPLY {response.text}")
+
         if raise_for_status:
             cads_raise_for_status(response)
         self = cls(response, headers=kwargs.get("headers", {}), session=session)
@@ -168,6 +187,7 @@ class Remote:
         self.headers = headers
         self.session = session
         self.log_start_time = None
+        logger.debug(f"Request UID is {self.request_uid}")
 
     def log_metadata(self, metadata: dict[str, Any]) -> None:
         logs = metadata.get("log", [])
@@ -196,6 +216,7 @@ class Remote:
 
         logger.debug(f"GET {self.url}")
         requests_response = get(url=self.url, headers=self.headers, params=params)
+        logger.debug(f"REPLY {requests_response.text}")
         requests_response.raise_for_status()
         json = requests_response.json()
         self.log_metadata(json.get("metadata", {}))
@@ -222,14 +243,7 @@ class Remote:
                 # workaround for the server-side 404 due to database replicas out od sync
                 time.sleep(1)
                 results = multiurl.robust(self.make_results, **retry_options)(self.url)
-                info = results.json
-                error_message = "processing failed"
-                if info.get("title"):
-                    error_message = f'{info["title"]}'
-                if info.get("detail"):
-                    error_message = error_message + f': {info["detail"]}'
-                raise ProcessingFailedError(error_message)
-                break
+                raise ProcessingFailedError(error_json_to_message(results.json))
             elif status in ("accepted", "running"):
                 sleep *= 1.5
                 if sleep > self.sleep_max:
@@ -250,7 +264,11 @@ class Remote:
         status = self.status
         if status not in ("successful", "failed"):
             raise ValueError(f"Result not ready, job is {status}")
+
+        logger.debug(f"GET {url}")
         request_response = self.session.get(url, headers=self.headers)
+        logger.debug(f"REPLY {request_response.text}")
+
         response = ApiResponse(request_response, session=self.session)
         try:
             results_url = response.get_link_href(rel="results")

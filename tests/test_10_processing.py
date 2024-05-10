@@ -1,3 +1,4 @@
+import json
 import logging
 
 import pytest
@@ -9,6 +10,7 @@ import cads_api_client
 COLLECTION_ID = "reanalysis-era5-pressure-levels"
 JOB_RUNNING_ID = "9bfc1362-2832-48e1-a235-359267420bb1"
 JOB_SUCCESSFUL_ID = "9bfc1362-2832-48e1-a235-359267420bb2"
+JOB_FAILED_ID = "9bfc1362-2832-48e1-a235-359267420bb3"
 
 CATALOGUE_URL = "http://localhost:8080/api/catalogue"
 COLLECTIONS_URL = "http://localhost:8080/api/catalogue/v1/datasets"
@@ -20,6 +22,7 @@ EXECUTE_URL = f"{PROCESS_URL}/execute"
 
 JOB_RUNNING_URL = f"http://localhost:8080/api/retrieve/v1/jobs/{JOB_RUNNING_ID}"
 JOB_SUCCESSFUL_URL = f"http://localhost:8080/api/retrieve/v1/jobs/{JOB_SUCCESSFUL_ID}"
+JOB_FAILED_URL = f"http://localhost:8080/api/retrieve/v1/jobs/{JOB_FAILED_ID}"
 
 RESULT_RUNNING_URL = (
     f"http://localhost:8080/api/retrieve/v1/jobs/{JOB_RUNNING_ID}/results"
@@ -27,6 +30,10 @@ RESULT_RUNNING_URL = (
 RESULT_SUCCESSFUL_URL = (
     f"http://localhost:8080/api/retrieve/v1/jobs/{JOB_SUCCESSFUL_ID}/results"
 )
+RESULT_FAILED_URL = (
+    f"http://localhost:8080/api/retrieve/v1/jobs/{JOB_FAILED_ID}/results"
+)
+
 
 CATALOGUE_JSON = {
     "type": "Catalog",
@@ -140,7 +147,10 @@ PROCESS_JSON = {
         },
         "year": {
             "title": "Year",
-            "schema": {"type": "array", "items": {"enum": ["2022"], "type": "string"}},
+            "schema": {
+                "type": "array",
+                "items": {"enum": ["2022", "0000"], "type": "string"},
+            },
         },
     },
     "outputs": {
@@ -219,6 +229,36 @@ JOB_SUCCESSFUL_JSON = {
     },
 }
 
+JOB_FAILED_JSON = {
+    "processID": f"{COLLECTION_ID}",
+    "type": "process",
+    "jobID": f"{JOB_FAILED_ID}",
+    "status": "failed",
+    "created": "2022-09-02T17:30:48.201213",
+    "started": "2022-09-02T17:32:43.890617",
+    "finished": "2022-09-02T17:32:54.308120",
+    "updated": "2022-09-02T17:32:54.308116",
+    "links": [
+        {"href": f"{JOB_FAILED_ID}", "rel": "self", "type": "application/json"},
+        {
+            "href": f"http://localhost:8080/api/retrieve/v1/jobs/{JOB_FAILED_ID}/results",
+            "rel": "results",
+        },
+        {
+            "href": f"{JOB_FAILED_URL}",
+            "rel": "monitor",
+            "type": "application/json",
+            "title": "job status info",
+        },
+    ],
+    "metadata": {
+        "log": [
+            ["2024-02-09T09:14:47.811223", "This is a log"],
+            ["2024-02-09T09:14:50.811223", "WARNING: This is a warning log"],
+        ]
+    },
+}
+
 RESULT_SUCCESSFUL_JSON = {
     "asset": {
         "value": {
@@ -242,6 +282,15 @@ RESULT_RUNNING_JSON = {
     "title": "job results not ready",
     "detail": "job 8b7a1f3d-04b1-425d-96f1-f0634d02ee7f results are not yet ready",
     "instance": "http://127.0.0.1:8080/api/retrieve/v1/jobs/8b7a1f3d-04b1-425d-96f1-f0634d02ee7f/results",
+}
+
+RESULT_FAILED_JSON = {
+    "type": "job results failed",
+    "title": "job failed",
+    "status": 400,
+    "instance": "http://127.0.0.1:8080/api/retrieve/v1/jobs/02135eee-39a8-4d1f-8cd7-87682de5b981/results",
+    "trace_id": "ca3e7170-1ce2-48fc-97f8-bbe64fafce44",
+    "traceback": "This is a traceback",
 }
 
 
@@ -295,6 +344,34 @@ def responses_add() -> None:
         content_type="application/json",
     )
 
+    responses.add(
+        responses.POST,
+        url=EXECUTE_URL,
+        json=JOB_FAILED_JSON,
+        match=[
+            json_params_matcher(
+                {
+                    "inputs": {"variable": "temperature", "year": "0000"},
+                }
+            )
+        ],
+        content_type="application/json",
+    )
+
+    responses.add(
+        responses.GET,
+        url=JOB_FAILED_URL,
+        json=JOB_FAILED_JSON,
+        content_type="application/json",
+    )
+
+    responses.add(
+        responses.GET,
+        url=RESULT_FAILED_URL,
+        json=RESULT_FAILED_JSON,
+        content_type="application/json",
+    )
+
 
 @responses.activate
 def test_catalogue_collections() -> None:
@@ -338,7 +415,21 @@ def test_wait_on_result() -> None:
 
 
 @responses.activate
-def test_log_messages(caplog: pytest.LogCaptureFixture) -> None:
+def test_wait_on_result_failed() -> None:
+    responses_add()
+
+    catalogue = cads_api_client.Catalogue(CATALOGUE_URL)
+    collection = catalogue.collection(COLLECTION_ID)
+    remote = collection.submit(variable="temperature", year="0000")
+    with pytest.raises(
+        cads_api_client.processing.ProcessingFailedError,
+        match="job failed\nThis is a traceback\nTrace ID is ca3e7170-1ce2-48fc-97f8-bbe64fafce44",
+    ):
+        remote.wait_on_result()
+
+
+@responses.activate
+def test_remote_logs(caplog: pytest.LogCaptureFixture) -> None:
     responses_add()
 
     catalogue = cads_api_client.Catalogue(CATALOGUE_URL)
@@ -349,6 +440,16 @@ def test_log_messages(caplog: pytest.LogCaptureFixture) -> None:
         remote.wait_on_result()
 
     assert caplog.record_tuples == [
+        (
+            "cads_api_client.processing",
+            10,
+            "GET http://localhost:8080/api/retrieve/v1/processes/reanalysis-era5-pressure-levels {}",
+        ),
+        (
+            "cads_api_client.processing",
+            10,
+            f"REPLY {json.dumps(PROCESS_JSON)}",
+        ),
         (
             "cads_api_client.processing",
             30,
@@ -362,7 +463,31 @@ def test_log_messages(caplog: pytest.LogCaptureFixture) -> None:
         (
             "cads_api_client.processing",
             10,
+            (
+                "POST http://localhost:8080/api/retrieve/v1/processes/"
+                "reanalysis-era5-pressure-levels/execute "
+                "{'variable': 'temperature', 'year': '2022'}"
+            ),
+        ),
+        (
+            "cads_api_client.processing",
+            10,
+            f"REPLY {json.dumps(JOB_SUCCESSFUL_JSON)}",
+        ),
+        (
+            "cads_api_client.processing",
+            10,
+            "Request UID is 9bfc1362-2832-48e1-a235-359267420bb2",
+        ),
+        (
+            "cads_api_client.processing",
+            10,
             "GET http://localhost:8080/api/retrieve/v1/jobs/9bfc1362-2832-48e1-a235-359267420bb2",
+        ),
+        (
+            "cads_api_client.processing",
+            10,
+            f"REPLY {json.dumps(JOB_SUCCESSFUL_JSON)}",
         ),
         ("cads_api_client.processing", 20, "This is a log"),
         ("cads_api_client.processing", 30, "This is a warning log"),
