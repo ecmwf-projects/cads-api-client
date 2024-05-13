@@ -236,12 +236,8 @@ class Remote:
             if status != (status := self._robust_status(retry_options=retry_options)):
                 logger.info(f"status has been updated to {status}")
             if status == "successful":
-                # workaround for the server-side 404 due to database replicas out od sync
-                time.sleep(1)
                 break
             elif status == "failed":
-                # workaround for the server-side 404 due to database replicas out od sync
-                time.sleep(1)
                 results = multiurl.robust(self.make_results, **retry_options)(self.url)
                 raise ProcessingFailedError(error_json_to_message(results.json))
             elif status in ("accepted", "running"):
