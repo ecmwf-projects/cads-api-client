@@ -12,8 +12,6 @@ import requests
 from . import api_client, processing
 
 LEGACY_KWARGS = [
-    "quiet",
-    "debug",
     "verify",
     "timeout",
     "progress",
@@ -72,6 +70,8 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
         self,
         url: str | None = None,
         key: str | None = None,
+        quiet: bool = False,
+        debug: bool = False,
         *args: Any,
         **kwargs: Any,
     ) -> None:
@@ -94,8 +94,8 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
             "retry_after": self.sleep_max,
         }
 
-        self.quiet = kwargs.pop("quiet", False)
-        self._debug = kwargs.pop("debug", False)
+        self.quiet = quiet
+        self._debug = debug
 
         if kwargs:
             warnings.warn(
