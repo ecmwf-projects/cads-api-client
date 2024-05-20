@@ -423,7 +423,7 @@ def test_wait_on_result_failed() -> None:
     remote = collection.submit(variable="temperature", year="0000")
     with pytest.raises(
         cads_api_client.processing.ProcessingFailedError,
-        match="job failed\nThis is a traceback\nTrace ID is ca3e7170-1ce2-48fc-97f8-bbe64fafce44",
+        match="job failed\nThis is a traceback",
     ):
         remote.wait_on_result()
 
@@ -476,8 +476,8 @@ def test_remote_logs(caplog: pytest.LogCaptureFixture) -> None:
         ),
         (
             "cads_api_client.processing",
-            10,
-            "Request UID is 9bfc1362-2832-48e1-a235-359267420bb2",
+            20,
+            "Request ID is 9bfc1362-2832-48e1-a235-359267420bb2",
         ),
         (
             "cads_api_client.processing",
