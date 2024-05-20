@@ -35,8 +35,6 @@ def error_json_to_message(error_json: dict[str, Any]) -> str:
         for key in ("title", "traceback", "detail")
         if key in error_json
     ]
-    if trace_id := error_json.get("trace_id"):
-        error_messages.append(f"Trace ID is {trace_id}")
     return "\n".join(error_messages)
 
 
@@ -187,7 +185,7 @@ class Remote:
         self.headers = headers
         self.session = session
         self.log_start_time = None
-        logger.debug(f"Request UID is {self.request_uid}")
+        logger.info(f"Request ID is {self.request_uid}")
 
     def log_metadata(self, metadata: dict[str, Any]) -> None:
         logs = metadata.get("log", [])
