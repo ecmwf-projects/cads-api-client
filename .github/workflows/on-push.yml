@@ -174,7 +174,7 @@ jobs:
         python -m pip install --no-deps -e .
     - name: Run tests
       run: |
-        make unit-tests COV_REPORT=xml
+        make integration-tests COV_REPORT=xml
 
   distribution:
     runs-on: ubuntu-latest
