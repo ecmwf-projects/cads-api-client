@@ -161,3 +161,32 @@ def test_collection_retrieve_with_legacy_cds_adaptor(
 
     assert isinstance(res, str)
     assert res.endswith(target)
+
+
+def test_collection_retrieve_with_observations_adaptor(
+    api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
+) -> None:
+    collection_id = "insitu-observations-gnss"
+    headers = {"PRIVATE-TOKEN": api_key}
+
+    cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
+    dataset = cat.collection(collection_id)
+    target = str(tmpdir.join("era5.grib"))
+
+    res = dataset.retrieve(
+        network_type="igs_r3",
+        variable=[
+            "precipitable_water_column",
+            "precipitable_water_column_total_uncertainty",
+        ],
+        year=request_year,
+        month="01",
+        day="02",
+        time="00:00",
+        target=target,
+        retry_options={"maximum_tries": 0},
+        format="netCDF"
+    )
+
+    assert isinstance(res, str)
+    assert res.endswith(target)
