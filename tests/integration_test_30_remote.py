@@ -185,7 +185,7 @@ def test_collection_retrieve_with_observations_adaptor(
         time="00:00",
         target=target,
         retry_options={"maximum_tries": 0},
-        format="netCDF"
+        format="netCDF",
     )
 
     assert isinstance(res, str)
