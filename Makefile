@@ -34,7 +34,7 @@ docs-build:
 # DO NOT EDIT ABOVE THIS LINE, ADD COMMANDS BELOW
 
 integration-tests:
-	python -m pytest -vv --cov=. --cov-report=$(COV_REPORT) tests/integration*.py
+	python -m pytest -vv --cov=. --cov-report=$(COV_REPORT) tests/integration_test_60*.py
 
 doc-tests:
 	python -m pytest -vv --doctest-glob='*.md' README.md
