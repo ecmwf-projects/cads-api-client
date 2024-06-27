@@ -40,7 +40,7 @@ def test_reanalysis_era5_single_levels(
 
 
 
-@pytest.mark.skip_missing_entry("cams-global-atmospheric-composition-aliens")
+@pytest.mark.skip_missing_entry("cams-global-atmospheric-composition-forecasts")
 @pytest.mark.parametrize("data_format", ("grib", "netcdf"))
 def test_cams_global_atmospheric_composition_forecasts(
     api_root_url: str, api_key: str, tmpdir: py.path.local,
@@ -54,14 +54,10 @@ def test_cams_global_atmospheric_composition_forecasts(
     collection_id = "reanalysis-era5-single-levels"
     dataset = cat.collection(collection_id)
     request = {
-        "variable": "2m_temperature",
-        "product_type": "reanalysis",
-        "year": "2020",
-        "month": "01",
-        "day": "01",
-        "time": "00:00",
-        "data_format": data_format,
-    }
+        'variable': ['total_column_glyoxal','total_column_dimethyl_sulfide'],
+        'date': "2020-01-01/2020-01-02",
+        'time': '00:00', 'leadtime_hour': '0', 'type': 'forecast',
+        'data_format': data_format}
     res = dataset.retrieve(
         **request
     )

@@ -62,5 +62,5 @@ def skip_if_entry_not_available(request, api_root_url:str, api_key: str) -> None
         try:
             assert entry in cat.collections(params=dict(q=entry)).collection_ids()
         except Exception:
-            pytest.skip(f"{entry} not available in catalogue: {api_root_url} {api_key}")
+            pytest.skip(f"{entry} not available in catalogue")
    
