@@ -24,6 +24,7 @@ def test_real_collection(
     dataset = cat.collection(collection_id)
     request = {
         "variable": "2m_temperature",
+        "product_type": "reanalysis",
         "year": "2020",
         "month": "01",
         "day": "01",
