@@ -51,12 +51,12 @@ def temp_environ() -> Any:
     os.environ.update(old_environ)
 
 
-@pytest.fixture()
+@pytest.fixture(autouse=True)
 def skip_if_entry_not_available(request) -> None:
     from cads_api_client import catalogue
 
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers={"PRIVATE-TOKEN": api_key})
-    entry = request.node.get_closest_marker('entry').args[0]
+    entry = request.node.get_closest_marker('skip_missing_entry').args[0]
     try:
         assert entry in cat.collections(params=dict(q=entry)).collection_ids()
     except Exception:
