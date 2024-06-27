@@ -136,7 +136,6 @@ def test_collection_retrieve_with_mars_cds_adaptor(
     assert res.endswith(target)
 
 
-
 def test_collection_retrieve_with_mars_cds_adaptor_netcdf(
     api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
 ) -> None:
@@ -145,7 +144,7 @@ def test_collection_retrieve_with_mars_cds_adaptor_netcdf(
 
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
-    target = str(tmpdir.join("era5.grib"))
+    target = str(tmpdir.join("test.result"))
 
     res = dataset.retrieve(
         product_type="reanalysis",
