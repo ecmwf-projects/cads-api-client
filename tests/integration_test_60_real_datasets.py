@@ -40,7 +40,7 @@ def test_reanalysis_era5_single_levels(
 
 
 
-@pytest.mark.skip_missing_entry("cams-global-atmospheric-composition-aliens")
+@pytest.mark.skip_missing_entry("cams-global-atmospheric-composition-forecasts")
 @pytest.mark.parametrize("data_format", ("grib", "netcdf"))
 def test_cams_global_atmospheric_composition_forecasts(
     api_root_url: str, api_key: str, tmpdir: py.path.local,
