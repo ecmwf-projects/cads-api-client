@@ -136,6 +136,33 @@ def test_collection_retrieve_with_mars_cds_adaptor(
     assert res.endswith(target)
 
 
+
+def test_collection_retrieve_with_mars_cds_adaptor_netcdf(
+    api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
+) -> None:
+    collection_id = "test-adaptor-mars"
+    headers = {"PRIVATE-TOKEN": api_key}
+
+    cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
+    dataset = cat.collection(collection_id)
+    target = str(tmpdir.join("era5.grib"))
+
+    res = dataset.retrieve(
+        product_type="reanalysis",
+        variable="2m_temperature",
+        year=request_year,
+        month="01",
+        day="02",
+        time="00:00",
+        target=target,
+        retry_options={"maximum_tries": 0},
+        format="netcdf",
+    )
+
+    assert isinstance(res, str)
+    assert res.endswith(target)
+
+
 @pytest.mark.skip(reason="discontinued adaptor")
 def test_collection_retrieve_with_legacy_cds_adaptor(
     api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
