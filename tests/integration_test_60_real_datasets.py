@@ -51,7 +51,7 @@ def test_cams_global_atmospheric_composition_forecasts(
     headers = {"PRIVATE-TOKEN": api_key}
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
 
-    collection_id = "reanalysis-era5-single-levels"
+    collection_id = "cams-global-atmospheric-composition-forecasts"
     dataset = cat.collection(collection_id)
     request = {
         'variable': ['total_column_glyoxal','total_column_dimethyl_sulfide'],
