@@ -54,10 +54,15 @@ def test_cams_global_atmospheric_composition_forecasts(
     collection_id = "cams-global-atmospheric-composition-forecasts"
     dataset = cat.collection(collection_id)
     request = {
-        'variable': ['total_column_glyoxal','total_column_dimethyl_sulfide'],
-        'date': "2020-01-01/2020-01-02",
-        'time': '00:00', 'leadtime_hour': '0', 'type': 'forecast',
-        'data_format': data_format}
+        'variable': [
+            'total_column_dimethyl_sulfide', 'total_column_glyoxal',
+        ],
+        'date': '2024-01-02',
+        'time': '00:00',
+        'leadtime_hour': '0',
+        'type': 'forecast',
+        'data_format': data_format
+    }
     res = dataset.retrieve(
         **request
     )
