@@ -1,7 +1,8 @@
 import os
+import time
+
 import py
 import pytest
-import time
 
 from cads_api_client import catalogue
 
@@ -14,8 +15,7 @@ DATA_FORMAT_EXTENTIONS = {
 @pytest.mark.skip_missing_entry("cams-global-atmospheric-composition-forecasts")
 @pytest.mark.parametrize("data_format", ("grib", "netcdf"))
 def test_cams_global_atmospheric_composition_forecasts(
-    api_root_url: str, api_key: str, tmpdir: py.path.local,
-    data_format: str
+    api_root_url: str, api_key: str, tmpdir: py.path.local, data_format: str
 ) -> None:
     os.chdir(tmpdir)
 
@@ -25,19 +25,18 @@ def test_cams_global_atmospheric_composition_forecasts(
     collection_id = "cams-global-atmospheric-composition-forecasts"
     dataset = cat.collection(collection_id)
     request = {
-        'variable': [
-            'total_column_dimethyl_sulfide', 'total_column_glyoxal',
+        "variable": [
+            "total_column_dimethyl_sulfide",
+            "total_column_glyoxal",
         ],
-        'date': '2024-01-02',
-        'time': '00:00',
-        'leadtime_hour': '0',
-        'type': 'forecast',
-        'data_format': data_format,
-        "_timestamp": str(time.time())
+        "date": "2024-01-02",
+        "time": "00:00",
+        "leadtime_hour": "0",
+        "type": "forecast",
+        "data_format": data_format,
+        "_timestamp": str(time.time()),
     }
-    res = dataset.retrieve(
-        **request
-    )
+    res = dataset.retrieve(**request)
 
     assert isinstance(res, str)
     assert res.endswith(DATA_FORMAT_EXTENTIONS[data_format])
@@ -46,8 +45,7 @@ def test_cams_global_atmospheric_composition_forecasts(
 @pytest.mark.skip_missing_entry("reanalysis-era5-single-levels")
 @pytest.mark.parametrize("data_format", ("grib", "netcdf"))
 def test_reanalysis_era5_single_levels(
-    api_root_url: str, api_key: str, tmpdir: py.path.local,
-    data_format: str
+    api_root_url: str, api_key: str, tmpdir: py.path.local, data_format: str
 ) -> None:
     os.chdir(tmpdir)
 
@@ -64,22 +62,18 @@ def test_reanalysis_era5_single_levels(
         "day": "01",
         "time": "00:00",
         "data_format": data_format,
-        "_timestamp": str(time.time())
+        "_timestamp": str(time.time()),
     }
-    res = dataset.retrieve(
-        **request
-    )
+    res = dataset.retrieve(**request)
 
     assert isinstance(res, str)
     assert res.endswith(DATA_FORMAT_EXTENTIONS[data_format])
 
 
-
 @pytest.mark.skip_missing_entry("seasonal-original-single-levels")
 @pytest.mark.parametrize("data_format", ("grib", "netcdf"))
-def test_reanalysis_era5_single_levels(
-    api_root_url: str, api_key: str, tmpdir: py.path.local,
-    data_format: str
+def test_seasonal_original_era5_single_levels(
+    api_root_url: str, api_key: str, tmpdir: py.path.local, data_format: str
 ) -> None:
     os.chdir(tmpdir)
 
@@ -89,20 +83,17 @@ def test_reanalysis_era5_single_levels(
     collection_id = "seasonal-original-single-levels"
     dataset = cat.collection(collection_id)
     request = {
-        'originating_centre': 'ukmo',
-        'system': '12',
-        'variable': ['2m_dewpoint_temperature'],
-        'year': ['2015'],
-        'month': ['02'],
-        'day': ['09'],
-        'leadtime_hour': ['390'],
-        "data_foramt": data_format,
-        "_timestamp": str(time.time())
+        "originating_centre": "ukmo",
+        "system": "12",
+        "variable": ["2m_dewpoint_temperature"],
+        "year": ["2015"],
+        "month": ["02"],
+        "day": ["09"],
+        "leadtime_hour": ["390"],
+        "data_format": data_format,
+        "_timestamp": str(time.time()),
     }
-    res = dataset.retrieve(
-        **request
-    )
+    res = dataset.retrieve(**request)
 
     assert isinstance(res, str)
     assert res.endswith(DATA_FORMAT_EXTENTIONS[data_format])
-

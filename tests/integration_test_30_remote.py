@@ -99,7 +99,7 @@ def test_collection_retrieve_with_url_cds_adaptor_area_selection(
         version="2.1",
         target=target,
         retry_options={"maximum_tries": 0},
-        area=[50,0,40,10]
+        area=[50, 0, 40, 10],
     )
 
     assert isinstance(res, str)

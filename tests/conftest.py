@@ -52,15 +52,16 @@ def temp_environ() -> Any:
 
 
 @pytest.fixture(autouse=True)
-def skip_if_entry_not_available(request, api_root_url:str, api_key: str) -> None:
+def skip_if_entry_not_available(request, api_root_url: str, api_key: str) -> None:
     from cads_api_client import catalogue
 
-    cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers={"PRIVATE-TOKEN": api_key})
-    if request.node.get_closest_marker('skip_missing_entry') is not None:
-        entry = request.node.get_closest_marker('skip_missing_entry').args[0]
+    cat = catalogue.Catalogue(
+        f"{api_root_url}/catalogue", headers={"PRIVATE-TOKEN": api_key}
+    )
+    if request.node.get_closest_marker("skip_missing_entry") is not None:
+        entry = request.node.get_closest_marker("skip_missing_entry").args[0]
         # colls = cat.collections().collection_ids()
         try:
             assert entry in cat.collections(params=dict(q=entry)).collection_ids()
         except Exception:
             pytest.skip(f"{entry} not available in catalogue")
-   
