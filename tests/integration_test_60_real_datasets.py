@@ -73,3 +73,36 @@ def test_reanalysis_era5_single_levels(
     assert isinstance(res, str)
     assert res.endswith(DATA_FORMAT_EXTENTIONS[data_format])
 
+
+
+@pytest.mark.skip_missing_entry("seasonal-original-single-levels")
+@pytest.mark.parametrize("data_format", ("grib", "netcdf"))
+def test_reanalysis_era5_single_levels(
+    api_root_url: str, api_key: str, tmpdir: py.path.local,
+    data_format: str
+) -> None:
+    os.chdir(tmpdir)
+
+    headers = {"PRIVATE-TOKEN": api_key}
+    cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
+
+    collection_id = "seasonal-original-single-levels"
+    dataset = cat.collection(collection_id)
+    request = {
+        'originating_centre': 'ukmo',
+        'system': '12',
+        'variable': ['2m_dewpoint_temperature'],
+        'year': ['2015'],
+        'month': ['02'],
+        'day': ['09'],
+        'leadtime_hour': ['390'],
+        "data_foramt": data_format,
+        "_timestamp": str(time.time())
+    }
+    res = dataset.retrieve(
+        **request
+    )
+
+    assert isinstance(res, str)
+    assert res.endswith(DATA_FORMAT_EXTENTIONS[data_format])
+
