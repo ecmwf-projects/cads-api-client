@@ -1,3 +1,5 @@
+from typing import Any
+
 import py
 import pytest
 
@@ -163,7 +165,7 @@ def test_collection_retrieve_with_legacy_cds_adaptor(
     assert res.endswith(target)
 
 
-obs_params = {
+obs_params: dict[str, dict[str, Any]] = {
     "insitu-observations-woudc-ozone-total-column-and-profiles": {
         "observation_type": "vertical_profile"
     },
@@ -204,7 +206,7 @@ def test_collection_retrieve_with_observations_adaptor(
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
     target = str(tmpdir.join("obs-test-result.nc"))
-    request_params = dict(
+    request_params: dict[str, Any] = dict(
         variable=["air_temperature"],
         year=request_year,
         month="01",
