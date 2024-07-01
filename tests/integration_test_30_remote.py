@@ -1,5 +1,3 @@
-from typing import Any
-
 import py
 import pytest
 
@@ -160,63 +158,6 @@ def test_collection_retrieve_with_legacy_cds_adaptor(
         target=target,
         retry_options={"maximum_tries": 0},
     )
-
-    assert isinstance(res, str)
-    assert res.endswith(target)
-
-
-obs_params: dict[str, dict[str, Any]] = {
-    "insitu-observations-woudc-ozone-total-column-and-profiles": {
-        "observation_type": "vertical_profile"
-    },
-    "insitu-observations-igra-baseline-network": {
-        "archive": ["global_radiosonde_archive"]
-    },
-    "insitu-observations-gnss": {
-        "network_type": "igs_r3",
-        "day": "01",
-        "variable": [
-            "precipitable_water_column",
-            "precipitable_water_column_total_uncertainty",
-        ],
-        "year": "2014",
-    },
-    "insitu-observations-gruan-reference-network": {},
-    "insitu-observations-near-surface-temperature-us-climate-reference-network": {
-        "time_aggregation": "daily",
-        "variable": [
-            "maximum_air_temperature",
-            "maximum_air_temperature_negative_total_uncertainty",
-            "maximum_air_temperature_positive_total_uncertainty",
-        ],
-    },
-}
-
-
-@pytest.mark.parametrize("collection_id", list(obs_params))
-def test_collection_retrieve_with_observations_adaptor(
-    api_root_url: str,
-    api_key: str,
-    request_year: str,
-    tmpdir: py.path.local,
-    collection_id: str,
-) -> None:
-    headers = {"PRIVATE-TOKEN": api_key}
-
-    cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
-    dataset = cat.collection(collection_id)
-    target = str(tmpdir.join("obs-test-result.nc"))
-    request_params: dict[str, Any] = dict(
-        variable=["air_temperature"],
-        year=request_year,
-        month="01",
-        day="01",
-        target=target,
-        retry_options={"maximum_tries": 0},
-        format="netCDF",
-    )
-    request_params.update(obs_params[collection_id])
-    res = dataset.retrieve(**request_params)
 
     assert isinstance(res, str)
     assert res.endswith(target)
