@@ -12,6 +12,7 @@ DATA_FORMAT_EXTENTIONS = {
 }
 
 
+@pytest.mark.skip(reason="Fix not yet implemented in cads-adaptors")
 @pytest.mark.skip_missing_entry("cams-global-atmospheric-composition-forecasts")
 @pytest.mark.parametrize("data_format", ("grib", "netcdf"))
 def test_cams_global_atmospheric_composition_forecasts(
