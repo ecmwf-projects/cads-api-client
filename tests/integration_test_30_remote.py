@@ -83,6 +83,29 @@ def test_collection_retrieve_with_url_cds_adaptor(
     assert res.endswith(target)
 
 
+def test_collection_retrieve_with_url_cds_adaptor_area_selection(
+    api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
+) -> None:
+    collection_id = "test-adaptor-url"
+    headers = {"PRIVATE-TOKEN": api_key}
+
+    cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
+    dataset = cat.collection(collection_id)
+    target = str(tmpdir.join("wfde1.zip"))
+
+    res = dataset.retrieve(
+        variable="grid_point_altitude",
+        reference_dataset="cru",
+        version="2.1",
+        target=target,
+        retry_options={"maximum_tries": 0},
+        area=[50, 0, 40, 10],
+    )
+
+    assert isinstance(res, str)
+    assert res.endswith(target)
+
+
 def test_collection_retrieve_with_direct_mars_cds_adaptor(
     api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
 ) -> None:
@@ -130,6 +153,32 @@ def test_collection_retrieve_with_mars_cds_adaptor(
         time="00:00",
         target=target,
         retry_options={"maximum_tries": 0},
+    )
+
+    assert isinstance(res, str)
+    assert res.endswith(target)
+
+
+def test_collection_retrieve_with_mars_cds_adaptor_netcdf(
+    api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
+) -> None:
+    collection_id = "test-adaptor-mars"
+    headers = {"PRIVATE-TOKEN": api_key}
+
+    cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
+    dataset = cat.collection(collection_id)
+    target = str(tmpdir.join("test.result"))
+
+    res = dataset.retrieve(
+        product_type="reanalysis",
+        variable="2m_temperature",
+        year=request_year,
+        month="01",
+        day="02",
+        time="00:00",
+        target=target,
+        retry_options={"maximum_tries": 0},
+        format="netcdf",
     )
 
     assert isinstance(res, str)
