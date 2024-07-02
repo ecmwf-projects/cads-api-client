@@ -1,11 +1,4 @@
-import pytest
-
 from cads_api_client import ApiClient
-
-
-@pytest.fixture
-def api_client(api_root_url: str, api_key: str) -> ApiClient:
-    return ApiClient(url=api_root_url, key=api_key)
 
 
 def test_accept_licence(api_client: ApiClient) -> None:

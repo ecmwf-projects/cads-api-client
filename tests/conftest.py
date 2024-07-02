@@ -1,8 +1,13 @@
+from __future__ import annotations
+
 import os
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 import requests
+
+if TYPE_CHECKING:
+    from cads_api_client import ApiClient
 
 
 @pytest.fixture
@@ -49,3 +54,10 @@ def temp_environ() -> Any:
 
     os.environ.clear()
     os.environ.update(old_environ)
+
+
+@pytest.fixture
+def api_client(api_root_url: str, api_key: str) -> ApiClient:
+    from cads_api_client import ApiClient
+
+    return ApiClient(url=api_root_url, key=api_key)
