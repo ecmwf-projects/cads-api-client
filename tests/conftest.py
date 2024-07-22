@@ -36,6 +36,11 @@ def api_key(api_root_url: str) -> str:
 
 
 @pytest.fixture
+def api_key_test_user_2() -> str:
+    return "00000000-0000-3000-abcd-000000000001"
+
+
+@pytest.fixture
 def api_key_anon() -> str:
     return "00112233-4455-6677-c899-aabbccddeeff"
 

@@ -49,10 +49,10 @@ def test_validate_constraints(api_root_url: str) -> None:
 
 
 def test_collection_missing_licence(
-    api_root_url: str, api_key_anon: str, request_year: str
+    api_root_url: str, api_key_test_user_2: str, request_year: str
 ) -> None:
     collection_id = "test-adaptor-mars"
-    headers = {"PRIVATE-TOKEN": api_key_anon}
+    headers = {"PRIVATE-TOKEN": api_key_test_user_2}
     proc = processing.Processing(f"{api_root_url}/retrieve", headers=headers)
     process = proc.process(collection_id)
 
