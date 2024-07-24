@@ -62,6 +62,15 @@ def test_collection_missing_licence(
         )
 
 
+def test_collection_anonymous_user(api_root_url: str, api_key_anon: str) -> None:
+    collection_id = "test-adaptor-mars"
+    headers = {"PRIVATE-TOKEN": api_key_anon}
+    proc = processing.Processing(f"{api_root_url}/retrieve", headers=headers)
+    process = proc.process(collection_id)
+    response = process.execute(inputs={})
+    assert "message" in response.json
+
+
 def test_jobs_list(api_root_url: str, api_key: str, request_year: str) -> None:
     collection_id = "test-adaptor-dummy"
     headers = {"PRIVATE-TOKEN": api_key}
