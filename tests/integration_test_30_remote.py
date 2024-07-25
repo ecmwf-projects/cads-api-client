@@ -14,9 +14,11 @@ def test_from_collection_to_process(api_root_url: str) -> None:
     assert isinstance(res, processing.Process)
 
 
-def test_collection_submit(api_root_url: str, api_key: str, request_year: str) -> None:
+def test_collection_submit(
+    api_root_url: str, api_key_anon: str, request_year: str
+) -> None:
     collection_id = "test-adaptor-dummy"
-    headers = {"PRIVATE-TOKEN": api_key}
+    headers = {"PRIVATE-TOKEN": api_key_anon}
 
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
@@ -30,10 +32,10 @@ def test_collection_submit(api_root_url: str, api_key: str, request_year: str) -
 
 
 def test_collection_retrieve_with_dummy_adaptor(
-    api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
+    api_root_url: str, api_key_anon: str, request_year: str, tmpdir: py.path.local
 ) -> None:
     collection_id = "test-adaptor-dummy"
-    headers = {"PRIVATE-TOKEN": api_key}
+    headers = {"PRIVATE-TOKEN": api_key_anon}
 
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
@@ -49,10 +51,10 @@ def test_collection_retrieve_with_dummy_adaptor(
 
 
 def test_collection_retrieve_with_url_cds_adaptor(
-    api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
+    api_root_url: str, api_key_anon: str, request_year: str, tmpdir: py.path.local
 ) -> None:
     collection_id = "test-adaptor-url"
-    headers = {"PRIVATE-TOKEN": api_key}
+    headers = {"PRIVATE-TOKEN": api_key_anon}
 
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
@@ -84,10 +86,10 @@ def test_collection_retrieve_with_url_cds_adaptor(
 
 
 def test_collection_retrieve_with_direct_mars_cds_adaptor(
-    api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
+    api_root_url: str, api_key_anon: str, request_year: str, tmpdir: py.path.local
 ) -> None:
     collection_id = "test-adaptor-direct-mars"
-    headers = {"PRIVATE-TOKEN": api_key}
+    headers = {"PRIVATE-TOKEN": api_key_anon}
 
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
@@ -112,10 +114,10 @@ def test_collection_retrieve_with_direct_mars_cds_adaptor(
 
 
 def test_collection_retrieve_with_mars_cds_adaptor(
-    api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
+    api_root_url: str, api_key_anon: str, request_year: str, tmpdir: py.path.local
 ) -> None:
     collection_id = "test-adaptor-mars"
-    headers = {"PRIVATE-TOKEN": api_key}
+    headers = {"PRIVATE-TOKEN": api_key_anon}
 
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
@@ -138,10 +140,10 @@ def test_collection_retrieve_with_mars_cds_adaptor(
 
 @pytest.mark.skip(reason="discontinued adaptor")
 def test_collection_retrieve_with_legacy_cds_adaptor(
-    api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
+    api_root_url: str, api_key_anon: str, request_year: str, tmpdir: py.path.local
 ) -> None:
     collection_id = "test-adaptor-legacy"
-    headers = {"PRIVATE-TOKEN": api_key}
+    headers = {"PRIVATE-TOKEN": api_key_anon}
 
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)

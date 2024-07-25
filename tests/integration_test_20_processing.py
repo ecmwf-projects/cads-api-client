@@ -49,17 +49,15 @@ def test_validate_constraints(api_root_url: str) -> None:
 
 
 def test_collection_missing_licence(
-    api_root_url: str, api_key_test_user_2: str
+    api_root_url: str, api_key_test: str, request_year: str
 ) -> None:
     collection_id = "test-adaptor-observation-repository-gnss"
-    headers = {"PRIVATE-TOKEN": api_key_test_user_2}
+    headers = {"PRIVATE-TOKEN": api_key_test}
     proc = processing.Processing(f"{api_root_url}/retrieve", headers=headers)
     process = proc.process(collection_id)
 
     with pytest.raises(RuntimeError, match="403 Client Error"):
-        _ = process.execute(
-            inputs={},
-        )
+        _ = process.execute(inputs={})
 
 
 def test_collection_anonymous_user(api_root_url: str, api_key_anon: str) -> None:
@@ -71,9 +69,9 @@ def test_collection_anonymous_user(api_root_url: str, api_key_anon: str) -> None
     assert "message" in response.json
 
 
-def test_jobs_list(api_root_url: str, api_key: str, request_year: str) -> None:
+def test_jobs_list(api_root_url: str, api_key_anon: str, request_year: str) -> None:
     collection_id = "test-adaptor-dummy"
-    headers = {"PRIVATE-TOKEN": api_key}
+    headers = {"PRIVATE-TOKEN": api_key_anon}
     proc = processing.Processing(f"{api_root_url}/retrieve", headers=headers)
     process = proc.process(collection_id)
 

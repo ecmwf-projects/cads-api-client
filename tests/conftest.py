@@ -4,7 +4,6 @@ import os
 from typing import TYPE_CHECKING, Any
 
 import pytest
-import requests
 
 if TYPE_CHECKING:
     from cads_api_client import ApiClient
@@ -18,31 +17,16 @@ def api_root_url() -> str:
 
 
 @pytest.fixture
-def api_key(api_root_url: str) -> str:
-    if key := os.getenv("CADS_API_KEY"):
-        return key
-
-    # default to test user 1
-    key = "00000000-0000-4000-a000-000000000000"
-
-    # Accept all licences
-    result = requests.get(f"{api_root_url}/catalogue/v1/vocabularies/licences")
-    requests.patch(
-        f"{api_root_url}/profiles/v1/account/licences",
-        json=result.json(),
-        headers={"PRIVATE-TOKEN": key},
-    )
+def api_key_test() -> str:
+    key = os.getenv("CADS_TEST_KEY")
+    if key is None:
+        pytest.skip("CADS_TEST_KEY is not defined")
     return key
 
 
 @pytest.fixture
-def api_key_test_user_2() -> str:
-    return "00000000-0000-3000-abcd-000000000001"
-
-
-@pytest.fixture
 def api_key_anon() -> str:
-    return "00112233-4455-6677-c899-aabbccddeeff"
+    return os.getenv("CADS_ANON_KEY", "00112233-4455-6677-c899-aabbccddeeff")
 
 
 @pytest.fixture
@@ -62,7 +46,7 @@ def temp_environ() -> Any:
 
 
 @pytest.fixture
-def api_client(api_root_url: str, api_key: str) -> ApiClient:
+def api_client(api_root_url: str, api_key_test: str) -> ApiClient:
     from cads_api_client import ApiClient
 
-    return ApiClient(url=api_root_url, key=api_key)
+    return ApiClient(url=api_root_url, key=api_key_test)
