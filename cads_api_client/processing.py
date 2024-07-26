@@ -337,14 +337,9 @@ class Results(ApiResponse):
         return int(size)
 
     @property
-    def url(self) -> str:
+    def location(self) -> str:
         result_href = self.get_result_href()
         return urllib.parse.urljoin(self.response.url, result_href)
-
-    @property
-    def location(self) -> str:
-        parts = urllib.parse.urlparse(self.url)
-        return parts.path.strip("/").split("/")[-1]
 
     def download(
         self,
@@ -352,8 +347,10 @@ class Results(ApiResponse):
         timeout: int = 60,
         retry_options: Dict[str, Any] = {},
     ) -> str:
+        url = self.location
         if target is None:
-            target = self.location
+            parts = urllib.parse.urlparse(url)
+            target = parts.path.strip("/").split("/")[-1]
 
         # FIXME add retry and progress bar
         retry_options = retry_options.copy()
@@ -361,7 +358,7 @@ class Results(ApiResponse):
         if maximum_tries is not None:
             retry_options["maximum_retries"] = maximum_tries
         multiurl.download(
-            self.url, stream=True, target=target, timeout=timeout, **retry_options
+            url, stream=True, target=target, timeout=timeout, **retry_options
         )
         target_size = os.path.getsize(target)
         size = self.get_result_size()
