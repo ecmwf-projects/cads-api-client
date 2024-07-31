@@ -1,6 +1,7 @@
 import pathlib
 
 import pytest
+import requests
 
 from cads_api_client import legacy_api_client
 
@@ -21,6 +22,9 @@ def test_retrieve(tmp_path: pathlib.Path, api_root_url: str, api_key: str) -> No
     actual_target = result.download(str(target))
     assert str(target) == actual_target
     assert target.stat().st_size == 1
+
+    response = requests.head(result.location)
+    assert response.status_code == 200
 
 
 @pytest.mark.parametrize("quiet", [True, False])

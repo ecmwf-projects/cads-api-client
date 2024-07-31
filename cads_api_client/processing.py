@@ -4,7 +4,7 @@ import functools
 import logging
 import os
 import time
-import urllib
+import urllib.parse
 from typing import Any, Dict, List, Optional, Type, TypeVar
 
 try:
@@ -336,14 +336,18 @@ class Results(ApiResponse):
         size = asset["file:size"]
         return int(size)
 
+    @property
+    def location(self) -> str:
+        result_href = self.get_result_href()
+        return urllib.parse.urljoin(self.response.url, result_href)
+
     def download(
         self,
         target: Optional[str] = None,
         timeout: int = 60,
         retry_options: Dict[str, Any] = {},
     ) -> str:
-        result_href = self.get_result_href()
-        url = urllib.parse.urljoin(self.response.url, result_href)
+        url = self.location
         if target is None:
             parts = urllib.parse.urlparse(url)
             target = parts.path.strip("/").split("/")[-1]
