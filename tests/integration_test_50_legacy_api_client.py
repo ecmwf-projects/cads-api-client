@@ -5,8 +5,8 @@ import pytest
 from cads_api_client import legacy_api_client
 
 
-def test_retrieve(tmp_path: pathlib.Path, api_url: str, api_anon_key: str) -> None:
-    client = legacy_api_client.LegacyApiClient(url=api_url, key=api_anon_key)
+def test_retrieve(tmp_path: pathlib.Path, api_root_url: str, api_anon_key: str) -> None:
+    client = legacy_api_client.LegacyApiClient(url=api_root_url, key=api_anon_key)
 
     collection_id = "test-adaptor-dummy"
     request = {"size": 1}
@@ -26,12 +26,12 @@ def test_retrieve(tmp_path: pathlib.Path, api_url: str, api_anon_key: str) -> No
 @pytest.mark.parametrize("quiet", [True, False])
 def test_quiet(
     caplog: pytest.LogCaptureFixture,
-    api_url: str,
+    api_root_url: str,
     api_anon_key: str,
     quiet: bool,
 ) -> None:
     client = legacy_api_client.LegacyApiClient(
-        url=api_url, key=api_anon_key, quiet=quiet
+        url=api_root_url, key=api_anon_key, quiet=quiet
     )
     client.retrieve("test-adaptor-dummy", {})
     records = [record for record in caplog.records if record.levelname == "INFO"]
@@ -41,10 +41,10 @@ def test_quiet(
 @pytest.mark.parametrize("debug", [True, False])
 def test_debug(
     caplog: pytest.LogCaptureFixture,
-    api_url: str,
+    api_root_url: str,
     api_anon_key: str,
     debug: bool,
 ) -> None:
-    legacy_api_client.LegacyApiClient(url=api_url, key=api_anon_key, debug=debug)
+    legacy_api_client.LegacyApiClient(url=api_root_url, key=api_anon_key, debug=debug)
     records = [record for record in caplog.records if record.levelname == "DEBUG"]
     assert records if debug else not records

@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 
 @pytest.fixture
-def api_url() -> str:
+def api_root_url() -> str:
     from cads_api_client import config
 
     return config.get_config("url")
@@ -22,7 +22,7 @@ def api_anon_key() -> str:
 
 
 @pytest.fixture
-def api_anon_client(api_url: str, api_anon_key: str) -> ApiClient:
+def api_anon_client(api_root_url: str, api_anon_key: str) -> ApiClient:
     from cads_api_client import ApiClient
 
-    return ApiClient(url=api_url, key=api_anon_key)
+    return ApiClient(url=api_root_url, key=api_anon_key)

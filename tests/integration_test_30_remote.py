@@ -5,9 +5,9 @@ import pytest
 from cads_api_client import catalogue, processing
 
 
-def test_from_collection_to_process(api_url: str) -> None:
+def test_from_collection_to_process(api_root_url: str) -> None:
     collection_id = "test-adaptor-dummy"
-    cat = catalogue.Catalogue(f"{api_url}/catalogue")
+    cat = catalogue.Catalogue(f"{api_root_url}/catalogue")
     dataset = cat.collection(collection_id)
 
     res = dataset.retrieve_process()
@@ -15,11 +15,11 @@ def test_from_collection_to_process(api_url: str) -> None:
     assert isinstance(res, processing.Process)
 
 
-def test_collection_submit(api_url: str, api_anon_key: str) -> None:
+def test_collection_submit(api_root_url: str, api_anon_key: str) -> None:
     collection_id = "test-adaptor-dummy"
     headers = {"PRIVATE-TOKEN": api_anon_key}
 
-    cat = catalogue.Catalogue(f"{api_url}/catalogue", headers=headers)
+    cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
 
     res = dataset.submit()
@@ -31,12 +31,12 @@ def test_collection_submit(api_url: str, api_anon_key: str) -> None:
 
 
 def test_collection_retrieve_with_dummy_adaptor(
-    api_url: str, api_anon_key: str, tmp_path: pathlib.Path
+    api_root_url: str, api_anon_key: str, tmp_path: pathlib.Path
 ) -> None:
     collection_id = "test-adaptor-dummy"
     headers = {"PRIVATE-TOKEN": api_anon_key}
 
-    cat = catalogue.Catalogue(f"{api_url}/catalogue", headers=headers)
+    cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
     target = str(tmp_path / "dummy.txt")
 
@@ -50,12 +50,12 @@ def test_collection_retrieve_with_dummy_adaptor(
 
 
 def test_collection_retrieve_with_url_cds_adaptor(
-    api_url: str, api_anon_key: str, tmp_path: pathlib.Path
+    api_root_url: str, api_anon_key: str, tmp_path: pathlib.Path
 ) -> None:
     collection_id = "test-adaptor-url"
     headers = {"PRIVATE-TOKEN": api_anon_key}
 
-    cat = catalogue.Catalogue(f"{api_url}/catalogue", headers=headers)
+    cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
     target = str(tmp_path / "wfde1.zip")
 
@@ -85,12 +85,12 @@ def test_collection_retrieve_with_url_cds_adaptor(
 
 
 def test_collection_retrieve_with_direct_mars_cds_adaptor(
-    api_url: str, api_anon_key: str, tmp_path: pathlib.Path
+    api_root_url: str, api_anon_key: str, tmp_path: pathlib.Path
 ) -> None:
     collection_id = "test-adaptor-direct-mars"
     headers = {"PRIVATE-TOKEN": api_anon_key}
 
-    cat = catalogue.Catalogue(f"{api_url}/catalogue", headers=headers)
+    cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
     target = str(tmp_path / "era5-complete.grib")
 
@@ -113,12 +113,12 @@ def test_collection_retrieve_with_direct_mars_cds_adaptor(
 
 
 def test_collection_retrieve_with_mars_cds_adaptor(
-    api_url: str, api_anon_key: str, tmp_path: pathlib.Path
+    api_root_url: str, api_anon_key: str, tmp_path: pathlib.Path
 ) -> None:
     collection_id = "test-adaptor-mars"
     headers = {"PRIVATE-TOKEN": api_anon_key}
 
-    cat = catalogue.Catalogue(f"{api_url}/catalogue", headers=headers)
+    cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
     target = str(tmp_path / "era5.grib")
 
@@ -139,12 +139,12 @@ def test_collection_retrieve_with_mars_cds_adaptor(
 
 @pytest.mark.skip(reason="discontinued adaptor")
 def test_collection_retrieve_with_legacy_cds_adaptor(
-    api_url: str, api_anon_key: str, tmp_path: pathlib.Path
+    api_root_url: str, api_anon_key: str, tmp_path: pathlib.Path
 ) -> None:
     collection_id = "test-adaptor-legacy"
     headers = {"PRIVATE-TOKEN": api_anon_key}
 
-    cat = catalogue.Catalogue(f"{api_url}/catalogue", headers=headers)
+    cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
     target = str(tmp_path / "era5.grib")
 
