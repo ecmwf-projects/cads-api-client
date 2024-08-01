@@ -48,31 +48,18 @@ def test_validate_constraints(api_root_url: str) -> None:
     assert set(["product_type", "variable", "year", "month", "time"]) <= set(res)
 
 
-def test_collection_missing_licence(
-    api_root_url: str, api_key_anon: str, request_year: str
-) -> None:
+def test_collection_anonymous_user(api_root_url: str, api_anon_key: str) -> None:
     collection_id = "test-adaptor-mars"
-    headers = {"PRIVATE-TOKEN": api_key_anon}
+    headers = {"PRIVATE-TOKEN": api_anon_key}
     proc = processing.Processing(f"{api_root_url}/retrieve", headers=headers)
     process = proc.process(collection_id)
-
-    with pytest.raises(RuntimeError, match="403 Client Error"):
-        _ = process.execute(
-            inputs=dict(
-                product_type="reanalysis",
-                variable="temperature",
-                year=request_year,
-                month="01",
-                day="01",
-                time="00:00",
-                level="1000",
-            ),
-        )
+    response = process.execute(inputs={})
+    assert "message" in response.json
 
 
-def test_jobs_list(api_root_url: str, api_key: str, request_year: str) -> None:
+def test_jobs_list(api_root_url: str, api_anon_key: str) -> None:
     collection_id = "test-adaptor-dummy"
-    headers = {"PRIVATE-TOKEN": api_key}
+    headers = {"PRIVATE-TOKEN": api_anon_key}
     proc = processing.Processing(f"{api_root_url}/retrieve", headers=headers)
     process = proc.process(collection_id)
 

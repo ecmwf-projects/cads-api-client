@@ -8,8 +8,8 @@ from cads_api_client import ApiClient
 
 
 def test_features_url_cds_adaptor_area_selection(
-    api_client: ApiClient,
     tmp_path: Path,
+    api_anon_client: ApiClient,
 ) -> None:
     collection_id = "test-adaptor-url"
     request: dict[str, Any] = {
@@ -19,12 +19,12 @@ def test_features_url_cds_adaptor_area_selection(
         "retry_options": {"maximum_tries": 0},
     }
 
-    result_bigger = api_client.retrieve(
+    result_bigger = api_anon_client.retrieve(
         collection_id,
         **request,
         target=str(tmp_path / "bigger.zip"),
     )
-    result_smaller = api_client.retrieve(
+    result_smaller = api_anon_client.retrieve(
         collection_id,
         **request,
         target=str(tmp_path / "smaller.zip"),
@@ -41,10 +41,9 @@ def test_features_url_cds_adaptor_area_selection(
     ],
 )
 def test_features_mars_cds_adaptor_format(
-    api_client: ApiClient,
+    api_anon_client: ApiClient,
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
-    request_year: str,
     format: str,
     expected_extension: str,
 ) -> None:
@@ -54,7 +53,7 @@ def test_features_mars_cds_adaptor_format(
     request: dict[str, Any] = {
         "product_type": "reanalysis",
         "variable": "2m_temperature",
-        "year": request_year,
+        "year": "2016",
         "month": "01",
         "day": "02",
         "time": "00:00",
@@ -62,7 +61,7 @@ def test_features_mars_cds_adaptor_format(
         "retry_options": {"maximum_tries": 0},
     }
 
-    result = api_client.retrieve(
+    result = api_anon_client.retrieve(
         collection_id,
         **request,
         format=format,

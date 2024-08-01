@@ -6,14 +6,14 @@ The `ApiClient` needs the `url` to the API root and a valid API `key` to access 
 You can also set the `CADS_API_URL` and `CADS_API_KEY` environment variables.
 
 It is possible (but not recommended) to use the API key of one of the test users,
-`00000000-0000-4000-a000-000000000000`. This is used in anonymous tests and
+`00112233-4455-6677-c899-aabbccddeeff`. This is used in anonymous tests and
 it is designed to be the least performant option to access the system.
 
 Draft Python API:
 
 ```python
 >>> import os
->>> cads_api_key = os.getenv("CADS_API_KEY", "00000000-0000-4000-a000-000000000000")
+>>> cads_api_key = os.getenv("CADS_API_KEY", "00112233-4455-6677-c899-aabbccddeeff")
 
 >>> import cads_api_client
 >>> client = cads_api_client.ApiClient(cads_api_key)

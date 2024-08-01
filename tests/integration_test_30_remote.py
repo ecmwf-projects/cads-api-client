@@ -1,4 +1,5 @@
-import py
+import pathlib
+
 import pytest
 
 from cads_api_client import catalogue, processing
@@ -14,9 +15,9 @@ def test_from_collection_to_process(api_root_url: str) -> None:
     assert isinstance(res, processing.Process)
 
 
-def test_collection_submit(api_root_url: str, api_key: str, request_year: str) -> None:
+def test_collection_submit(api_root_url: str, api_anon_key: str) -> None:
     collection_id = "test-adaptor-dummy"
-    headers = {"PRIVATE-TOKEN": api_key}
+    headers = {"PRIVATE-TOKEN": api_anon_key}
 
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
@@ -30,14 +31,14 @@ def test_collection_submit(api_root_url: str, api_key: str, request_year: str) -
 
 
 def test_collection_retrieve_with_dummy_adaptor(
-    api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
+    api_root_url: str, api_anon_key: str, tmp_path: pathlib.Path
 ) -> None:
     collection_id = "test-adaptor-dummy"
-    headers = {"PRIVATE-TOKEN": api_key}
+    headers = {"PRIVATE-TOKEN": api_anon_key}
 
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
-    target = str(tmpdir.join("dummy.txt"))
+    target = str(tmp_path / "dummy.txt")
 
     res = dataset.retrieve(
         target=target,
@@ -49,14 +50,14 @@ def test_collection_retrieve_with_dummy_adaptor(
 
 
 def test_collection_retrieve_with_url_cds_adaptor(
-    api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
+    api_root_url: str, api_anon_key: str, tmp_path: pathlib.Path
 ) -> None:
     collection_id = "test-adaptor-url"
-    headers = {"PRIVATE-TOKEN": api_key}
+    headers = {"PRIVATE-TOKEN": api_anon_key}
 
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
-    target = str(tmpdir.join("wfde1.zip"))
+    target = str(tmp_path / "wfde1.zip")
 
     res = dataset.retrieve(
         variable="grid_point_altitude",
@@ -69,7 +70,7 @@ def test_collection_retrieve_with_url_cds_adaptor(
     assert isinstance(res, str)
     assert res.endswith(target)
 
-    target = str(tmpdir.join("wfde2.zip"))
+    target = str(tmp_path / "wfde2.zip")
 
     res = dataset.retrieve(
         variable="grid_point_altitude",
@@ -84,14 +85,14 @@ def test_collection_retrieve_with_url_cds_adaptor(
 
 
 def test_collection_retrieve_with_direct_mars_cds_adaptor(
-    api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
+    api_root_url: str, api_anon_key: str, tmp_path: pathlib.Path
 ) -> None:
     collection_id = "test-adaptor-direct-mars"
-    headers = {"PRIVATE-TOKEN": api_key}
+    headers = {"PRIVATE-TOKEN": api_anon_key}
 
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
-    target = str(tmpdir.join("era5-complete.grib"))
+    target = str(tmp_path / "era5-complete.grib")
 
     res = dataset.retrieve(
         levelist="1",
@@ -112,19 +113,19 @@ def test_collection_retrieve_with_direct_mars_cds_adaptor(
 
 
 def test_collection_retrieve_with_mars_cds_adaptor(
-    api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
+    api_root_url: str, api_anon_key: str, tmp_path: pathlib.Path
 ) -> None:
     collection_id = "test-adaptor-mars"
-    headers = {"PRIVATE-TOKEN": api_key}
+    headers = {"PRIVATE-TOKEN": api_anon_key}
 
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
-    target = str(tmpdir.join("era5.grib"))
+    target = str(tmp_path / "era5.grib")
 
     res = dataset.retrieve(
         product_type="reanalysis",
         variable="2m_temperature",
-        year=request_year,
+        year="2016",
         month="01",
         day="02",
         time="00:00",
@@ -138,19 +139,19 @@ def test_collection_retrieve_with_mars_cds_adaptor(
 
 @pytest.mark.skip(reason="discontinued adaptor")
 def test_collection_retrieve_with_legacy_cds_adaptor(
-    api_root_url: str, api_key: str, request_year: str, tmpdir: py.path.local
+    api_root_url: str, api_anon_key: str, tmp_path: pathlib.Path
 ) -> None:
     collection_id = "test-adaptor-legacy"
-    headers = {"PRIVATE-TOKEN": api_key}
+    headers = {"PRIVATE-TOKEN": api_anon_key}
 
     cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
     dataset = cat.collection(collection_id)
-    target = str(tmpdir.join("era5.grib"))
+    target = str(tmp_path / "era5.grib")
 
     res = dataset.retrieve(
         product_type="reanalysis",
         variable="temperature",
-        year=request_year,
+        year="2016",
         month="01",
         day="02",
         time="00:00",
