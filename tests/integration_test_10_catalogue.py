@@ -1,8 +1,8 @@
 from cads_api_client import catalogue
 
 
-def test_collections(api_root_url: str) -> None:
-    cat = catalogue.Catalogue(f"{api_root_url}/catalogue")
+def test_collections(api_url: str) -> None:
+    cat = catalogue.Catalogue(f"{api_url}/catalogue")
 
     res: catalogue.Collections | None = cat.collections()
 
@@ -22,8 +22,8 @@ def test_collections(api_root_url: str) -> None:
     assert expected_collection_id in collection_ids
 
 
-def test_collections_limit(api_root_url: str) -> None:
-    cat = catalogue.Catalogue(f"{api_root_url}/catalogue")
+def test_collections_limit(api_url: str) -> None:
+    cat = catalogue.Catalogue(f"{api_url}/catalogue")
     collections = cat.collections(params={"limit": 1})
 
     res = collections.next()
@@ -32,9 +32,9 @@ def test_collections_limit(api_root_url: str) -> None:
         assert res.response.status_code == 200
 
 
-def test_collection(api_root_url: str) -> None:
+def test_collection(api_url: str) -> None:
     collection_id = "test-adaptor-mars"
-    cat = catalogue.Catalogue(f"{api_root_url}/catalogue")
+    cat = catalogue.Catalogue(f"{api_url}/catalogue")
 
     res = cat.collection(collection_id)
 

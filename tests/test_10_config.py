@@ -1,5 +1,4 @@
 import json
-from typing import Any
 
 import py
 import pytest
@@ -42,7 +41,7 @@ def test_get_config_from_configuration_file(tmpdir: py.path) -> None:
 
 
 def test_get_config_from_environment_variables(
-    tmpdir: py.path, temp_environ: Any
+    tmpdir: py.path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     expected_config = {"url": "dummy-url", "key": "dummy-key"}
     file_config = {"url": "wrong-url", "key": "wrong-key"}
@@ -50,8 +49,8 @@ def test_get_config_from_environment_variables(
     config_file = tmpdir.join(".cads-api-client.json")
     config_file.write(json.dumps(file_config))
 
-    temp_environ["CADS_API_URL"] = expected_config["url"]
-    temp_environ["CADS_API_KEY"] = expected_config["key"]
+    monkeypatch.setenv("CADS_API_URL", expected_config["url"])
+    monkeypatch.setenv("CADS_API_KEY", expected_config["key"])
 
     res = config.get_config("url", str(config_file), config={})
 

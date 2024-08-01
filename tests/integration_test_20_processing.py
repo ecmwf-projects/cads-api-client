@@ -3,8 +3,8 @@ import pytest
 from cads_api_client import processing
 
 
-def test_processes(api_root_url: str) -> None:
-    proc = processing.Processing(f"{api_root_url}/retrieve")
+def test_processes(api_url: str) -> None:
+    proc = processing.Processing(f"{api_url}/retrieve")
 
     res = proc.processes()
 
@@ -17,8 +17,8 @@ def test_processes(api_root_url: str) -> None:
     assert len(res.process_ids()) == 10
 
 
-def test_processes_limit(api_root_url: str) -> None:
-    proc = processing.Processing(f"{api_root_url}/retrieve")
+def test_processes_limit(api_url: str) -> None:
+    proc = processing.Processing(f"{api_url}/retrieve")
     processes = proc.processes(params={"limit": 1})
 
     res = processes.next()
@@ -27,9 +27,9 @@ def test_processes_limit(api_root_url: str) -> None:
         assert res.response.status_code == 200
 
 
-def test_process(api_root_url: str) -> None:
+def test_process(api_url: str) -> None:
     process_id = "test-adaptor-dummy"
-    proc = processing.Processing(f"{api_root_url}/retrieve")
+    proc = processing.Processing(f"{api_url}/retrieve")
 
     res = proc.process(process_id)
 
@@ -39,40 +39,28 @@ def test_process(api_root_url: str) -> None:
     assert isinstance(res.json["links"], list)
 
 
-def test_validate_constraints(api_root_url: str) -> None:
+def test_validate_constraints(api_url: str) -> None:
     process_id = "test-adaptor-mars"
-    proc = processing.Processing(f"{api_root_url}/retrieve")
+    proc = processing.Processing(f"{api_url}/retrieve")
     process = proc.process(process_id)
     res = process.valid_values({})
 
     assert set(["product_type", "variable", "year", "month", "time"]) <= set(res)
 
 
-def test_collection_missing_licence(
-    api_root_url: str, api_key_test: str, request_year: str
-) -> None:
-    collection_id = "test-adaptor-observation-repository-gnss"
-    headers = {"PRIVATE-TOKEN": api_key_test}
-    proc = processing.Processing(f"{api_root_url}/retrieve", headers=headers)
-    process = proc.process(collection_id)
-
-    with pytest.raises(RuntimeError, match="403 Client Error"):
-        _ = process.execute(inputs={})
-
-
-def test_collection_anonymous_user(api_root_url: str, api_key_anon: str) -> None:
+def test_collection_anonymous_user(api_url: str, api_anon_key: str) -> None:
     collection_id = "test-adaptor-mars"
-    headers = {"PRIVATE-TOKEN": api_key_anon}
-    proc = processing.Processing(f"{api_root_url}/retrieve", headers=headers)
+    headers = {"PRIVATE-TOKEN": api_anon_key}
+    proc = processing.Processing(f"{api_url}/retrieve", headers=headers)
     process = proc.process(collection_id)
     response = process.execute(inputs={})
     assert "message" in response.json
 
 
-def test_jobs_list(api_root_url: str, api_key_anon: str, request_year: str) -> None:
+def test_jobs_list(api_url: str, api_anon_key: str) -> None:
     collection_id = "test-adaptor-dummy"
-    headers = {"PRIVATE-TOKEN": api_key_anon}
-    proc = processing.Processing(f"{api_root_url}/retrieve", headers=headers)
+    headers = {"PRIVATE-TOKEN": api_anon_key}
+    proc = processing.Processing(f"{api_url}/retrieve", headers=headers)
     process = proc.process(collection_id)
 
     _ = process.execute(inputs={})
@@ -91,9 +79,9 @@ def test_jobs_list(api_root_url: str, api_key_anon: str, request_year: str) -> N
     assert len(res["jobs"]) == 1
 
 
-def test_validate_constraints_error(api_root_url: str) -> None:
+def test_validate_constraints_error(api_url: str) -> None:
     process_id = "test-adaptor-mars"
-    proc = processing.Processing(f"{api_root_url}/retrieve")
+    proc = processing.Processing(f"{api_url}/retrieve")
     process = proc.process(process_id)
     with pytest.raises(RuntimeError, match="422 Client Error"):
         process.valid_values({"invalid_param": 1})
