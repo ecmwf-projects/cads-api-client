@@ -75,6 +75,7 @@ def test_real_datasets_observations(
         "format": "netCDF",
         "retry_options": {"maximum_tries": 0},
         "target": None,
+        "_timestamp": datetime.datetime.now().isoformat(),
     }
 
     result = api_client.retrieve(
