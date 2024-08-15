@@ -32,7 +32,7 @@ class Collection(processing.ApiResponse):
 
     def end_datetime(self) -> datetime.datetime:
         try:
-            end = self.json["extent"]["temporal"]["interval"][1]
+            end = self.json["extent"]["temporal"]["interval"][0][1]
         except Exception:
             end = "2022-07-20T23:00:00"
         return datetime.datetime.fromisoformat(end)
