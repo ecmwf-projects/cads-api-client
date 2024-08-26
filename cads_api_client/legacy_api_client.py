@@ -97,6 +97,8 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
         self.quiet = quiet
         self._debug = debug
 
+        self.wait_until_complete = kwargs.pop("wait_until_complete", True)
+
         if kwargs:
             warnings.warn(
                 "This is a beta version."
@@ -104,20 +106,17 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
                 UserWarning,
             )
 
-        with LoggingContext(
-            logger=LOGGER, quiet=self.quiet, debug=self._debug
-        ) as logger:
-            logger.debug(
-                "CDSAPI %s",
-                {
-                    "url": self.url,
-                    "key": self.key,
-                    "quiet": self.quiet,
-                    "timeout": self.timeout,
-                    "sleep_max": self.sleep_max,
-                    "retry_max": self.retry_max,
-                },
-            )
+        self.debug(
+            "CDSAPI %s",
+            {
+                "url": self.url,
+                "key": self.key,
+                "quiet": self.quiet,
+                "timeout": self.timeout,
+                "sleep_max": self.sleep_max,
+                "retry_max": self.retry_max,
+            },
+        )
 
     @classmethod
     def raise_not_implemented_error(self) -> None:
@@ -145,19 +144,58 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
 
     def retrieve(
         self, name: str, request: dict[str, Any], target: str | None = None
-    ) -> str | processing.Results:
-        result = self.logging_decorator(self.client.submit_and_wait_on_result)(
-            collection_id=name,
-            retry_options=self.retry_options,
-            **request,
-        )
+    ) -> str | processing.Remote | processing.Results:
+        submitted: processing.Remote | processing.Results
+        if self.wait_until_complete:
+            submitted = self.logging_decorator(self.client.submit_and_wait_on_result)(
+                collection_id=name,
+                retry_options=self.retry_options,
+                **request,
+            )
+        else:
+            submitted = self.logging_decorator(self.client.submit)(
+                collection_id=name,
+                retry_options=self.retry_options,
+                **request,
+            )
+
+        # Logging methods
+        submitted.info = self.info  # type: ignore
+        submitted.warning = self.warning  # type: ignore
+        submitted.error = self.error  # type: ignore
+        submitted.debug = self.debug  # type: ignore
+
         partial_download: Callable[..., str] = functools.partial(
-            result.download,
+            submitted.download,
             timeout=self.timeout,
             retry_options=self.retry_options,
         )
-        result.download = self.logging_decorator(partial_download)  # type: ignore[method-assign]
-        return result if target is None else result.download(target)
+        submitted.download = self.logging_decorator(partial_download)  # type: ignore[method-assign]
+        return submitted if target is None else submitted.download(target)
+
+    def info(self, *args: Any, **kwargs: Any) -> None:
+        with LoggingContext(
+            logger=LOGGER, quiet=self.quiet, debug=self._debug
+        ) as logger:
+            logger.info(*args, **kwargs)
+
+    def warning(self, *args: Any, **kwargs: Any) -> None:
+        with LoggingContext(
+            logger=LOGGER, quiet=self.quiet, debug=self._debug
+        ) as logger:
+            logger.warning(*args, **kwargs)
+
+    def error(self, *args: Any, **kwargs: Any) -> None:
+        with LoggingContext(
+            logger=LOGGER, quiet=self.quiet, debug=self._debug
+        ) as logger:
+            logger.error(*args, **kwargs)
+
+    def debug(self, *args: Any, **kwargs: Any) -> None:
+        with LoggingContext(
+            logger=LOGGER, quiet=self.quiet, debug=self._debug
+        ) as logger:
+            logger.debug(*args, **kwargs)
 
     def service(self, name, *args, **kwargs):  # type: ignore
         self.raise_not_implemented_error()
@@ -166,18 +204,6 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
         self.raise_not_implemented_error()
 
     def status(self, context=None):  # type: ignore
-        self.raise_not_implemented_error()
-
-    def info(self, *args, **kwargs):  # type: ignore
-        self.raise_not_implemented_error()
-
-    def warning(self, *args, **kwargs):  # type: ignore
-        self.raise_not_implemented_error()
-
-    def error(self, *args, **kwargs):  # type: ignore
-        self.raise_not_implemented_error()
-
-    def debug(self, *args, **kwargs):  # type: ignore
         self.raise_not_implemented_error()
 
     def download(self, results, targets=None):  # type: ignore
