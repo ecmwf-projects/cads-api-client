@@ -5,6 +5,7 @@ import logging
 import os
 import time
 import urllib.parse
+import warnings
 from typing import Any, Dict, List, Optional, Type, TypeVar
 
 try:
@@ -300,9 +301,15 @@ class Remote:
             target, timeout=timeout, retry_options=retry_options
         )
 
-    # Backward compatibility methods
+    def _show_deprecation_warning(self) -> None:
+        message = (
+            ".update and .reply are available for backward compatibility."
+            " You can now use .download directly without needing to check whether the request is completed."
+        )
+        warnings.warn(message, DeprecationWarning)
+
     def update(self, request_id: str | None = None) -> None:
-        # Needed for backward compatibility with legacy system
+        self._show_deprecation_warning()
         if request_id:
             assert request_id == self.request_uid
         try:
@@ -313,7 +320,8 @@ class Remote:
 
     @functools.cached_property
     def reply(self) -> dict[str, Any]:
-        # Needed for backward compatibility with legacy system
+        self._show_deprecation_warning()
+
         reply = self._get_reply(True)
 
         reply.setdefault("state", reply["status"])
@@ -329,41 +337,6 @@ class Remote:
 
         reply.setdefault("request_id", self.request_uid)
         return reply
-
-    @classmethod
-    def raise_not_implemented_error(self) -> None:
-        raise NotImplementedError(
-            "This is a beta version. This functionality has not been implemented yet."
-        )
-
-    def toJSON(self):  # type: ignore
-        self.raise_not_implemented_error()
-
-    @property
-    def content_length(self):  # type: ignore
-        self.raise_not_implemented_error()
-
-    @property
-    def content_type(self):  # type: ignore
-        self.raise_not_implemented_error()
-
-    def check(self):  # type: ignore
-        self.raise_not_implemented_error()
-
-    def delete(self):  # type: ignore
-        self.raise_not_implemented_error()
-
-    def service(self, name, *args, **kwargs):  # type: ignore
-        self.raise_not_implemented_error()
-
-    def workflow(self, code, *args, **kwargs):  # type: ignore
-        self.raise_not_implemented_error()
-
-    def remote(self, url):  # type: ignore
-        self.raise_not_implemented_error()
-
-    def robust(self, call):  # type: ignore
-        self.raise_not_implemented_error()
 
 
 @attrs.define
