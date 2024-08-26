@@ -5,6 +5,7 @@ import logging
 import os
 import time
 import urllib.parse
+import warnings
 from typing import Any, Dict, List, Optional, Type, TypeVar
 
 try:
@@ -202,7 +203,7 @@ class Remote:
     def request_uid(self) -> str:
         return self.url.rpartition("/")[2]
 
-    def _get_status(self, robust: bool, **retry_options: Any) -> str:
+    def _get_reply(self, robust: bool, **retry_options: Any) -> dict[str, Any]:
         # TODO: cache responses for a timeout (possibly reported nby the server)
         get = self.session.get
         if robust:
@@ -216,7 +217,10 @@ class Remote:
         requests_response = get(url=self.url, headers=self.headers, params=params)
         logger.debug(f"REPLY {requests_response.text}")
         requests_response.raise_for_status()
-        json = requests_response.json()
+        return dict(requests_response.json())
+
+    def _get_status(self, robust: bool, **retry_options: Any) -> str:
+        json = self._get_reply(robust, **retry_options)
         self.log_metadata(json.get("metadata", {}))
         return str(json["status"])
 
@@ -278,16 +282,73 @@ class Remote:
         return results
 
     def _download_result(
-        self, target: Optional[str] = None, retry_options: Dict[str, Any] = {}
+        self,
+        target: str | None = None,
+        timeout: int = 60,
+        retry_options: Dict[str, Any] = {},
     ) -> str:
         results: Results = multiurl.robust(self.make_results, **retry_options)(self.url)
-        return results.download(target, retry_options=retry_options)
+        return results.download(target, timeout=timeout, retry_options=retry_options)
 
     def download(
-        self, target: Optional[str] = None, retry_options: Dict[str, Any] = {}
+        self,
+        target: str | None = None,
+        timeout: int = 60,
+        retry_options: Dict[str, Any] = {},
     ) -> str:
         self.wait_on_result(retry_options=retry_options)
-        return self._download_result(target, retry_options=retry_options)
+        return self._download_result(
+            target, timeout=timeout, retry_options=retry_options
+        )
+
+    def _warn(self) -> None:
+        message = (
+            ".update and .reply are available for backward compatibility."
+            " You can now use .download directly without needing to check whether the request is completed."
+        )
+        warnings.warn(message, DeprecationWarning)
+
+    def update(self, request_id: str | None = None) -> None:
+        self._warn()
+        if request_id:
+            assert request_id == self.request_uid
+        try:
+            del self.reply
+        except AttributeError:
+            pass
+        self.reply
+
+    @functools.cached_property
+    def reply(self) -> dict[str, Any]:
+        self._warn()
+
+        reply = self._get_reply(True)
+
+        reply.setdefault("state", reply["status"])
+        if reply["state"] == "successful":
+            reply["state"] = "completed"
+        elif reply["state"] == "queued":
+            reply["state"] = "accepted"
+        elif reply["state"] == "failed":
+            results = multiurl.robust(self.make_results)(self.url)
+            message = error_json_to_message(results.json)
+            reply.setdefault("error", {})
+            reply["error"].setdefault("message", message)
+
+        reply.setdefault("request_id", self.request_uid)
+        return reply
+
+    def info(self, *args: Any, **kwargs: Any) -> None:
+        logger.info(*args, **kwargs)
+
+    def warning(self, *args: Any, **kwargs: Any) -> None:
+        logger.warning(*args, **kwargs)
+
+    def error(self, *args: Any, **kwargs: Any) -> None:
+        logger.error(*args, **kwargs)
+
+    def debug(self, *args: Any, **kwargs: Any) -> None:
+        logger.debug(*args, **kwargs)
 
 
 @attrs.define
@@ -369,6 +430,18 @@ class Results(ApiResponse):
                     % (target_size, size)
                 )
         return target
+
+    def info(self, *args: Any, **kwargs: Any) -> None:
+        logger.info(*args, **kwargs)
+
+    def warning(self, *args: Any, **kwargs: Any) -> None:
+        logger.warning(*args, **kwargs)
+
+    def error(self, *args: Any, **kwargs: Any) -> None:
+        logger.error(*args, **kwargs)
+
+    def debug(self, *args: Any, **kwargs: Any) -> None:
+        logger.debug(*args, **kwargs)
 
 
 class Processing:
