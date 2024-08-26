@@ -338,6 +338,18 @@ class Remote:
         reply.setdefault("request_id", self.request_uid)
         return reply
 
+    def info(self, *args: Any, **kwargs: Any) -> None:
+        logger.info(*args, **kwargs)
+
+    def warning(self, *args: Any, **kwargs: Any) -> None:
+        logger.warning(*args, **kwargs)
+
+    def error(self, *args: Any, **kwargs: Any) -> None:
+        logger.error(*args, **kwargs)
+
+    def debug(self, *args: Any, **kwargs: Any) -> None:
+        logger.debug(*args, **kwargs)
+
 
 @attrs.define
 class StatusInfo(ApiResponse):
@@ -418,6 +430,18 @@ class Results(ApiResponse):
                     % (target_size, size)
                 )
         return target
+
+    def info(self, *args: Any, **kwargs: Any) -> None:
+        logger.info(*args, **kwargs)
+
+    def warning(self, *args: Any, **kwargs: Any) -> None:
+        logger.warning(*args, **kwargs)
+
+    def error(self, *args: Any, **kwargs: Any) -> None:
+        logger.error(*args, **kwargs)
+
+    def debug(self, *args: Any, **kwargs: Any) -> None:
+        logger.debug(*args, **kwargs)
 
 
 class Processing:

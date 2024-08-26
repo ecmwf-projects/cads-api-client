@@ -165,11 +165,11 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
             timeout=self.timeout,
             retry_options=self.retry_options,
         )
-        submitted.download = self.logging_decorator(partial_download)  # type: ignore
-        submitted.info = self.info  # type: ignore
-        submitted.warning = self.warning  # type: ignore
-        submitted.error = self.error  # type: ignore
-        submitted.debug = self.debug  # type: ignore
+        submitted.download = self.logging_decorator(partial_download)  # type: ignore[method-assign]
+        submitted.info = self.logging_decorator(submitted.info)  # type: ignore[method-assign]
+        submitted.warning = self.logging_decorator(submitted.warning)  # type: ignore[method-assign]
+        submitted.error = self.logging_decorator(submitted.error)  # type: ignore[method-assign]
+        submitted.debug = self.logging_decorator(submitted.debug)  # type: ignore[method-assign]
 
         return submitted if target is None else submitted.download(target)
 

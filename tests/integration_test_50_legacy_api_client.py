@@ -1,4 +1,5 @@
 import pathlib
+import time
 
 import pytest
 import requests
@@ -79,4 +80,55 @@ def test_wait_until_complete(
 
     target = tmp_path / "test.grib"
     result.download(str(target))
+    assert target.stat().st_size == 1
+
+
+def test_legacy_update(
+    tmp_path: pathlib.Path,
+    api_root_url: str,
+    api_anon_key: str,
+) -> None:
+    client = legacy_api_client.LegacyApiClient(
+        url=api_root_url,
+        key=api_anon_key,
+        wait_until_complete=False,
+    )
+    collection_id = "test-adaptor-dummy"
+    request = {"size": 1}
+    remote = client.retrieve(collection_id, request)
+    assert isinstance(remote, processing.Remote)
+
+    # See https://github.com/ecmwf/cdsapi/blob/master/examples/example-era5-update.py
+    sleep = 1
+    while True:
+        with pytest.deprecated_call():
+            remote.update()
+
+        reply = remote.reply
+        remote.info("Request ID: %s, state: %s" % (reply["request_id"], reply["state"]))
+
+        if reply["state"] == "completed":
+            break
+        elif reply["state"] in ("queued", "running"):
+            remote.info("Request ID: %s, sleep: %s", reply["request_id"], sleep)
+            time.sleep(sleep)
+        elif reply["state"] in ("failed",):
+            remote.error("Message: %s", reply["error"].get("message"))
+            remote.error("Reason:  %s", reply["error"].get("reason"))
+            for n in (
+                reply.get("error", {})
+                .get("context", {})
+                .get("traceback", "")
+                .split("\n")
+            ):
+                if n.strip() == "":
+                    break
+                remote.error("  %s", n)
+            raise Exception(
+                "%s. %s."
+                % (reply["error"].get("message"), reply["error"].get("reason"))
+            )
+
+    target = tmp_path / "test.grib"
+    remote.download(str(target))
     assert target.stat().st_size == 1
