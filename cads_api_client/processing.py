@@ -301,7 +301,7 @@ class Remote:
             target, timeout=timeout, retry_options=retry_options
         )
 
-    def _show_deprecation_warning(self) -> None:
+    def _warn(self) -> None:
         message = (
             ".update and .reply are available for backward compatibility."
             " You can now use .download directly without needing to check whether the request is completed."
@@ -309,7 +309,7 @@ class Remote:
         warnings.warn(message, DeprecationWarning)
 
     def update(self, request_id: str | None = None) -> None:
-        self._show_deprecation_warning()
+        self._warn()
         if request_id:
             assert request_id == self.request_uid
         try:
@@ -320,7 +320,7 @@ class Remote:
 
     @functools.cached_property
     def reply(self) -> dict[str, Any]:
-        self._show_deprecation_warning()
+        self._warn()
 
         reply = self._get_reply(True)
 
