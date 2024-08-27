@@ -36,7 +36,8 @@ datetime.datetime(...)
 >>> result
 'tmp1-era5.grib'
 
->>> remote = collection.submit(
+>>> remote = client.submit(
+...     collection_id="reanalysis-era5-pressure-levels",
 ...     variable="temperature",
 ...     product_type="reanalysis",
 ...     year="2021",
