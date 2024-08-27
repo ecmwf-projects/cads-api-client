@@ -43,3 +43,5 @@ def test_collection(api_root_url: str) -> None:
     assert res.id == collection_id
     assert "links" in res.json
     assert isinstance(res.json["links"], list)
+    assert res.begin_datetime.isoformat() == "1959-01-01T00:00:00+00:00"
+    assert res.end_datetime.isoformat() == "2023-05-09T00:00:00+00:00"

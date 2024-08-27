@@ -30,12 +30,18 @@ class Collections(processing.ApiResponse):
 class Collection(processing.ApiResponse):
     headers: Dict[str, Any] = {}
 
+    @property
+    def temporal_interval(self) -> tuple[str, str]:
+        ((begin, end),) = self.json["extent"]["temporal"]["interval"]
+        return (str(begin), str(end))
+
+    @property
+    def begin_datetime(self) -> datetime.datetime:
+        return datetime.datetime.fromisoformat(self.temporal_interval[0])
+
+    @property
     def end_datetime(self) -> datetime.datetime:
-        try:
-            end = self.json["extent"]["temporal"]["interval"][1]
-        except Exception:
-            end = "2022-07-20T23:00:00"
-        return datetime.datetime.fromisoformat(end)
+        return datetime.datetime.fromisoformat(self.temporal_interval[1])
 
     @property
     def id(self) -> str:
