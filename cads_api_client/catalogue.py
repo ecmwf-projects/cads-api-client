@@ -31,9 +31,9 @@ class Collection(processing.ApiResponse):
     headers: Dict[str, Any] = {}
 
     @property
-    def temporal_interval(self) -> tuple[Any, Any]:
+    def temporal_interval(self) -> tuple[str, str]:
         ((begin, end),) = self.json["extent"]["temporal"]["interval"]
-        return (begin, end)
+        return (str(begin), str(end))
 
     @property
     def begin_datetime(self) -> datetime.datetime:
