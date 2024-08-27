@@ -409,15 +409,22 @@ class Results(ApiResponse):
         assert isinstance(href, str)
         return href
 
-    def get_result_size(self) -> Optional[int]:
-        asset = self.json.get("asset", {}).get("value", {})
-        size = asset["file:size"]
-        return int(size)
+    @property
+    def asset(self) -> dict[str, Any]:
+        return dict(self.json["asset"]["value"])
 
     @property
     def location(self) -> str:
         result_href = self.get_result_href()
         return urllib.parse.urljoin(self.response.url, result_href)
+
+    @property
+    def content_length(self) -> int:
+        return int(self.asset["file:size"])
+
+    @property
+    def content_type(self) -> str:
+        return str(self.asset["type"])
 
     def download(
         self,
@@ -438,14 +445,10 @@ class Results(ApiResponse):
         multiurl.download(
             url, stream=True, target=target, timeout=timeout, **retry_options
         )
-        target_size = os.path.getsize(target)
-        size = self.get_result_size()
-        if size:
-            if target_size != size:
-                raise DownloadError(
-                    "Download failed: downloaded %s byte(s) out of %s"
-                    % (target_size, size)
-                )
+        if (target_size := os.path.getsize(target)) != (size := self.content_length):
+            raise DownloadError(
+                "Download failed: downloaded %s byte(s) out of %s" % (target_size, size)
+            )
         return target
 
     def info(self, *args: Any, **kwargs: Any) -> None:
