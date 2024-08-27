@@ -13,6 +13,7 @@ class ApiClient:
     url: Optional[str] = None
     session: requests.Session = attrs.field(factory=requests.Session)
     sleep_max: int = 120
+    cleanup: bool = False
 
     def get_url(self) -> str:
         return self.url or config.get_config("url")
@@ -39,6 +40,7 @@ class ApiClient:
             headers=self._headers(),
             session=self.session,
             sleep_max=self.sleep_max,
+            cleanup=self.cleanup,
         )
 
     @functools.cached_property

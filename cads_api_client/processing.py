@@ -180,13 +180,15 @@ class Remote:
         sleep_max: int = 120,
         headers: Dict[str, Any] = {},
         session: requests.Session = requests.api,  # type: ignore
+        cleanup: bool = False,
     ):
         self.url = url
         self.sleep_max = sleep_max
         self.headers = headers
         self.session = session
+        self.cleanup = cleanup
         self.log_start_time = None
-        logger.info(f"Request ID is {self.request_uid}")
+        self.info(f"Request ID is {self.request_uid}")
 
     def log_metadata(self, metadata: dict[str, Any]) -> None:
         logs = metadata.get("log", [])
@@ -213,9 +215,9 @@ class Remote:
         if self.log_start_time:
             params["logStartTime"] = self.log_start_time
 
-        logger.debug(f"GET {self.url}")
+        self.debug(f"GET {self.url}")
         requests_response = get(url=self.url, headers=self.headers, params=params)
-        logger.debug(f"REPLY {requests_response.text}")
+        self.debug(f"REPLY {requests_response.text}")
         requests_response.raise_for_status()
         return dict(requests_response.json())
 
@@ -236,7 +238,7 @@ class Remote:
         status = None
         while True:
             if status != (status := self._robust_status(retry_options=retry_options)):
-                logger.info(f"status has been updated to {status}")
+                self.info(f"status has been updated to {status}")
             if status == "successful":
                 break
             elif status == "failed":
@@ -248,7 +250,7 @@ class Remote:
                     sleep = self.sleep_max
             else:
                 raise ProcessingFailedError(f"Unknown API state {status!r}")
-            logger.debug(f"result not ready, waiting for {sleep} seconds")
+            self.debug(f"result not ready, waiting for {sleep} seconds")
             time.sleep(sleep)
 
     def build_status_info(self) -> StatusInfo:
@@ -263,9 +265,9 @@ class Remote:
         if status not in ("successful", "failed"):
             raise ValueError(f"Result not ready, job is {status}")
 
-        logger.debug(f"GET {url}")
+        self.debug(f"GET {url}")
         request_response = self.session.get(url, headers=self.headers)
-        logger.debug(f"REPLY {request_response.text}")
+        self.debug(f"REPLY {request_response.text}")
 
         response = ApiResponse(request_response, session=self.session)
         try:
@@ -300,6 +302,14 @@ class Remote:
         return self._download_result(
             target, timeout=timeout, retry_options=retry_options
         )
+
+    def delete(self) -> dict[str, Any]:
+        self.debug(f"DELETE {self.url}")
+        requests_response = self.session.delete(url=self.url, headers=self.headers)
+        self.debug(f"REPLY {requests_response.text}")
+        requests_response.raise_for_status()
+        self.cleanup = False
+        return dict(requests_response.json())
 
     def _warn(self) -> None:
         message = (
@@ -349,6 +359,13 @@ class Remote:
 
     def debug(self, *args: Any, **kwargs: Any) -> None:
         logger.debug(*args, **kwargs)
+
+    def __del__(self) -> None:
+        if self.cleanup:
+            try:
+                self.delete()
+            except Exception as exc:
+                warnings.warn(str(exc), UserWarning)
 
 
 @attrs.define
@@ -454,6 +471,7 @@ class Processing:
         headers: Dict[str, Any] = {},
         session: requests.Session = requests.api,  # type: ignore
         sleep_max: int = 120,
+        cleanup: bool = False,
     ) -> None:
         if not force_exact_url:
             url = f"{url}/{self.supported_api_version}"
@@ -461,6 +479,7 @@ class Processing:
         self.headers = headers
         self.session = session
         self.sleep_max = sleep_max
+        self.cleanup = cleanup
 
     def processes(self, params: Dict[str, Any] = {}) -> ProcessList:
         url = f"{self.url}/processes"
@@ -518,7 +537,7 @@ class Processing:
         status_info = self.process_execute(
             collection_id, request, retry_options=retry_options
         )
-        return status_info.make_remote(sleep_max=self.sleep_max)
+        return status_info.make_remote(sleep_max=self.sleep_max, cleanup=self.cleanup)
 
     def submit_and_wait_on_result(
         self, collection_id: str, retry_options: Dict[str, Any] = {}, **request: Any
@@ -530,7 +549,11 @@ class Processing:
     def make_remote(self, job_id: str) -> Remote:
         url = f"{self.url}/jobs/{job_id}"
         return Remote(
-            url, headers=self.headers, session=self.session, sleep_max=self.sleep_max
+            url,
+            headers=self.headers,
+            session=self.session,
+            sleep_max=self.sleep_max,
+            cleanup=self.cleanup,
         )
 
     def download_result(

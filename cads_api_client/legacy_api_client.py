@@ -80,11 +80,13 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
         self.url, self.key, _ = cdsapi.api.get_url_key_verify(url, key, None)
         self.session = kwargs.pop("session", requests.Session())
         self.sleep_max = kwargs.pop("sleep_max", 120)
+        self.delete = kwargs.pop("delete", True)
         self.client = api_client.ApiClient(
             url=self.url,
             key=self.key,
             session=self.session,
             sleep_max=self.sleep_max,
+            cleanup=self.delete,
         )
 
         self.timeout = kwargs.pop("timeout", 60)
@@ -115,6 +117,7 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
                 "timeout": self.timeout,
                 "sleep_max": self.sleep_max,
                 "retry_max": self.retry_max,
+                "delete": self.delete,
             },
         )
 
