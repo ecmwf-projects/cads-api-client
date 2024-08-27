@@ -18,8 +18,8 @@ Draft Python API:
 >>> import cads_api_client
 >>> client = cads_api_client.ApiClient(cads_api_key)
 >>> collection = client.collection("reanalysis-era5-pressure-levels")
->>> collection.end_datetime()
-datetime.datetime(2022, 7, 20, 23, 0)
+>>> collection.end_datetime
+datetime.datetime(...)
 >>> remote = client.retrieve(
 ...     collection_id="reanalysis-era5-pressure-levels",
 ...     product_type="reanalysis",
