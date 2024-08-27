@@ -261,9 +261,6 @@ class Remote:
     def make_results(self, url: Optional[str] = None) -> Results:
         if url is None:
             url = self.url
-        status = self.status
-        if status not in ("successful", "failed"):
-            raise ValueError(f"Result not ready, job is {status}")
 
         self.debug(f"GET {url}")
         request_response = self.session.get(url, headers=self.headers)
@@ -279,7 +276,7 @@ class Remote:
             results_url,
             headers=self.headers,
             session=self.session,
-            raise_for_status=False,
+            raise_for_status=True,
         )
         return results
 
