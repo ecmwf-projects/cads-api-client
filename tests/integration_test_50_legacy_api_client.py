@@ -27,6 +27,9 @@ def test_retrieve(tmp_path: pathlib.Path, api_root_url: str, api_anon_key: str) 
     response = requests.head(result.location)
     assert response.status_code == 200
 
+    assert result.content_length == 1
+    assert result.content_type == "application/x-grib"
+
 
 @pytest.mark.parametrize("quiet", [True, False])
 def test_quiet(
