@@ -303,12 +303,13 @@ class Remote:
             target, timeout=timeout, retry_options=retry_options
         )
 
-    def delete(self) -> None:
+    def delete(self) -> dict[str, Any]:
         self.debug(f"DELETE {self.url}")
         requests_response = self.session.delete(url=self.url, headers=self.headers)
         self.debug(f"REPLY {requests_response.text}")
         requests_response.raise_for_status()
         self.cleanup = False
+        return dict(requests_response.json())
 
     def _warn(self) -> None:
         message = (
