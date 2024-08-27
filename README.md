@@ -17,10 +17,12 @@ Draft Python API:
 
 >>> import cads_api_client
 >>> client = cads_api_client.ApiClient(cads_api_key)
+
 >>> collection = client.collection("reanalysis-era5-pressure-levels")
 >>> collection.end_datetime
 datetime.datetime(...)
->>> remote = client.retrieve(
+
+>>> result = client.retrieve(
 ...     collection_id="reanalysis-era5-pressure-levels",
 ...     product_type="reanalysis",
 ...     variable="temperature",
@@ -31,6 +33,9 @@ datetime.datetime(...)
 ...     time="00:00",
 ...     target="tmp1-era5.grib",
 ... )  # blocks
+>>> result
+'tmp1-era5.grib'
+
 >>> remote = collection.submit(
 ...     variable="temperature",
 ...     product_type="reanalysis",
