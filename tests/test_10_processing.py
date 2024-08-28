@@ -423,7 +423,7 @@ def test_wait_on_result_failed() -> None:
     remote = collection.submit(variable="temperature", year="0000")
     with pytest.raises(
         cads_api_client.processing.ProcessingFailedError,
-        match="job failed\nThis is a traceback",
+        match="Job Failed\nThis is a traceback",
     ):
         remote.wait_on_result()
 

@@ -1,4 +1,5 @@
 import pytest
+import requests
 
 from cads_api_client import processing
 
@@ -83,5 +84,6 @@ def test_validate_constraints_error(api_root_url: str) -> None:
     process_id = "test-adaptor-mars"
     proc = processing.Processing(f"{api_root_url}/retrieve")
     process = proc.process(process_id)
-    with pytest.raises(RuntimeError, match="422 Client Error"):
+    with pytest.raises(requests.exceptions.HTTPError, match="422 Client Error") as exc:
         process.valid_values({"invalid_param": 1})
+        assert exc.response.status_code == 422  # type: ignore[attr-defined]
