@@ -40,20 +40,20 @@ def error_json_to_message(error_json: dict[str, Any]) -> str:
 
 
 def cads_raise_for_status(response: requests.Response) -> None:
-    if response.status_code > 499:
-        response.raise_for_status()
-    if response.status_code > 399:
-        error_json = None
+    if 400 <= response.status_code < 500:
         try:
             error_json = response.json()
         except Exception:
             pass
-        if error_json is not None:
-            raise RuntimeError(
-                f"{response.status_code} Client Error: {error_json_to_message(error_json)}"
-            )
         else:
-            response.raise_for_status()
+            message = "\n".join(
+                [
+                    f"{response.status_code} Client Error: {response.reason} for url: {response.url}",
+                    error_json_to_message(error_json),
+                ]
+            )
+            raise requests.exceptions.HTTPError(message, response=response)
+    response.raise_for_status()
 
 
 @attrs.define(slots=False)
