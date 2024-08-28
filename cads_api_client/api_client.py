@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import functools
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 import attrs
 import requests
@@ -21,7 +23,7 @@ class ApiClient:
     def get_key(self) -> str:
         return self.key or config.get_config("key")
 
-    def _headers(self) -> Dict[str, str]:
+    def _headers(self) -> dict[str, str]:
         key = self.get_key()
         if key is None:
             raise ValueError("A valid API key is needed to access this resource")
@@ -50,13 +52,13 @@ class ApiClient:
     def check_authentication(self) -> dict[str, Any]:
         return self.profile_api.check_authentication()
 
-    def collections(self, **params: Dict[str, Any]) -> catalogue.Collections:
+    def collections(self, **params: dict[str, Any]) -> catalogue.Collections:
         return self.catalogue_api.collections(params=params)
 
     def collection(self, collection_id: str) -> catalogue.Collection:
         return self.catalogue_api.collection(collection_id)
 
-    def processes(self, **params: Dict[str, Any]) -> processing.ProcessList:
+    def processes(self, **params: dict[str, Any]) -> processing.ProcessList:
         return self.retrieve_api.processes(params=params)
 
     def process(self, process_id: str) -> processing.Process:
@@ -66,7 +68,7 @@ class ApiClient:
         self,
         collection_id: str,
         target: Optional[str] = None,
-        retry_options: Dict[str, Any] = {},
+        retry_options: dict[str, Any] = {},
         **request: Any,
     ) -> str:
         collection = self.collection(collection_id)
@@ -77,45 +79,45 @@ class ApiClient:
         )
 
     def submit(
-        self, collection_id: str, retry_options: Dict[str, Any] = {}, **request: Any
+        self, collection_id: str, retry_options: dict[str, Any] = {}, **request: Any
     ) -> processing.Remote:
         return self.retrieve_api.submit(
             collection_id, retry_options=retry_options, **request
         )
 
     def submit_and_wait_on_result(
-        self, collection_id: str, retry_options: Dict[str, Any] = {}, **request: Any
+        self, collection_id: str, retry_options: dict[str, Any] = {}, **request: Any
     ) -> processing.Results:
         return self.retrieve_api.submit_and_wait_on_result(
             collection_id, retry_options=retry_options, **request
         )
 
-    def get_requests(self, **params: Dict[str, Any]) -> processing.JobList:
+    def get_requests(self, **params: dict[str, Any]) -> processing.JobList:
         return self.retrieve_api.jobs(params=params)
 
     def get_request(self, request_uid: str) -> processing.StatusInfo:
         return self.retrieve_api.job(request_uid)
 
     def download_result(
-        self, request_uid: str, target: Optional[str], retry_options: Dict[str, Any]
+        self, request_uid: str, target: Optional[str], retry_options: dict[str, Any]
     ) -> str:
         return self.retrieve_api.download_result(
             request_uid, target, retry_options=retry_options
         )
 
     def valid_values(
-        self, collection_id: str, request: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, collection_id: str, request: dict[str, Any]
+    ) -> dict[str, Any]:
         process = self.retrieve_api.process(collection_id)
         return process.valid_values(request)
 
     @property
-    def licences(self) -> Dict[str, Any]:
+    def licences(self) -> dict[str, Any]:
         return self.catalogue_api.licenses()
 
     @property
-    def accepted_licences(self) -> Dict[str, Any]:
+    def accepted_licences(self) -> dict[str, Any]:
         return self.profile_api.accepted_licences()
 
-    def accept_licence(self, licence_id: str, revision: int) -> Dict[str, Any]:
+    def accept_licence(self, licence_id: str, revision: int) -> dict[str, Any]:
         return self.profile_api.accept_licence(licence_id, revision=revision)
