@@ -31,3 +31,15 @@ def test_delete_request(api_anon_client: ApiClient) -> None:
     assert reply["status"] == "dismissed"
     with pytest.raises(requests.exceptions.HTTPError):
         remote.status
+
+
+def test_check_authentication(api_root_url: str, api_anon_client: ApiClient) -> None:
+    assert api_anon_client.check_authentication() == {
+        "id": -1,
+        "role": "anonymous",
+        "sub": "anonymous",
+    }
+
+    bad_client = ApiClient(key="foo", url=api_root_url)
+    with pytest.raises(requests.exceptions.HTTPError, match="401 Client Error"):
+        bad_client.check_authentication()

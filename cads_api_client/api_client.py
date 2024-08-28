@@ -47,6 +47,9 @@ class ApiClient:
     def profile_api(self) -> profile.Profile:
         return profile.Profile(f"{self.get_url()}/profiles", headers=self._headers())
 
+    def check_authentication(self) -> dict[str, Any]:
+        return self.profile_api.check_authentication()
+
     def collections(self, **params: Dict[str, Any]) -> catalogue.Collections:
         return self.catalogue_api.collections(params=params)
 
