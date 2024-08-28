@@ -32,7 +32,7 @@ class DownloadError(RuntimeError):
 
 def error_json_to_message(error_json: dict[str, Any]) -> str:
     error_messages = [
-        str(error_json[key]).title() if key == "title" else str(error_json[key])
+        str(error_json[key])
         for key in ("title", "traceback", "detail")
         if key in error_json
     ]
