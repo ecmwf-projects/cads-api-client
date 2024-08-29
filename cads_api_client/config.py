@@ -4,6 +4,7 @@ import json
 import os
 
 CONFIG: dict[str, str] = {}
+SUPPORTED_API_VERSION = "v1"
 
 
 def read_configuration_file(

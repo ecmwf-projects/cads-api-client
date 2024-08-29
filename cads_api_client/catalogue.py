@@ -11,7 +11,7 @@ except ImportError:
 import attrs
 import requests
 
-from . import processing
+from . import config, processing
 
 
 @attrs.define
@@ -74,11 +74,10 @@ class Catalogue:
     force_exact_url: bool = False
     headers: dict[str, Any] = {}
     session: requests.Session = attrs.field(factory=requests.Session)
-    supported_api_version: str = "v1"
 
     def __attrs_post_init__(self) -> None:
         if not self.force_exact_url:
-            self.url += f"/{self.supported_api_version}"
+            self.url += f"/{config.SUPPORTED_API_VERSION}"
 
     def collections(self, params: dict[str, Any] = {}) -> Collections:
         url = f"{self.url}/datasets"

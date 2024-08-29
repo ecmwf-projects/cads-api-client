@@ -17,6 +17,8 @@ import attrs
 import multiurl
 import requests
 
+from . import config
+
 T_ApiResponse = TypeVar("T_ApiResponse", bound="ApiResponse")
 
 logger = logging.getLogger(__name__)
@@ -466,11 +468,10 @@ class Processing:
     sleep_max: int = 120
     cleanup: bool = False
     session: requests.Session = attrs.field(factory=requests.Session)
-    supported_api_version: str = "v1"
 
     def __attrs_post_init__(self) -> None:
         if not self.force_exact_url:
-            self.url += f"/{self.supported_api_version}"
+            self.url += f"/{config.SUPPORTED_API_VERSION}"
 
     def processes(self, params: dict[str, Any] = {}) -> ProcessList:
         url = f"{self.url}/processes"

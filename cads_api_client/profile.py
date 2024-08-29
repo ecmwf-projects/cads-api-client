@@ -2,15 +2,20 @@ from __future__ import annotations
 
 from typing import Any
 
-from . import processing
+import attrs
+
+from . import config, processing
 
 
+@attrs.define(slots=False)
 class Profile:
-    supported_api_version = "v1"
+    url: str
+    force_exact_url: bool = False
+    headers: dict[str, Any] = {}
 
-    def __init__(self, url: str, headers: dict[str, Any] = {}) -> None:
-        self.url = f"{url}/{self.supported_api_version}"
-        self.headers = headers
+    def __attrs_post_init__(self) -> None:
+        if not self.force_exact_url:
+            self.url += f"/{config.SUPPORTED_API_VERSION}"
 
     def profile(self) -> dict[str, Any]:
         url = f"{self.url}/account"
