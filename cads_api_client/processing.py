@@ -243,6 +243,8 @@ class Remote:
                 sleep *= 1.5
                 if sleep > self.sleep_max:
                     sleep = self.sleep_max
+            elif status == "dismissed":
+                raise ProcessingFailedError(f"API state is {status!r}")
             else:
                 raise ProcessingFailedError(f"Unknown API state {status!r}")
             self.debug(f"result not ready, waiting for {sleep} seconds")
