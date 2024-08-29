@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import functools
-from typing import Any, Optional
+from typing import Any
 
 import attrs
 import requests
@@ -11,11 +11,11 @@ from . import catalogue, config, processing, profile
 
 @attrs.define(slots=False)
 class ApiClient:
-    key: Optional[str] = None
-    url: Optional[str] = None
-    session: requests.Session = attrs.field(factory=requests.Session)
+    key: str | None = None
+    url: str | None = None
     sleep_max: int = 120
     cleanup: bool = False
+    session: requests.Session = attrs.field(factory=requests.Session)
 
     def get_url(self) -> str:
         return self.url or config.get_config("url")
@@ -23,6 +23,7 @@ class ApiClient:
     def get_key(self) -> str:
         return self.key or config.get_config("key")
 
+    @property
     def _headers(self) -> dict[str, str]:
         key = self.get_key()
         if key is None:
@@ -32,14 +33,14 @@ class ApiClient:
     @functools.cached_property
     def catalogue_api(self) -> catalogue.Catalogue:
         return catalogue.Catalogue(
-            f"{self.get_url()}/catalogue", headers=self._headers(), session=self.session
+            f"{self.get_url()}/catalogue", headers=self._headers, session=self.session
         )
 
     @functools.cached_property
     def retrieve_api(self) -> processing.Processing:
         return processing.Processing(
             f"{self.get_url()}/retrieve",
-            headers=self._headers(),
+            headers=self._headers,
             session=self.session,
             sleep_max=self.sleep_max,
             cleanup=self.cleanup,
@@ -47,7 +48,7 @@ class ApiClient:
 
     @functools.cached_property
     def profile_api(self) -> profile.Profile:
-        return profile.Profile(f"{self.get_url()}/profiles", headers=self._headers())
+        return profile.Profile(f"{self.get_url()}/profiles", headers=self._headers)
 
     def check_authentication(self) -> dict[str, Any]:
         return self.profile_api.check_authentication()
@@ -64,20 +65,6 @@ class ApiClient:
     def process(self, process_id: str) -> processing.Process:
         return self.retrieve_api.process(process_id=process_id)
 
-    def retrieve(
-        self,
-        collection_id: str,
-        target: Optional[str] = None,
-        retry_options: dict[str, Any] = {},
-        **request: Any,
-    ) -> str:
-        collection = self.collection(collection_id)
-        return collection.retrieve(
-            target,
-            retry_options=retry_options,
-            **request,
-        )
-
     def submit(
         self, collection_id: str, retry_options: dict[str, Any] = {}, **request: Any
     ) -> processing.Remote:
@@ -92,6 +79,18 @@ class ApiClient:
             collection_id, retry_options=retry_options, **request
         )
 
+    def retrieve(
+        self,
+        collection_id: str,
+        target: str | None = None,
+        retry_options: dict[str, Any] = {},
+        **request: Any,
+    ) -> str:
+        result = self.submit_and_wait_on_result(
+            collection_id, retry_options=retry_options, **request
+        )
+        return result.download(target)
+
     def get_requests(self, **params: dict[str, Any]) -> processing.JobList:
         return self.retrieve_api.jobs(params=params)
 
@@ -99,7 +98,7 @@ class ApiClient:
         return self.retrieve_api.job(request_uid)
 
     def download_result(
-        self, request_uid: str, target: Optional[str], retry_options: dict[str, Any]
+        self, request_uid: str, target: str | None, retry_options: dict[str, Any]
     ) -> str:
         return self.retrieve_api.download_result(
             request_uid, target, retry_options=retry_options
