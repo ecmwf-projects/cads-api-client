@@ -28,8 +28,6 @@ class Collections(processing.ApiResponse):
 
 @attrs.define
 class Collection(processing.ApiResponse):
-    headers: dict[str, Any] = {}
-
     @property
     def temporal_interval(self) -> tuple[str, str]:
         ((begin, end),) = self.json["extent"]["temporal"]["interval"]
