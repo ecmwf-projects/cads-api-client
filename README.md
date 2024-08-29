@@ -22,7 +22,7 @@ Draft Python API:
 >>> collection.end_datetime
 datetime.datetime(...)
 
->>> result = client.retrieve(
+>>> client.retrieve(
 ...     collection_id="reanalysis-era5-pressure-levels",
 ...     product_type="reanalysis",
 ...     variable="temperature",
@@ -33,7 +33,6 @@ datetime.datetime(...)
 ...     time="00:00",
 ...     target="tmp1-era5.grib",
 ... )  # blocks
->>> result
 'tmp1-era5.grib'
 
 >>> remote = client.submit(
