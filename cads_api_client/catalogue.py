@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 try:
     from typing import Self
@@ -16,19 +16,19 @@ from . import processing
 
 @attrs.define
 class Collections(processing.ApiResponse):
-    def collection_ids(self) -> List[str]:
+    def collection_ids(self) -> list[str]:
         return [collection["id"] for collection in self.json["collections"]]
 
-    def next(self) -> Optional[Self]:
+    def next(self) -> Self | None:
         return self.from_rel_href(rel="next")
 
-    def prev(self) -> Optional[Self]:
+    def prev(self) -> Self | None:
         return self.from_rel_href(rel="prev")
 
 
 @attrs.define
 class Collection(processing.ApiResponse):
-    headers: Dict[str, Any] = {}
+    headers: dict[str, Any] = {}
 
     @property
     def temporal_interval(self) -> tuple[str, str]:
@@ -62,31 +62,27 @@ class Collection(processing.ApiResponse):
 
     def retrieve(
         self,
-        target: Optional[str] = None,
-        retry_options: Dict[str, Any] = {},
+        target: str | None = None,
+        retry_options: dict[str, Any] = {},
         **request: Any,
     ) -> str:
         remote = self.submit(**request)
         return remote.download(target, retry_options=retry_options)
 
 
+@attrs.define(slots=False)
 class Catalogue:
-    supported_api_version = "v1"
+    url: str
+    force_exact_url: bool = False
+    headers: dict[str, Any] = {}
+    session: requests.Session = attrs.field(factory=requests.Session)
+    supported_api_version: str = "v1"
 
-    def __init__(
-        self,
-        url: str,
-        force_exact_url: bool = False,
-        headers: Dict[str, Any] = {},
-        session: requests.Session = requests.api,  # type: ignore
-    ) -> None:
-        if not force_exact_url:
-            url = f"{url}/{self.supported_api_version}"
-        self.url = url
-        self.headers = headers
-        self.session = session
+    def __attrs_post_init__(self) -> None:
+        if not self.force_exact_url:
+            self.url += f"/{self.supported_api_version}"
 
-    def collections(self, params: Dict[str, Any] = {}) -> Collections:
+    def collections(self, params: dict[str, Any] = {}) -> Collections:
         url = f"{self.url}/datasets"
         return Collections.from_request("get", url, params=params, session=self.session)
 
@@ -96,7 +92,7 @@ class Catalogue:
             "get", url, headers=self.headers, session=self.session
         )
 
-    def licenses(self) -> Dict[str, Any]:
+    def licenses(self) -> dict[str, Any]:
         url = f"{self.url}/vocabularies/licences"
         return processing.ApiResponse.from_request(
             "get", url, headers=self.headers, session=self.session

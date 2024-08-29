@@ -1,13 +1,14 @@
+from __future__ import annotations
+
 import json
 import os
-from typing import Dict
 
-CONFIG: Dict[str, str] = {}
+CONFIG: dict[str, str] = {}
 
 
 def read_configuration_file(
-    config_path: str, config: Dict[str, str] = CONFIG
-) -> Dict[str, str]:
+    config_path: str, config: dict[str, str] = CONFIG
+) -> dict[str, str]:
     if not config:
         # Default config
         config["url"] = "http://localhost:8080/api"
@@ -25,7 +26,7 @@ def read_configuration_file(
 def get_config(
     key: str,
     config_path: str = "~/.cads-api-client.json",
-    config: Dict[str, str] = CONFIG,
+    config: dict[str, str] = CONFIG,
 ) -> str:
     return (
         os.getenv(f"CADS_API_{key.upper()}")

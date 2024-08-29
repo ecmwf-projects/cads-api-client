@@ -6,7 +6,7 @@ import os
 import time
 import urllib.parse
 import warnings
-from typing import Any, Dict, List, Optional, Type, TypeVar
+from typing import Any, Type, TypeVar
 
 try:
     from typing import Self
@@ -59,18 +59,20 @@ def cads_raise_for_status(response: requests.Response) -> None:
 @attrs.define(slots=False)
 class ApiResponse:
     response: requests.Response
-    headers: Dict[str, Any] = {}
-    session: requests.Session = (requests.api,)  # type: ignore
+    headers: dict[str, Any] = {}
+    session: requests.Session = attrs.field(factory=requests.Session)
 
     @classmethod
     def from_request(
         cls: Type[T_ApiResponse],
         *args: Any,
         raise_for_status: bool = True,
-        session: requests.Session = requests.api,  # type: ignore
-        retry_options: Dict[str, Any] = {"maximum_tries": 2, "retry_after": 10},
+        session: requests.Session | None = None,
+        retry_options: dict[str, Any] = {"maximum_tries": 2, "retry_after": 10},
         **kwargs: Any,
     ) -> T_ApiResponse:
+        if session is None:
+            session = requests.Session()
         method = kwargs["method"] if "method" in kwargs else args[0]
         url = kwargs["url"] if "url" in kwargs else args[1]
         inputs = kwargs.get("json", {}).get("inputs", {})
@@ -85,8 +87,8 @@ class ApiResponse:
         return self
 
     @functools.cached_property
-    def json(self) -> Dict[str, Any]:
-        return self.response.json()  # type: ignore
+    def json(self) -> dict[str, Any]:
+        return dict(self.response.json())
 
     def log_messages(self) -> None:
         messages = (
@@ -101,7 +103,7 @@ class ApiResponse:
             level = logging.getLevelName(severity)
             logger.log(level if isinstance(level, int) else 20, content)
 
-    def get_links(self, rel: Optional[str] = None) -> List[Dict[str, str]]:
+    def get_links(self, rel: str | None = None) -> list[dict[str, str]]:
         links = []
         for link in self.json.get("links", []):
             if rel is not None and link.get("rel") == rel:
@@ -114,7 +116,7 @@ class ApiResponse:
             raise RuntimeError(f"link not found or not unique {kwargs}")
         return links[0]["href"]
 
-    def from_rel_href(self, rel: str) -> Optional[Self]:
+    def from_rel_href(self, rel: str) -> Self | None:
         rels = self.get_links(rel=rel)
         assert len(rels) <= 1
         if len(rels) == 1:
@@ -128,20 +130,18 @@ class ApiResponse:
 
 @attrs.define
 class ProcessList(ApiResponse):
-    def process_ids(self) -> List[str]:
+    def process_ids(self) -> list[str]:
         return [proc["id"] for proc in self.json["processes"]]
 
-    def next(self) -> Optional[ApiResponse]:
+    def next(self) -> ApiResponse | None:
         return self.from_rel_href(rel="next")
 
-    def prev(self) -> Optional[ApiResponse]:
+    def prev(self) -> ApiResponse | None:
         return self.from_rel_href(rel="prev")
 
 
 @attrs.define
 class Process(ApiResponse):
-    headers: Dict[str, Any] = {}
-
     @property
     def id(self) -> str:
         process_id = self.json["id"]
@@ -150,8 +150,8 @@ class Process(ApiResponse):
 
     def execute(
         self,
-        inputs: Dict[str, Any],
-        retry_options: Dict[str, Any] = {},
+        inputs: dict[str, Any],
+        retry_options: dict[str, Any] = {},
         **kwargs: Any,
     ) -> StatusInfo:
         assert "json" not in kwargs
@@ -166,27 +166,22 @@ class Process(ApiResponse):
             **kwargs,
         )
 
-    def valid_values(self, request: Dict[str, Any] = {}) -> Dict[str, Any]:
+    def valid_values(self, request: dict[str, Any] = {}) -> dict[str, Any]:
         url = f"{self.response.request.url}/constraints"
         response = ApiResponse.from_request("post", url, json={"inputs": request})
         response.response.raise_for_status()
         return response.json
 
 
+@attrs.define(slots=False)
 class Remote:
-    def __init__(
-        self,
-        url: str,
-        sleep_max: int = 120,
-        headers: Dict[str, Any] = {},
-        session: requests.Session = requests.api,  # type: ignore
-        cleanup: bool = False,
-    ):
-        self.url = url
-        self.sleep_max = sleep_max
-        self.headers = headers
-        self.session = session
-        self.cleanup = cleanup
+    url: str
+    headers: dict[str, Any] = {}
+    sleep_max: int = 120
+    cleanup: bool = False
+    session: requests.Session = attrs.field(factory=requests.Session)
+
+    def __attrs_post_init__(self) -> None:
         self.log_start_time = None
         self.info(f"Request ID is {self.request_uid}")
 
@@ -230,10 +225,10 @@ class Remote:
     def status(self) -> str:
         return self._get_status(robust=False)
 
-    def _robust_status(self, retry_options: Dict[str, Any] = {}) -> str:
+    def _robust_status(self, retry_options: dict[str, Any] = {}) -> str:
         return self._get_status(robust=True, **retry_options)
 
-    def wait_on_result(self, retry_options: Dict[str, Any] = {}) -> None:
+    def wait_on_result(self, retry_options: dict[str, Any] = {}) -> None:
         sleep = 1.0
         status = None
         while True:
@@ -258,7 +253,7 @@ class Remote:
             "get", self.url, headers=self.headers, session=self.session
         )
 
-    def make_results(self, url: Optional[str] = None) -> Results:
+    def make_results(self, url: str | None = None) -> Results:
         if url is None:
             url = self.url
 
@@ -284,7 +279,7 @@ class Remote:
         self,
         target: str | None = None,
         timeout: int = 60,
-        retry_options: Dict[str, Any] = {},
+        retry_options: dict[str, Any] = {},
     ) -> str:
         results: Results = multiurl.robust(self.make_results, **retry_options)(self.url)
         return results.download(target, timeout=timeout, retry_options=retry_options)
@@ -293,7 +288,7 @@ class Remote:
         self,
         target: str | None = None,
         timeout: int = 60,
-        retry_options: Dict[str, Any] = {},
+        retry_options: dict[str, Any] = {},
     ) -> str:
         self.wait_on_result(retry_options=retry_options)
         return self._download_result(
@@ -377,13 +372,13 @@ class StatusInfo(ApiResponse):
 
 @attrs.define
 class JobList(ApiResponse):
-    def job_ids(self) -> List[str]:
+    def job_ids(self) -> list[str]:
         return [job["jobID"] for job in self.json["jobs"]]
 
-    def next(self) -> Optional[ApiResponse]:
+    def next(self) -> ApiResponse | None:
         return self.from_rel_href(rel="next")
 
-    def prev(self) -> Optional[ApiResponse]:
+    def prev(self) -> ApiResponse | None:
         return self.from_rel_href(rel="prev")
 
 
@@ -425,9 +420,9 @@ class Results(ApiResponse):
 
     def download(
         self,
-        target: Optional[str] = None,
+        target: str | None = None,
         timeout: int = 60,
-        retry_options: Dict[str, Any] = {},
+        retry_options: dict[str, Any] = {},
     ) -> str:
         url = self.location
         if target is None:
@@ -461,27 +456,21 @@ class Results(ApiResponse):
         logger.debug(*args, **kwargs)
 
 
+@attrs.define(slots=False)
 class Processing:
-    supported_api_version = "v1"
+    url: str
+    force_exact_url: bool = False
+    headers: dict[str, Any] = {}
+    sleep_max: int = 120
+    cleanup: bool = False
+    session: requests.Session = attrs.field(factory=requests.Session)
+    supported_api_version: str = "v1"
 
-    def __init__(
-        self,
-        url: str,
-        force_exact_url: bool = False,
-        headers: Dict[str, Any] = {},
-        session: requests.Session = requests.api,  # type: ignore
-        sleep_max: int = 120,
-        cleanup: bool = False,
-    ) -> None:
-        if not force_exact_url:
-            url = f"{url}/{self.supported_api_version}"
-        self.url = url
-        self.headers = headers
-        self.session = session
-        self.sleep_max = sleep_max
-        self.cleanup = cleanup
+    def __attrs_post_init__(self) -> None:
+        if not self.force_exact_url:
+            self.url += f"/{self.supported_api_version}"
 
-    def processes(self, params: Dict[str, Any] = {}) -> ProcessList:
+    def processes(self, params: dict[str, Any] = {}) -> ProcessList:
         url = f"{self.url}/processes"
         return ProcessList.from_request("get", url, params=params, session=self.session)
 
@@ -494,8 +483,8 @@ class Processing:
     def process_execute(
         self,
         process_id: str,
-        inputs: Dict[str, Any],
-        retry_options: Dict[str, Any] = {},
+        inputs: dict[str, Any],
+        retry_options: dict[str, Any] = {},
         **kwargs: Any,
     ) -> StatusInfo:
         assert "json" not in kwargs
@@ -511,7 +500,7 @@ class Processing:
             **kwargs,
         )
 
-    def jobs(self, params: Dict[str, Any] = {}) -> JobList:
+    def jobs(self, params: dict[str, Any] = {}) -> JobList:
         url = f"{self.url}/jobs"
         return JobList.from_request(
             "get", url, params=params, headers=self.headers, session=self.session
@@ -532,7 +521,7 @@ class Processing:
     # convenience methods
 
     def submit(
-        self, collection_id: str, retry_options: Dict[str, Any] = {}, **request: Any
+        self, collection_id: str, retry_options: dict[str, Any] = {}, **request: Any
     ) -> Remote:
         status_info = self.process_execute(
             collection_id, request, retry_options=retry_options
@@ -540,7 +529,7 @@ class Processing:
         return status_info.make_remote(sleep_max=self.sleep_max, cleanup=self.cleanup)
 
     def submit_and_wait_on_result(
-        self, collection_id: str, retry_options: Dict[str, Any] = {}, **request: Any
+        self, collection_id: str, retry_options: dict[str, Any] = {}, **request: Any
     ) -> Results:
         remote = self.submit(collection_id, retry_options=retry_options, **request)
         remote.wait_on_result(retry_options=retry_options)
@@ -557,7 +546,7 @@ class Processing:
         )
 
     def download_result(
-        self, job_id: str, target: Optional[str], retry_options: Dict[str, Any]
+        self, job_id: str, target: str | None, retry_options: dict[str, Any]
     ) -> str:
         # NOTE: the remote waits for the result to be available
         return self.make_remote(job_id).download(target, retry_options=retry_options)
