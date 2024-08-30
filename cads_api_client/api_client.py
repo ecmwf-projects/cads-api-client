@@ -98,7 +98,7 @@ class ApiClient:
         return self.retrieve_api.job(request_uid)
 
     def download_result(
-        self, request_uid: str, target: str | None, retry_options: dict[str, Any]
+        self, request_uid: str, target: str | None, retry_options: dict[str, Any] = {}
     ) -> str:
         return self.retrieve_api.download_result(
             request_uid, target, retry_options=retry_options

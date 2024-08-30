@@ -1,4 +1,6 @@
 import datetime
+import os
+import pathlib
 
 import pytest
 import requests
@@ -43,3 +45,12 @@ def test_check_authentication(api_root_url: str, api_anon_client: ApiClient) -> 
     bad_client = ApiClient(key="foo", url=api_root_url)
     with pytest.raises(requests.exceptions.HTTPError, match="401 Client Error"):
         bad_client.check_authentication()
+
+
+def test_download_result(api_anon_client: ApiClient, tmp_path: pathlib.Path) -> None:
+    remote = api_anon_client.submit("test-adaptor-dummy")
+    target = str(tmp_path / "test.grib")
+
+    result = api_anon_client.download_result(remote.request_uid, target)
+    assert result == target
+    assert os.path.exists(result)
