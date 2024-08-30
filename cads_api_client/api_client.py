@@ -97,6 +97,10 @@ class ApiClient:
     def get_request(self, request_uid: str) -> processing.StatusInfo:
         return self.retrieve_api.job(request_uid)
 
+    def get_remote(self, request_uid: str) -> processing.Remote:
+        request = self.get_request(request_uid=request_uid)
+        return request.make_remote(sleep_max=self.sleep_max, cleanup=self.cleanup)
+
     def download_result(
         self, request_uid: str, target: str | None, retry_options: dict[str, Any] = {}
     ) -> str:

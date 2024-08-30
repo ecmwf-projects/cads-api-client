@@ -54,3 +54,10 @@ def test_download_result(api_anon_client: ApiClient, tmp_path: pathlib.Path) -> 
     result = api_anon_client.download_result(remote.request_uid, target)
     assert result == target
     assert os.path.exists(result)
+
+
+def test_get_remote(api_anon_client: ApiClient, tmp_path: pathlib.Path) -> None:
+    request_uid = api_anon_client.submit("test-adaptor-dummy").request_uid
+
+    result = api_anon_client.get_remote(request_uid)
+    assert result.request_uid == request_uid
