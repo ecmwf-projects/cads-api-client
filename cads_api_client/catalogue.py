@@ -30,7 +30,7 @@ class Collections(processing.ApiResponse):
 class Collection(processing.ApiResponse):
     @property
     def temporal_interval(self) -> tuple[str, str]:
-        ((begin, end),) = self.json["extent"]["temporal"]["interval"]
+        ((begin, end), *_) = self.json["extent"]["temporal"]["interval"]
         return (str(begin), str(end))
 
     @property
