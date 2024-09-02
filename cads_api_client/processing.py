@@ -6,7 +6,7 @@ import os
 import time
 import urllib.parse
 import warnings
-from typing import Any, Callable, Type, TypeVar
+from typing import Any, Type, TypeVar
 
 try:
     from typing import Self
@@ -68,6 +68,8 @@ class ApiResponse:
     headers: dict[str, str]
     session: requests.Session
     retry_options: dict[str, Any]
+    sleep_max: int
+    cleanup: bool
 
     @classmethod
     def from_request(
@@ -77,6 +79,8 @@ class ApiResponse:
         headers: dict[str, str],
         session: requests.Session | None,
         retry_options: dict[str, Any],
+        sleep_max: int,
+        cleanup: bool,
         **kwargs: Any,
     ) -> T_ApiResponse:
         if session is None:
@@ -95,6 +99,8 @@ class ApiResponse:
             headers=headers,
             session=session,
             retry_options=retry_options,
+            sleep_max=sleep_max,
+            cleanup=cleanup,
         )
         self.log_messages()
         return self
@@ -124,10 +130,10 @@ class ApiResponse:
                 links.append(link)
         return links
 
-    def get_link_href(self, **kwargs: str) -> str:
-        links = self.get_links(**kwargs)
+    def get_link_href(self, rel: str | None = None) -> str:
+        links = self.get_links(rel)
         if len(links) != 1:
-            raise LinkError(f"link not found or not unique {kwargs}")
+            raise LinkError(f"link not found or not unique {rel=}")
         return links[0]["href"]
 
     def from_rel_href(self, rel: str) -> Self | None:
@@ -140,6 +146,8 @@ class ApiResponse:
                 headers=self.headers,
                 session=self.session,
                 retry_options=self.retry_options,
+                sleep_max=self.sleep_max,
+                cleanup=self.cleanup,
             )
         else:
             out = None
@@ -166,21 +174,17 @@ class Process(ApiResponse):
         assert isinstance(process_id, str)
         return process_id
 
-    def execute(
-        self,
-        inputs: dict[str, Any],
-        **kwargs: Any,
-    ) -> StatusInfo:
+    def execute(self, inputs: dict[str, Any]) -> StatusInfo:
         url = f"{self.response.request.url}/execute"
-        json = {"inputs": inputs}
         return StatusInfo.from_request(
             "post",
             url,
-            json=json,
+            json={"inputs": inputs},
             headers=self.headers,
             session=self.session,
             retry_options=self.retry_options,
-            **kwargs,
+            sleep_max=self.sleep_max,
+            cleanup=self.cleanup,
         )
 
     def valid_values(self, request: dict[str, Any] = {}) -> dict[str, Any]:
@@ -192,6 +196,8 @@ class Process(ApiResponse):
             headers=self.headers,
             session=self.session,
             retry_options=self.retry_options,
+            sleep_max=self.sleep_max,
+            cleanup=self.cleanup,
         )
         response.response.raise_for_status()
         return response.json
@@ -225,10 +231,6 @@ class Remote:
     def request_uid(self) -> str:
         return self.url.rpartition("/")[2]
 
-    def robust(self, call: Callable[..., Any]) -> Callable[..., Any]:
-        robust: Callable[..., Any] = multiurl.robust(call, **self.retry_options)
-        return robust
-
     @property
     def _reply(self) -> dict[str, Any]:
         params = {"log": True}
@@ -241,6 +243,8 @@ class Remote:
             headers=self.headers,
             session=self.session,
             retry_options=self.retry_options,
+            sleep_max=self.sleep_max,
+            cleanup=self.cleanup,
             params=params,
         )
         return api_response.json
@@ -280,6 +284,8 @@ class Remote:
             headers=self.headers,
             session=self.session,
             retry_options=self.retry_options,
+            sleep_max=self.sleep_max,
+            cleanup=self.cleanup,
         )
 
     def make_results(self) -> Results:
@@ -289,6 +295,8 @@ class Remote:
             headers=self.headers,
             session=self.session,
             retry_options=self.retry_options,
+            sleep_max=self.sleep_max,
+            cleanup=self.cleanup,
         )
         try:
             results_url = response.get_link_href(rel="results")
@@ -300,6 +308,8 @@ class Remote:
             headers=self.headers,
             session=self.session,
             retry_options=self.retry_options,
+            sleep_max=self.sleep_max,
+            cleanup=self.cleanup,
         )
         return results
 
@@ -387,7 +397,7 @@ class Remote:
 
 @attrs.define
 class StatusInfo(ApiResponse):
-    def make_remote(self, **kwargs: Any) -> Remote:
+    def make_remote(self) -> Remote:
         if self.response.request.method == "POST":
             url = self.get_link_href(rel="monitor")
         else:
@@ -397,7 +407,8 @@ class StatusInfo(ApiResponse):
             headers=self.headers,
             session=self.session,
             retry_options=self.retry_options,
-            **kwargs,
+            sleep_max=self.sleep_max,
+            cleanup=self.cleanup,
         )
 
 
@@ -487,9 +498,9 @@ class Processing:
     headers: dict[str, str]
     session: requests.Session
     retry_options: dict[str, Any]
+    sleep_max: int
+    cleanup: bool
     force_exact_url: bool = False
-    sleep_max: int = 120
-    cleanup: bool = False
 
     def __attrs_post_init__(self) -> None:
         if not self.force_exact_url:
@@ -504,6 +515,8 @@ class Processing:
             headers=self.headers,
             session=self.session,
             retry_options=self.retry_options,
+            sleep_max=self.sleep_max,
+            cleanup=self.cleanup,
         )
 
     def process(self, process_id: str) -> Process:
@@ -514,25 +527,25 @@ class Processing:
             headers=self.headers,
             session=self.session,
             retry_options=self.retry_options,
+            sleep_max=self.sleep_max,
+            cleanup=self.cleanup,
         )
 
     def process_execute(
         self,
         process_id: str,
         inputs: dict[str, Any],
-        **kwargs: Any,
     ) -> StatusInfo:
-        assert "json" not in kwargs
         url = f"{self.url}/processes/{process_id}/execute"
-        headers = kwargs.pop("headers", {})
         return StatusInfo.from_request(
             "post",
             url,
             json={"inputs": inputs},
-            headers={**self.headers, **headers},
+            headers=self.headers,
             session=self.session,
             retry_options=self.retry_options,
-            **kwargs,
+            sleep_max=self.sleep_max,
+            cleanup=self.cleanup,
         )
 
     def jobs(self, params: dict[str, Any] = {}) -> JobList:
@@ -544,6 +557,8 @@ class Processing:
             headers=self.headers,
             session=self.session,
             retry_options=self.retry_options,
+            sleep_max=self.sleep_max,
+            cleanup=self.cleanup,
         )
 
     def job(self, job_id: str) -> StatusInfo:
@@ -554,6 +569,8 @@ class Processing:
             headers=self.headers,
             session=self.session,
             retry_options=self.retry_options,
+            sleep_max=self.sleep_max,
+            cleanup=self.cleanup,
         )
 
     def job_results(self, job_id: str) -> Results:
@@ -564,13 +581,15 @@ class Processing:
             headers=self.headers,
             session=self.session,
             retry_options=self.retry_options,
+            sleep_max=self.sleep_max,
+            cleanup=self.cleanup,
         )
 
     # convenience methods
 
     def submit(self, collection_id: str, **request: Any) -> Remote:
         status_info = self.process_execute(collection_id, request)
-        return status_info.make_remote(sleep_max=self.sleep_max, cleanup=self.cleanup)
+        return status_info.make_remote()
 
     def submit_and_wait_on_result(self, collection_id: str, **request: Any) -> Results:
         remote = self.submit(collection_id, **request)

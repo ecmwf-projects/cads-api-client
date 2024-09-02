@@ -1,9 +1,22 @@
+import pytest
+import requests
+
 from cads_api_client import catalogue
 
 
-def test_collections(api_root_url: str) -> None:
-    cat = catalogue.Catalogue(f"{api_root_url}/catalogue")
+@pytest.fixture
+def cat(api_root_url: str) -> catalogue.Catalogue:
+    return catalogue.Catalogue(
+        f"{api_root_url}/catalogue",
+        headers={},
+        session=requests.Session(),
+        retry_options={},
+        sleep_max=120,
+        cleanup=False,
+    )
 
+
+def test_collections(cat: catalogue.Catalogue) -> None:
     res: catalogue.Collections | None = cat.collections()
 
     assert isinstance(res, catalogue.Collections)
@@ -22,8 +35,7 @@ def test_collections(api_root_url: str) -> None:
     assert expected_collection_id in collection_ids
 
 
-def test_collections_limit(api_root_url: str) -> None:
-    cat = catalogue.Catalogue(f"{api_root_url}/catalogue")
+def test_collections_limit(cat: catalogue.Catalogue) -> None:
     collections = cat.collections(params={"limit": 1})
 
     res = collections.next()
@@ -32,9 +44,8 @@ def test_collections_limit(api_root_url: str) -> None:
         assert res.response.status_code == 200
 
 
-def test_collection(api_root_url: str) -> None:
+def test_collection(cat: catalogue.Catalogue) -> None:
     collection_id = "test-adaptor-mars"
-    cat = catalogue.Catalogue(f"{api_root_url}/catalogue")
 
     res = cat.collection(collection_id)
 

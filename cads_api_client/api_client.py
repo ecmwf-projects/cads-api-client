@@ -16,7 +16,16 @@ class ApiClient:
     sleep_max: int = 120
     cleanup: bool = False
     session: requests.Session = attrs.field(factory=requests.Session)
-    retry_options: dict[str, Any] = {}
+    # Retry options
+    maximum_tries: int = 500
+    retry_after: int = 120
+
+    @property
+    def retry_options(self) -> dict[str, Any]:
+        return {
+            "maximum_tries": self.maximum_tries,
+            "retry_after": self.retry_after,
+        }
 
     def get_url(self) -> str:
         return self.url or config.get_config("url")
@@ -38,6 +47,9 @@ class ApiClient:
             f"{self.get_url()}/catalogue",
             headers=self._get_headers(error=False),
             session=self.session,
+            retry_options=self.retry_options,
+            sleep_max=self.sleep_max,
+            cleanup=self.cleanup,
         )
 
     @functools.cached_property
@@ -46,9 +58,9 @@ class ApiClient:
             f"{self.get_url()}/retrieve",
             headers=self._get_headers(),
             session=self.session,
+            retry_options=self.retry_options,
             sleep_max=self.sleep_max,
             cleanup=self.cleanup,
-            retry_options=self.retry_options,
         )
 
     @functools.cached_property
@@ -56,6 +68,10 @@ class ApiClient:
         return profile.Profile(
             f"{self.get_url()}/profiles",
             headers=self._get_headers(),
+            session=self.session,
+            retry_options=self.retry_options,
+            sleep_max=self.sleep_max,
+            cleanup=self.cleanup,
         )
 
     def check_authentication(self) -> dict[str, Any]:
@@ -98,7 +114,7 @@ class ApiClient:
 
     def get_remote(self, request_uid: str) -> processing.Remote:
         request = self.get_request(request_uid=request_uid)
-        return request.make_remote(sleep_max=self.sleep_max, cleanup=self.cleanup)
+        return request.make_remote()
 
     def download_result(self, request_uid: str, target: str | None) -> str:
         return self.retrieve_api.download_result(request_uid, target)

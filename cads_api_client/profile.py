@@ -11,10 +11,12 @@ from . import config, processing
 @attrs.define(slots=False)
 class Profile:
     url: str
+    headers: dict[str, Any]
+    session: requests.Session
+    retry_options: dict[str, Any]
+    sleep_max: int
+    cleanup: bool
     force_exact_url: bool = False
-    headers: dict[str, Any] = {}
-    session: requests.Session = attrs.field(factory=requests.Session)
-    retry_options: dict[str, Any] = {}
 
     def __attrs_post_init__(self) -> None:
         if not self.force_exact_url:
@@ -28,6 +30,8 @@ class Profile:
             headers=self.headers,
             session=self.session,
             retry_options=self.retry_options,
+            sleep_max=self.sleep_max,
+            cleanup=self.cleanup,
         )
         return response.json
 
@@ -40,6 +44,8 @@ class Profile:
             headers=self.headers,
             session=self.session,
             retry_options=self.retry_options,
+            sleep_max=self.sleep_max,
+            cleanup=self.cleanup,
         )
         return response.json
 
@@ -51,6 +57,8 @@ class Profile:
             headers=self.headers,
             session=self.session,
             retry_options=self.retry_options,
+            sleep_max=self.sleep_max,
+            cleanup=self.cleanup,
         )
         return response.json
 
@@ -62,5 +70,7 @@ class Profile:
             headers=self.headers,
             session=self.session,
             retry_options=self.retry_options,
+            sleep_max=self.sleep_max,
+            cleanup=self.cleanup,
         )
         return response.json

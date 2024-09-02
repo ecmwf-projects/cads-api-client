@@ -57,32 +57,36 @@ class Collection(processing.ApiResponse):
             headers=self.headers if headers is None else headers,
             session=self.session,
             retry_options=self.retry_options,
+            sleep_max=self.sleep_max,
+            cleanup=self.cleanup,
         )
 
     def submit(
-        self, headers: dict[str, str] | None = None, **request: Any
+        self,
+        **request: Any,
     ) -> processing.Remote:
-        retrieve_process = self.retrieve_process(headers=headers)
+        retrieve_process = self.retrieve_process(headers=self.headers)
         status_info = retrieve_process.execute(inputs=request)
         return status_info.make_remote()
 
     def retrieve(
         self,
         target: str | None = None,
-        headers: dict[str, str] | None = None,
         **request: Any,
     ) -> str:
-        remote = self.submit(headers=headers, **request)
+        remote = self.submit(**request)
         return remote.download(target)
 
 
 @attrs.define(slots=False)
 class Catalogue:
     url: str
+    headers: dict[str, Any]
+    session: requests.Session
+    retry_options: dict[str, Any]
+    sleep_max: int
+    cleanup: bool
     force_exact_url: bool = False
-    headers: dict[str, Any] = {}
-    session: requests.Session = attrs.field(factory=requests.Session)
-    retry_options: dict[str, Any] = {}
 
     def __attrs_post_init__(self) -> None:
         if not self.force_exact_url:
@@ -97,6 +101,8 @@ class Catalogue:
             headers=self.headers,
             session=self.session,
             retry_options=self.retry_options,
+            sleep_max=self.sleep_max,
+            cleanup=self.cleanup,
         )
 
     def collection(self, collection_id: str) -> Collection:
@@ -107,6 +113,8 @@ class Catalogue:
             headers=self.headers,
             session=self.session,
             retry_options=self.retry_options,
+            sleep_max=self.sleep_max,
+            cleanup=self.cleanup,
         )
 
     def licenses(self) -> dict[str, Any]:
@@ -117,4 +125,6 @@ class Catalogue:
             headers=self.headers,
             session=self.session,
             retry_options=self.retry_options,
+            sleep_max=self.sleep_max,
+            cleanup=self.cleanup,
         ).json
