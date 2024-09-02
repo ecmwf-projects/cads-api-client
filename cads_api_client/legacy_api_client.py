@@ -152,13 +152,11 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
         if self.wait_until_complete:
             submitted = self.logging_decorator(self.client.submit_and_wait_on_result)(
                 collection_id=name,
-                retry_options=self.retry_options,
                 **request,
             )
         else:
             submitted = self.logging_decorator(self.client.submit)(
                 collection_id=name,
-                retry_options=self.retry_options,
                 **request,
             )
 
@@ -166,7 +164,6 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
         partial_download: Callable[..., str] = functools.partial(
             submitted.download,
             timeout=self.timeout,
-            retry_options=self.retry_options,
         )
         submitted.download = self.logging_decorator(partial_download)  # type: ignore[method-assign]
         submitted.info = self.logging_decorator(submitted.info)  # type: ignore[method-assign]

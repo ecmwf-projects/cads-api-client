@@ -16,6 +16,7 @@ class ApiClient:
     sleep_max: int = 120
     cleanup: bool = False
     session: requests.Session = attrs.field(factory=requests.Session)
+    retry_options: dict[str, Any] = {}
 
     def get_url(self) -> str:
         return self.url or config.get_config("url")
@@ -23,32 +24,39 @@ class ApiClient:
     def get_key(self) -> str:
         return self.key or config.get_config("key")
 
-    @property
-    def _headers(self) -> dict[str, str]:
-        key = self.get_key()
-        if key is None:
-            raise ValueError("A valid API key is needed to access this resource")
+    def _get_headers(self, error: bool = True) -> dict[str, str]:
+        if (key := self.get_key()) is None:
+            if error:
+                raise ValueError("A valid API key is needed to access this resource")
+            else:
+                return {}
         return {"PRIVATE-TOKEN": key}
 
     @functools.cached_property
     def catalogue_api(self) -> catalogue.Catalogue:
         return catalogue.Catalogue(
-            f"{self.get_url()}/catalogue", headers=self._headers, session=self.session
+            f"{self.get_url()}/catalogue",
+            headers=self._get_headers(error=False),
+            session=self.session,
         )
 
     @functools.cached_property
     def retrieve_api(self) -> processing.Processing:
         return processing.Processing(
             f"{self.get_url()}/retrieve",
-            headers=self._headers,
+            headers=self._get_headers(),
             session=self.session,
             sleep_max=self.sleep_max,
             cleanup=self.cleanup,
+            retry_options=self.retry_options,
         )
 
     @functools.cached_property
     def profile_api(self) -> profile.Profile:
-        return profile.Profile(f"{self.get_url()}/profiles", headers=self._headers)
+        return profile.Profile(
+            f"{self.get_url()}/profiles",
+            headers=self._get_headers(),
+        )
 
     def check_authentication(self) -> dict[str, Any]:
         return self.profile_api.check_authentication()
@@ -65,30 +73,21 @@ class ApiClient:
     def process(self, process_id: str) -> processing.Process:
         return self.retrieve_api.process(process_id=process_id)
 
-    def submit(
-        self, collection_id: str, retry_options: dict[str, Any] = {}, **request: Any
-    ) -> processing.Remote:
-        return self.retrieve_api.submit(
-            collection_id, retry_options=retry_options, **request
-        )
+    def submit(self, collection_id: str, **request: Any) -> processing.Remote:
+        return self.retrieve_api.submit(collection_id, **request)
 
     def submit_and_wait_on_result(
-        self, collection_id: str, retry_options: dict[str, Any] = {}, **request: Any
+        self, collection_id: str, **request: Any
     ) -> processing.Results:
-        return self.retrieve_api.submit_and_wait_on_result(
-            collection_id, retry_options=retry_options, **request
-        )
+        return self.retrieve_api.submit_and_wait_on_result(collection_id, **request)
 
     def retrieve(
         self,
         collection_id: str,
         target: str | None = None,
-        retry_options: dict[str, Any] = {},
         **request: Any,
     ) -> str:
-        result = self.submit_and_wait_on_result(
-            collection_id, retry_options=retry_options, **request
-        )
+        result = self.submit_and_wait_on_result(collection_id, **request)
         return result.download(target)
 
     def get_requests(self, **params: dict[str, Any]) -> processing.JobList:
@@ -101,12 +100,8 @@ class ApiClient:
         request = self.get_request(request_uid=request_uid)
         return request.make_remote(sleep_max=self.sleep_max, cleanup=self.cleanup)
 
-    def download_result(
-        self, request_uid: str, target: str | None, retry_options: dict[str, Any] = {}
-    ) -> str:
-        return self.retrieve_api.download_result(
-            request_uid, target, retry_options=retry_options
-        )
+    def download_result(self, request_uid: str, target: str | None) -> str:
+        return self.retrieve_api.download_result(request_uid, target)
 
     def valid_values(
         self, collection_id: str, request: dict[str, Any]

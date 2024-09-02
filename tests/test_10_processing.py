@@ -443,7 +443,7 @@ def test_remote_logs(caplog: pytest.LogCaptureFixture) -> None:
         (
             "cads_api_client.processing",
             10,
-            "GET http://localhost:8080/api/retrieve/v1/processes/reanalysis-era5-pressure-levels {}",
+            "GET http://localhost:8080/api/retrieve/v1/processes/reanalysis-era5-pressure-levels",
         ),
         (
             "cads_api_client.processing",

@@ -6,7 +6,7 @@ import os
 import time
 import urllib.parse
 import warnings
-from typing import Any, Type, TypeVar
+from typing import Any, Callable, Type, TypeVar
 
 try:
     from typing import Self
@@ -29,6 +29,10 @@ class ProcessingFailedError(RuntimeError):
 
 
 class DownloadError(RuntimeError):
+    pass
+
+
+class LinkError(Exception):
     pass
 
 
@@ -61,36 +65,44 @@ def cads_raise_for_status(response: requests.Response) -> None:
 @attrs.define(slots=False)
 class ApiResponse:
     response: requests.Response
-    headers: dict[str, Any] = {}
-    session: requests.Session = attrs.field(factory=requests.Session)
+    headers: dict[str, str]
+    session: requests.Session
+    retry_options: dict[str, Any]
 
     @classmethod
     def from_request(
         cls: Type[T_ApiResponse],
-        *args: Any,
-        raise_for_status: bool = True,
-        session: requests.Session | None = None,
-        retry_options: dict[str, Any] = {"maximum_tries": 2, "retry_after": 10},
+        method: str,
+        url: str,
+        headers: dict[str, str],
+        session: requests.Session | None,
+        retry_options: dict[str, Any],
         **kwargs: Any,
     ) -> T_ApiResponse:
         if session is None:
             session = requests.Session()
-        method = kwargs["method"] if "method" in kwargs else args[0]
-        url = kwargs["url"] if "url" in kwargs else args[1]
+        robust_request = multiurl.robust(session.request, **retry_options)
+
         inputs = kwargs.get("json", {}).get("inputs", {})
-        logger.debug(f"{method.upper()} {url} {inputs}")
-        response = multiurl.robust(session.request, **retry_options)(*args, **kwargs)
+        logger.debug(f"{method.upper()} {url} {inputs or ''}".strip())
+        response = robust_request(method, url, headers=headers, **kwargs)
         logger.debug(f"REPLY {response.text}")
 
-        if raise_for_status:
-            cads_raise_for_status(response)
-        self = cls(response, headers=kwargs.get("headers", {}), session=session)
+        cads_raise_for_status(response)
+
+        self = cls(
+            response,
+            headers=headers,
+            session=session,
+            retry_options=retry_options,
+        )
         self.log_messages()
         return self
 
-    @functools.cached_property
+    @property
     def json(self) -> dict[str, Any]:
-        return dict(self.response.json())
+        json: dict[str, Any] = self.response.json()
+        return json
 
     def log_messages(self) -> None:
         messages = (
@@ -115,7 +127,7 @@ class ApiResponse:
     def get_link_href(self, **kwargs: str) -> str:
         links = self.get_links(**kwargs)
         if len(links) != 1:
-            raise RuntimeError(f"link not found or not unique {kwargs}")
+            raise LinkError(f"link not found or not unique {kwargs}")
         return links[0]["href"]
 
     def from_rel_href(self, rel: str) -> Self | None:
@@ -123,7 +135,11 @@ class ApiResponse:
         assert len(rels) <= 1
         if len(rels) == 1:
             out = self.from_request(
-                "get", rels[0]["href"], headers=self.headers, session=self.session
+                "get",
+                rels[0]["href"],
+                headers=self.headers,
+                session=self.session,
+                retry_options=self.retry_options,
             )
         else:
             out = None
@@ -153,10 +169,8 @@ class Process(ApiResponse):
     def execute(
         self,
         inputs: dict[str, Any],
-        retry_options: dict[str, Any] = {},
         **kwargs: Any,
     ) -> StatusInfo:
-        assert "json" not in kwargs
         url = f"{self.response.request.url}/execute"
         json = {"inputs": inputs}
         return StatusInfo.from_request(
@@ -164,13 +178,21 @@ class Process(ApiResponse):
             url,
             json=json,
             headers=self.headers,
-            retry_options=retry_options,
+            session=self.session,
+            retry_options=self.retry_options,
             **kwargs,
         )
 
     def valid_values(self, request: dict[str, Any] = {}) -> dict[str, Any]:
         url = f"{self.response.request.url}/constraints"
-        response = ApiResponse.from_request("post", url, json={"inputs": request})
+        response = ApiResponse.from_request(
+            "post",
+            url,
+            json={"inputs": request},
+            headers=self.headers,
+            session=self.session,
+            retry_options=self.retry_options,
+        )
         response.response.raise_for_status()
         return response.json
 
@@ -178,10 +200,11 @@ class Process(ApiResponse):
 @attrs.define(slots=False)
 class Remote:
     url: str
-    headers: dict[str, Any] = {}
+    headers: dict[str, str]
+    session: requests.Session
+    retry_options: dict[str, Any]
     sleep_max: int = 120
     cleanup: bool = False
-    session: requests.Session = attrs.field(factory=requests.Session)
 
     def __attrs_post_init__(self) -> None:
         self.log_start_time = None
@@ -202,44 +225,42 @@ class Remote:
     def request_uid(self) -> str:
         return self.url.rpartition("/")[2]
 
-    def _get_reply(self, robust: bool, **retry_options: Any) -> dict[str, Any]:
-        # TODO: cache responses for a timeout (possibly reported nby the server)
-        get = self.session.get
-        if robust:
-            get = multiurl.robust(get, **retry_options)
+    def robust(self, call: Callable[..., Any]) -> Callable[..., Any]:
+        robust: Callable[..., Any] = multiurl.robust(call, **self.retry_options)
+        return robust
 
+    @property
+    def _reply(self) -> dict[str, Any]:
         params = {"log": True}
         if self.log_start_time:
             params["logStartTime"] = self.log_start_time
 
-        self.debug(f"GET {self.url}")
-        requests_response = get(url=self.url, headers=self.headers, params=params)
-        self.debug(f"REPLY {requests_response.text}")
-        requests_response.raise_for_status()
-        return dict(requests_response.json())
-
-    def _get_status(self, robust: bool, **retry_options: Any) -> str:
-        json = self._get_reply(robust, **retry_options)
-        self.log_metadata(json.get("metadata", {}))
-        return str(json["status"])
+        api_response = ApiResponse.from_request(
+            "get",
+            url=self.url,
+            headers=self.headers,
+            session=self.session,
+            retry_options=self.retry_options,
+            params=params,
+        )
+        return api_response.json
 
     @property
     def status(self) -> str:
-        return self._get_status(robust=False)
+        reply = self._reply
+        self.log_metadata(reply.get("metadata", {}))
+        return str(reply["status"])
 
-    def _robust_status(self, retry_options: dict[str, Any] = {}) -> str:
-        return self._get_status(robust=True, **retry_options)
-
-    def wait_on_result(self, retry_options: dict[str, Any] = {}) -> None:
+    def wait_on_result(self) -> None:
         sleep = 1.0
         status = None
         while True:
-            if status != (status := self._robust_status(retry_options=retry_options)):
+            if status != (status := self.status):
                 self.info(f"status has been updated to {status}")
             if status == "successful":
                 break
             elif status == "failed":
-                results = multiurl.robust(self.make_results, **retry_options)(self.url)
+                results = self.make_results()
                 raise ProcessingFailedError(error_json_to_message(results.json))
             elif status in ("accepted", "running"):
                 sleep *= 1.5
@@ -254,28 +275,31 @@ class Remote:
 
     def build_status_info(self) -> StatusInfo:
         return StatusInfo.from_request(
-            "get", self.url, headers=self.headers, session=self.session
+            "get",
+            self.url,
+            headers=self.headers,
+            session=self.session,
+            retry_options=self.retry_options,
         )
 
-    def make_results(self, url: str | None = None) -> Results:
-        if url is None:
-            url = self.url
-
-        self.debug(f"GET {url}")
-        request_response = self.session.get(url, headers=self.headers)
-        self.debug(f"REPLY {request_response.text}")
-
-        response = ApiResponse(request_response, session=self.session)
+    def make_results(self) -> Results:
+        response = ApiResponse.from_request(
+            "GET",
+            self.url,
+            headers=self.headers,
+            session=self.session,
+            retry_options=self.retry_options,
+        )
         try:
             results_url = response.get_link_href(rel="results")
-        except RuntimeError:
-            results_url = f"{url}/results"
+        except LinkError:
+            results_url = f"{self.url}/results"
         results = Results.from_request(
             "get",
             results_url,
             headers=self.headers,
             session=self.session,
-            raise_for_status=True,
+            retry_options=self.retry_options,
         )
         return results
 
@@ -283,21 +307,17 @@ class Remote:
         self,
         target: str | None = None,
         timeout: int = 60,
-        retry_options: dict[str, Any] = {},
     ) -> str:
-        results: Results = multiurl.robust(self.make_results, **retry_options)(self.url)
-        return results.download(target, timeout=timeout, retry_options=retry_options)
+        results: Results = self.make_results()
+        return results.download(target, timeout=timeout)
 
     def download(
         self,
         target: str | None = None,
         timeout: int = 60,
-        retry_options: dict[str, Any] = {},
     ) -> str:
-        self.wait_on_result(retry_options=retry_options)
-        return self._download_result(
-            target, timeout=timeout, retry_options=retry_options
-        )
+        self.wait_on_result()
+        return self._download_result(target, timeout=timeout)
 
     def delete(self) -> dict[str, Any]:
         self.debug(f"DELETE {self.url}")
@@ -328,18 +348,19 @@ class Remote:
     def reply(self) -> dict[str, Any]:
         self._warn()
 
-        reply = self._get_reply(True)
-
+        reply = self._reply
         reply.setdefault("state", reply["status"])
+
         if reply["state"] == "successful":
             reply["state"] = "completed"
         elif reply["state"] == "queued":
             reply["state"] = "accepted"
         elif reply["state"] == "failed":
-            results = multiurl.robust(self.make_results)(self.url)
-            message = error_json_to_message(results.json)
             reply.setdefault("error", {})
-            reply["error"].setdefault("message", message)
+            try:
+                self.make_results()
+            except Exception as exc:
+                reply["error"].setdefault("message", str(exc))
 
         reply.setdefault("request_id", self.request_uid)
         return reply
@@ -371,7 +392,13 @@ class StatusInfo(ApiResponse):
             url = self.get_link_href(rel="monitor")
         else:
             url = self.get_link_href(rel="self")
-        return Remote(url, headers=self.headers, session=self.session, **kwargs)
+        return Remote(
+            url,
+            headers=self.headers,
+            session=self.session,
+            retry_options=self.retry_options,
+            **kwargs,
+        )
 
 
 @attrs.define
@@ -426,20 +453,14 @@ class Results(ApiResponse):
         self,
         target: str | None = None,
         timeout: int = 60,
-        retry_options: dict[str, Any] = {},
     ) -> str:
         url = self.location
         if target is None:
             parts = urllib.parse.urlparse(url)
             target = parts.path.strip("/").split("/")[-1]
 
-        # FIXME add retry and progress bar
-        retry_options = retry_options.copy()
-        maximum_tries = retry_options.pop("maximum_tries", None)
-        if maximum_tries is not None:
-            retry_options["maximum_retries"] = maximum_tries
         multiurl.download(
-            url, stream=True, target=target, timeout=timeout, **retry_options
+            url, stream=True, target=target, timeout=timeout, **self.retry_options
         )
         if (target_size := os.path.getsize(target)) != (size := self.content_length):
             raise DownloadError(
@@ -463,11 +484,12 @@ class Results(ApiResponse):
 @attrs.define(slots=False)
 class Processing:
     url: str
+    headers: dict[str, str]
+    session: requests.Session
+    retry_options: dict[str, Any]
     force_exact_url: bool = False
-    headers: dict[str, Any] = {}
     sleep_max: int = 120
     cleanup: bool = False
-    session: requests.Session = attrs.field(factory=requests.Session)
 
     def __attrs_post_init__(self) -> None:
         if not self.force_exact_url:
@@ -475,19 +497,29 @@ class Processing:
 
     def processes(self, params: dict[str, Any] = {}) -> ProcessList:
         url = f"{self.url}/processes"
-        return ProcessList.from_request("get", url, params=params, session=self.session)
+        return ProcessList.from_request(
+            "get",
+            url,
+            params=params,
+            headers=self.headers,
+            session=self.session,
+            retry_options=self.retry_options,
+        )
 
     def process(self, process_id: str) -> Process:
         url = f"{self.url}/processes/{process_id}"
         return Process.from_request(
-            "get", url, headers=self.headers, session=self.session
+            "get",
+            url,
+            headers=self.headers,
+            session=self.session,
+            retry_options=self.retry_options,
         )
 
     def process_execute(
         self,
         process_id: str,
         inputs: dict[str, Any],
-        retry_options: dict[str, Any] = {},
         **kwargs: Any,
     ) -> StatusInfo:
         assert "json" not in kwargs
@@ -499,43 +531,50 @@ class Processing:
             json={"inputs": inputs},
             headers={**self.headers, **headers},
             session=self.session,
-            retry_options=retry_options,
+            retry_options=self.retry_options,
             **kwargs,
         )
 
     def jobs(self, params: dict[str, Any] = {}) -> JobList:
         url = f"{self.url}/jobs"
         return JobList.from_request(
-            "get", url, params=params, headers=self.headers, session=self.session
+            "get",
+            url,
+            params=params,
+            headers=self.headers,
+            session=self.session,
+            retry_options=self.retry_options,
         )
 
     def job(self, job_id: str) -> StatusInfo:
         url = f"{self.url}/jobs/{job_id}"
         return StatusInfo.from_request(
-            "get", url, headers=self.headers, session=self.session
+            "get",
+            url,
+            headers=self.headers,
+            session=self.session,
+            retry_options=self.retry_options,
         )
 
     def job_results(self, job_id: str) -> Results:
         url = f"{self.url}/jobs/{job_id}/results"
         return Results.from_request(
-            "get", url, headers=self.headers, session=self.session
+            "get",
+            url,
+            headers=self.headers,
+            session=self.session,
+            retry_options=self.retry_options,
         )
 
     # convenience methods
 
-    def submit(
-        self, collection_id: str, retry_options: dict[str, Any] = {}, **request: Any
-    ) -> Remote:
-        status_info = self.process_execute(
-            collection_id, request, retry_options=retry_options
-        )
+    def submit(self, collection_id: str, **request: Any) -> Remote:
+        status_info = self.process_execute(collection_id, request)
         return status_info.make_remote(sleep_max=self.sleep_max, cleanup=self.cleanup)
 
-    def submit_and_wait_on_result(
-        self, collection_id: str, retry_options: dict[str, Any] = {}, **request: Any
-    ) -> Results:
-        remote = self.submit(collection_id, retry_options=retry_options, **request)
-        remote.wait_on_result(retry_options=retry_options)
+    def submit_and_wait_on_result(self, collection_id: str, **request: Any) -> Results:
+        remote = self.submit(collection_id, **request)
+        remote.wait_on_result()
         return remote.make_results()
 
     def make_remote(self, job_id: str) -> Remote:
@@ -544,12 +583,11 @@ class Processing:
             url,
             headers=self.headers,
             session=self.session,
+            retry_options=self.retry_options,
             sleep_max=self.sleep_max,
             cleanup=self.cleanup,
         )
 
-    def download_result(
-        self, job_id: str, target: str | None, retry_options: dict[str, Any]
-    ) -> str:
+    def download_result(self, job_id: str, target: str | None) -> str:
         # NOTE: the remote waits for the result to be available
-        return self.make_remote(job_id).download(target, retry_options=retry_options)
+        return self.make_remote(job_id).download(target)

@@ -4,9 +4,17 @@ import requests
 from cads_api_client import processing
 
 
-def test_processes(api_root_url: str) -> None:
-    proc = processing.Processing(f"{api_root_url}/retrieve")
+@pytest.fixture
+def proc(api_root_url: str, api_anon_key: str) -> processing.Processing:
+    return processing.Processing(
+        f"{api_root_url}/retrieve",
+        headers={"PRIVATE-TOKEN": api_anon_key},
+        session=requests.Session(),
+        retry_options={},
+    )
 
+
+def test_processes(proc: processing.Processing) -> None:
     res = proc.processes()
 
     assert isinstance(res, processing.ProcessList)
@@ -18,8 +26,7 @@ def test_processes(api_root_url: str) -> None:
     assert len(res.process_ids()) == 10
 
 
-def test_processes_limit(api_root_url: str) -> None:
-    proc = processing.Processing(f"{api_root_url}/retrieve")
+def test_processes_limit(proc: processing.Processing) -> None:
     processes = proc.processes(params={"limit": 1})
 
     res = processes.next()
@@ -28,9 +35,8 @@ def test_processes_limit(api_root_url: str) -> None:
         assert res.response.status_code == 200
 
 
-def test_process(api_root_url: str) -> None:
+def test_process(proc: processing.Processing) -> None:
     process_id = "test-adaptor-dummy"
-    proc = processing.Processing(f"{api_root_url}/retrieve")
 
     res = proc.process(process_id)
 
@@ -40,28 +46,23 @@ def test_process(api_root_url: str) -> None:
     assert isinstance(res.json["links"], list)
 
 
-def test_validate_constraints(api_root_url: str) -> None:
+def test_validate_constraints(proc: processing.Processing) -> None:
     process_id = "test-adaptor-mars"
-    proc = processing.Processing(f"{api_root_url}/retrieve")
     process = proc.process(process_id)
     res = process.valid_values({})
 
     assert set(["product_type", "variable", "year", "month", "time"]) <= set(res)
 
 
-def test_collection_anonymous_user(api_root_url: str, api_anon_key: str) -> None:
+def test_collection_anonymous_user(proc: processing.Processing) -> None:
     collection_id = "test-adaptor-mars"
-    headers = {"PRIVATE-TOKEN": api_anon_key}
-    proc = processing.Processing(f"{api_root_url}/retrieve", headers=headers)
     process = proc.process(collection_id)
     response = process.execute(inputs={})
     assert "message" in response.json
 
 
-def test_jobs_list(api_root_url: str, api_anon_key: str) -> None:
+def test_jobs_list(proc: processing.Processing) -> None:
     collection_id = "test-adaptor-dummy"
-    headers = {"PRIVATE-TOKEN": api_anon_key}
-    proc = processing.Processing(f"{api_root_url}/retrieve", headers=headers)
     process = proc.process(collection_id)
 
     _ = process.execute(inputs={})
@@ -80,9 +81,8 @@ def test_jobs_list(api_root_url: str, api_anon_key: str) -> None:
     assert len(res["jobs"]) == 1
 
 
-def test_validate_constraints_error(api_root_url: str) -> None:
+def test_validate_constraints_error(proc: processing.Processing) -> None:
     process_id = "test-adaptor-mars"
-    proc = processing.Processing(f"{api_root_url}/retrieve")
     process = proc.process(process_id)
     with pytest.raises(requests.exceptions.HTTPError, match="422 Client Error") as exc:
         process.valid_values({"invalid_param": 1})

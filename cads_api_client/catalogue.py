@@ -47,25 +47,33 @@ class Collection(processing.ApiResponse):
         assert isinstance(collection_id, str)
         return collection_id
 
-    def retrieve_process(self) -> processing.Process:
+    def retrieve_process(
+        self, headers: dict[str, str] | None = None
+    ) -> processing.Process:
         url = self.get_link_href(rel="retrieve")
         return processing.Process.from_request(
-            "get", url, headers=self.headers, session=self.session
+            "get",
+            url,
+            headers=self.headers if headers is None else headers,
+            session=self.session,
+            retry_options=self.retry_options,
         )
 
-    def submit(self, **request: Any) -> processing.Remote:
-        retrieve_process = self.retrieve_process()
-        status_info = retrieve_process.execute(inputs=request, session=self.session)
+    def submit(
+        self, headers: dict[str, str] | None = None, **request: Any
+    ) -> processing.Remote:
+        retrieve_process = self.retrieve_process(headers=headers)
+        status_info = retrieve_process.execute(inputs=request)
         return status_info.make_remote()
 
     def retrieve(
         self,
         target: str | None = None,
-        retry_options: dict[str, Any] = {},
+        headers: dict[str, str] | None = None,
         **request: Any,
     ) -> str:
-        remote = self.submit(**request)
-        return remote.download(target, retry_options=retry_options)
+        remote = self.submit(headers=headers, **request)
+        return remote.download(target)
 
 
 @attrs.define(slots=False)
@@ -74,6 +82,7 @@ class Catalogue:
     force_exact_url: bool = False
     headers: dict[str, Any] = {}
     session: requests.Session = attrs.field(factory=requests.Session)
+    retry_options: dict[str, Any] = {}
 
     def __attrs_post_init__(self) -> None:
         if not self.force_exact_url:
@@ -81,16 +90,31 @@ class Catalogue:
 
     def collections(self, params: dict[str, Any] = {}) -> Collections:
         url = f"{self.url}/datasets"
-        return Collections.from_request("get", url, params=params, session=self.session)
+        return Collections.from_request(
+            "get",
+            url,
+            params=params,
+            headers=self.headers,
+            session=self.session,
+            retry_options=self.retry_options,
+        )
 
     def collection(self, collection_id: str) -> Collection:
         url = f"{self.url}/collections/{collection_id}"
         return Collection.from_request(
-            "get", url, headers=self.headers, session=self.session
+            "get",
+            url,
+            headers=self.headers,
+            session=self.session,
+            retry_options=self.retry_options,
         )
 
     def licenses(self) -> dict[str, Any]:
         url = f"{self.url}/vocabularies/licences"
         return processing.ApiResponse.from_request(
-            "get", url, headers=self.headers, session=self.session
+            "get",
+            url,
+            headers=self.headers,
+            session=self.session,
+            retry_options=self.retry_options,
         ).json

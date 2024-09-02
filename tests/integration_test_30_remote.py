@@ -42,7 +42,6 @@ def test_collection_retrieve_with_dummy_adaptor(
 
     res = dataset.retrieve(
         target=target,
-        retry_options={"maximum_tries": 0},
     )
 
     assert isinstance(res, str)
@@ -64,7 +63,6 @@ def test_collection_retrieve_with_url_cds_adaptor(
         reference_dataset="cru",
         version="2.1",
         target=target,
-        retry_options={"maximum_tries": 0},
     )
 
     assert isinstance(res, str)
@@ -88,24 +86,26 @@ def test_collection_retrieve_with_direct_mars_cds_adaptor(
     api_root_url: str, api_anon_key: str, tmp_path: pathlib.Path
 ) -> None:
     collection_id = "test-adaptor-direct-mars"
-    headers = {"PRIVATE-TOKEN": api_anon_key}
 
-    cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers=headers)
+    cat = catalogue.Catalogue(f"{api_root_url}/catalogue", headers={})
     dataset = cat.collection(collection_id)
     target = str(tmp_path / "era5-complete.grib")
 
+    request = {
+        "levelist": "1",
+        "dataset": "reanalysis",
+        "time": "00:00:00",
+        "param": "155",
+        "date": "1940-01-01",
+        "expect": "any",
+        "levtype": "pl",
+        "number": "all",
+        "class": "ea",
+    }
     res = dataset.retrieve(
-        levelist="1",
-        dataset="reanalysis",
-        time="00:00:00",
-        param="155",
-        date="1940-01-01",
-        expect="any",
-        levtype="pl",
-        number="all",
         target=target,
-        retry_options={"maximum_tries": 0},
-        **{"class": "ea"},
+        headers={"PRIVATE-TOKEN": api_anon_key},
+        **request,
     )
 
     assert isinstance(res, str)
@@ -130,7 +130,6 @@ def test_collection_retrieve_with_mars_cds_adaptor(
         day="02",
         time="00:00",
         target=target,
-        retry_options={"maximum_tries": 0},
     )
 
     assert isinstance(res, str)
