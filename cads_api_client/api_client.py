@@ -30,17 +30,16 @@ class ApiClient:
     session: requests.Session = attrs.field(factory=requests.Session)
 
     def get_url(self) -> str:
-        return config.get_config("url") if self.url is None else self.url
+        return str(config.get_config("url") if self.url is None else self.url)
 
     def get_key(self) -> str:
-        return config.get_config("key") if self.key is None else self.key
+        return str(config.get_config("key") if self.key is None else self.key)
 
     def get_verify(self) -> bool:
-        return (
-            strtobool(config.get_config("verify"))
-            if self.verify is None
-            else self.verify
+        verify = str(
+            config.get_config("verify") if self.verify is None else self.verify
         )
+        return strtobool(verify)
 
     def _get_headers(self, key_is_mandatory: bool = True) -> dict[str, str]:
         try:

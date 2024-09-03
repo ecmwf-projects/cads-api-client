@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 def api_root_url() -> str:
     from cads_api_client import config
 
-    return config.get_config("url")
+    return str(config.get_config("url"))
 
 
 @pytest.fixture
