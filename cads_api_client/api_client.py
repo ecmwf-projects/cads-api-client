@@ -36,15 +36,16 @@ class ApiClient:
         return config.get_config("key") if self.key is None else self.key
 
     def get_verify(self) -> bool:
-        if self.verify is not None:
-            return self.verify
-        try:
-            return strtobool(config.get_config("verify"))
-        except KeyError:
-            return True
+        return (
+            strtobool(config.get_config("verify"))
+            if self.verify is None
+            else self.verify
+        )
 
     def _get_headers(self, key_is_mandatory: bool = True) -> dict[str, str]:
-        if (key := self.get_key()) is None:
+        try:
+            key = self.get_key()
+        except KeyError:
             if key_is_mandatory:
                 raise ValueError("A valid API key is needed to access this resource")
             return {}

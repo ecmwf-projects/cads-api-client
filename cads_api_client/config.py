@@ -13,6 +13,7 @@ def read_configuration_file(
     if not config:
         # Default config
         config["url"] = "http://localhost:8080/api"
+        config["verify"] = "True"
         config_path = os.path.expanduser(config_path)
         try:
             with open(config_path) as fin:
@@ -26,9 +27,11 @@ def read_configuration_file(
 
 def get_config(
     key: str,
-    config_path: str = "~/.cads-api-client.json",
+    config_path: str | None = None,
     config: dict[str, str] = CONFIG,
 ) -> str:
+    if config_path is None:
+        config_path = os.getenv("CADS_API_RC", "~/.cads-api-client.json")
     return (
         os.getenv(f"CADS_API_{key.upper()}")
         or read_configuration_file(config_path, config)[key]
