@@ -9,15 +9,11 @@ from cads_api_client import config
 def test_read_configuration(
     tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    expected_config = {
-        "url": "http://localhost:8080/api",
-        "key": "dummy-key",
-        "verify": True,
-    }
+    expected_config = {"url": "dummy-url", "key": "dummy-key"}
 
     config_file = tmp_path / ".cads-api-client.json"
     with config_file.open("w") as fp:
-        json.dump({"key": "dummy-key"}, fp)
+        json.dump({"url": "dummy-url", "key": "dummy-key"}, fp)
 
     res = config.read_configuration_file(str(config_file))
     assert res == expected_config

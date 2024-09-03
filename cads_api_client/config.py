@@ -4,7 +4,6 @@ import json
 import os
 from typing import Any
 
-DEFAULT_CONFIG: dict[str, Any] = {"url": "http://localhost:8080/api", "verify": True}
 SUPPORTED_API_VERSION = "v1"
 
 
@@ -14,7 +13,7 @@ def read_configuration_file(config_path: str | None = None) -> dict[Any, Any]:
     config_path = os.path.expanduser(config_path)
     try:
         with open(config_path) as fin:
-            config = DEFAULT_CONFIG | json.load(fin)
+            config = json.load(fin)
         assert isinstance(config, dict)
     except FileNotFoundError:
         raise

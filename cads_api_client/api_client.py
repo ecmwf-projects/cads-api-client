@@ -40,7 +40,10 @@ class ApiClient:
                 pass
 
         if self.verify is None:
-            self.verify = strtobool(str(config.get_config("verify")))
+            try:
+                self.verify = strtobool(str(config.get_config("verify")))
+            except KeyError:
+                self.verify = True
 
     def _get_headers(self, key_is_mandatory: bool = True) -> dict[str, str]:
         if self.key is None:

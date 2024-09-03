@@ -13,7 +13,10 @@ if TYPE_CHECKING:
 def api_root_url() -> str:
     from cads_api_client import config
 
-    return str(config.get_config("url"))
+    try:
+        return str(config.get_config("url"))
+    except Exception:
+        return "http://localhost:8080/api"
 
 
 @pytest.fixture
