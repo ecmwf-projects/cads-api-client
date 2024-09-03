@@ -13,6 +13,7 @@ def cat(api_root_url: str, api_anon_key: str) -> catalogue.Catalogue:
         headers={"PRIVATE-TOKEN": api_anon_key},
         session=requests.Session(),
         retry_options={},
+        request_options={},
         sleep_max=120,
         cleanup=False,
     )

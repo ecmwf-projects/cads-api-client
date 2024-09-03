@@ -11,6 +11,7 @@ def cat(api_root_url: str) -> catalogue.Catalogue:
         headers={},
         session=requests.Session(),
         retry_options={},
+        request_options={},
         sleep_max=120,
         cleanup=False,
     )

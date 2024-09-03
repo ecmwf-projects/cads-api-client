@@ -28,6 +28,7 @@ class RequestKwargs(TypedDict):
     headers: dict[str, str]
     session: requests.Session
     retry_options: dict[str, Any]
+    request_options: dict[str, Any]
     sleep_max: int
     cleanup: bool
 
@@ -76,6 +77,7 @@ class ApiResponse:
     headers: dict[str, str]
     session: requests.Session
     retry_options: dict[str, Any]
+    request_options: dict[str, Any]
     sleep_max: int
     cleanup: bool
 
@@ -85,6 +87,7 @@ class ApiResponse:
             headers=self.headers,
             session=self.session,
             retry_options=self.retry_options,
+            request_options=self.request_options,
             sleep_max=self.sleep_max,
             cleanup=self.cleanup,
         )
@@ -97,6 +100,7 @@ class ApiResponse:
         headers: dict[str, str],
         session: requests.Session | None,
         retry_options: dict[str, Any],
+        request_options: dict[str, Any],
         sleep_max: int,
         cleanup: bool,
         **kwargs: Any,
@@ -107,7 +111,9 @@ class ApiResponse:
 
         inputs = kwargs.get("json", {}).get("inputs", {})
         logger.debug(f"{method.upper()} {url} {inputs or ''}".strip())
-        response = robust_request(method, url, headers=headers, **kwargs)
+        response = robust_request(
+            method, url, headers=headers, **request_options, **kwargs
+        )
         logger.debug(f"REPLY {response.text}")
 
         cads_raise_for_status(response)
@@ -117,6 +123,7 @@ class ApiResponse:
             headers=headers,
             session=session,
             retry_options=retry_options,
+            request_options=request_options,
             sleep_max=sleep_max,
             cleanup=cleanup,
         )
@@ -206,6 +213,7 @@ class Remote:
     headers: dict[str, str]
     session: requests.Session
     retry_options: dict[str, Any]
+    request_options: dict[str, Any]
     sleep_max: int
     cleanup: bool
 
@@ -219,6 +227,7 @@ class Remote:
             headers=self.headers,
             session=self.session,
             retry_options=self.retry_options,
+            request_options=self.request_options,
             sleep_max=self.sleep_max,
             cleanup=self.cleanup,
         )
@@ -294,18 +303,16 @@ class Remote:
     def _download_result(
         self,
         target: str | None = None,
-        timeout: int = 60,
     ) -> str:
         results = self.make_results()
-        return results.download(target, timeout=timeout)
+        return results.download(target)
 
     def download(
         self,
         target: str | None = None,
-        timeout: int = 60,
     ) -> str:
         self.wait_on_result()
-        return self._download_result(target, timeout=timeout)
+        return self._download_result(target)
 
     def delete(self) -> dict[str, Any]:
         response = self.get_api_response("delete")
@@ -428,7 +435,6 @@ class Results(ApiResponse):
     def download(
         self,
         target: str | None = None,
-        timeout: int = 60,
     ) -> str:
         url = self.location
         if target is None:
@@ -436,7 +442,11 @@ class Results(ApiResponse):
             target = parts.path.strip("/").split("/")[-1]
 
         multiurl.download(
-            url, stream=True, target=target, timeout=timeout, **self.retry_options
+            url,
+            stream=True,
+            target=target,
+            **self.retry_options,
+            **self.request_options,
         )
         if (target_size := os.path.getsize(target)) != (size := self.content_length):
             raise DownloadError(
@@ -463,6 +473,7 @@ class Processing:
     headers: dict[str, str]
     session: requests.Session
     retry_options: dict[str, Any]
+    request_options: dict[str, Any]
     sleep_max: int
     cleanup: bool
     force_exact_url: bool = False
@@ -477,6 +488,7 @@ class Processing:
             headers=self.headers,
             session=self.session,
             retry_options=self.retry_options,
+            request_options=self.request_options,
             sleep_max=self.sleep_max,
             cleanup=self.cleanup,
         )

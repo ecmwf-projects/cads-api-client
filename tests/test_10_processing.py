@@ -302,6 +302,7 @@ def catalogue() -> cads_api_client.Catalogue:
         headers={},
         session=requests.Session(),
         retry_options={},
+        request_options={},
         sleep_max=120,
         cleanup=False,
     )

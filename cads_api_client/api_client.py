@@ -9,28 +9,45 @@ import requests
 from . import catalogue, config, processing, profile
 
 
+def strtobool(value: str) -> bool:
+    if value.lower() in ("y", "yes", "t", "true", "on", "1"):
+        return True
+    if value.lower() in ("n", "no", "f", "false", "off", "0"):
+        return False
+    raise ValueError(f"invalid truth value {value!r}")
+
+
 @attrs.define(slots=False)
 class ApiClient:
-    key: str | None = None
     url: str | None = None
-    sleep_max: int = 120
+    key: str | None = None
+    verify: bool | None = None
+    timeout: int = 60
     cleanup: bool = False
-    session: requests.Session = attrs.field(factory=requests.Session)
-    maximum_tries: int = 500
+    sleep_max: int = 120
     retry_after: int = 120
+    maximum_tries: int = 500
+    session: requests.Session = attrs.field(factory=requests.Session)
 
     def get_url(self) -> str:
-        return self.url or config.get_config("url")
+        return config.get_config("url") if self.url is None else self.url
 
     def get_key(self) -> str:
-        return self.key or config.get_config("key")
+        return config.get_config("key") if self.key is None else self.key
+
+    def get_verify(self) -> bool:
+        if self.verify is not None:
+            return self.verify
+        try:
+            return strtobool(config.get_config("verify"))
+        except KeyError:
+            return True
 
     def _get_headers(self, key_is_mandatory: bool = True) -> dict[str, str]:
         if (key := self.get_key()) is None:
             if key_is_mandatory:
                 raise ValueError("A valid API key is needed to access this resource")
-            else:
-                return {}
+            return {}
         return {"PRIVATE-TOKEN": key}
 
     @property
@@ -40,6 +57,13 @@ class ApiClient:
             "retry_after": self.retry_after,
         }
 
+    @property
+    def _request_options(self) -> dict[str, Any]:
+        return {
+            "timeout": self.timeout,
+            "verify": self.get_verify(),
+        }
+
     def _get_request_kwargs(
         self, mandatory_key: bool = True
     ) -> processing.RequestKwargs:
@@ -47,6 +71,7 @@ class ApiClient:
             headers=self._get_headers(key_is_mandatory=mandatory_key),
             session=self.session,
             retry_options=self._retry_options,
+            request_options=self._request_options,
             sleep_max=self.sleep_max,
             cleanup=self.cleanup,
         )
