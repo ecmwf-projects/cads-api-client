@@ -29,26 +29,25 @@ class ApiClient:
     maximum_tries: int = 500
     session: requests.Session = attrs.field(factory=requests.Session)
 
-    def get_url(self) -> str:
-        return str(config.get_config("url") if self.url is None else self.url)
+    def __attrs_post_init__(self) -> None:
+        if self.url is None:
+            self.url = str(config.get_config("url"))
 
-    def get_key(self) -> str:
-        return str(config.get_config("key") if self.key is None else self.key)
+        if self.key is None:
+            try:
+                self.key = str(config.get_config("key"))
+            except KeyError:
+                pass
 
-    def get_verify(self) -> bool:
-        verify = str(
-            config.get_config("verify") if self.verify is None else self.verify
-        )
-        return strtobool(verify)
+        if self.verify is None:
+            self.verify = strtobool(str(config.get_config("verify")))
 
     def _get_headers(self, key_is_mandatory: bool = True) -> dict[str, str]:
-        try:
-            key = self.get_key()
-        except KeyError:
+        if self.key is None:
             if key_is_mandatory:
                 raise ValueError("A valid API key is needed to access this resource")
             return {}
-        return {"PRIVATE-TOKEN": key}
+        return {"PRIVATE-TOKEN": self.key}
 
     @property
     def _retry_options(self) -> dict[str, Any]:
@@ -61,7 +60,7 @@ class ApiClient:
     def _request_options(self) -> dict[str, Any]:
         return {
             "timeout": self.timeout,
-            "verify": self.get_verify(),
+            "verify": self.verify,
         }
 
     def _get_request_kwargs(
@@ -79,21 +78,19 @@ class ApiClient:
     @functools.cached_property
     def catalogue_api(self) -> catalogue.Catalogue:
         return catalogue.Catalogue(
-            f"{self.get_url()}/catalogue",
+            f"{self.url}/catalogue",
             **self._get_request_kwargs(mandatory_key=False),
         )
 
     @functools.cached_property
     def retrieve_api(self) -> processing.Processing:
         return processing.Processing(
-            f"{self.get_url()}/retrieve", **self._get_request_kwargs()
+            f"{self.url}/retrieve", **self._get_request_kwargs()
         )
 
     @functools.cached_property
     def profile_api(self) -> profile.Profile:
-        return profile.Profile(
-            f"{self.get_url()}/profiles", **self._get_request_kwargs()
-        )
+        return profile.Profile(f"{self.url}/profiles", **self._get_request_kwargs())
 
     def check_authentication(self) -> dict[str, Any]:
         return self.profile_api.check_authentication()
