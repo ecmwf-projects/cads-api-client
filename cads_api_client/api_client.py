@@ -16,16 +16,8 @@ class ApiClient:
     sleep_max: int = 120
     cleanup: bool = False
     session: requests.Session = attrs.field(factory=requests.Session)
-    # Retry options
     maximum_tries: int = 500
     retry_after: int = 120
-
-    @property
-    def retry_options(self) -> dict[str, Any]:
-        return {
-            "maximum_tries": self.maximum_tries,
-            "retry_after": self.retry_after,
-        }
 
     def get_url(self) -> str:
         return self.url or config.get_config("url")
@@ -33,45 +25,49 @@ class ApiClient:
     def get_key(self) -> str:
         return self.key or config.get_config("key")
 
-    def _get_headers(self, error: bool = True) -> dict[str, str]:
+    def _get_headers(self, key_is_mandatory: bool = True) -> dict[str, str]:
         if (key := self.get_key()) is None:
-            if error:
+            if key_is_mandatory:
                 raise ValueError("A valid API key is needed to access this resource")
             else:
                 return {}
         return {"PRIVATE-TOKEN": key}
 
+    @property
+    def _retry_options(self) -> dict[str, Any]:
+        return {
+            "maximum_tries": self.maximum_tries,
+            "retry_after": self.retry_after,
+        }
+
+    def _get_request_kwargs(
+        self, mandatory_key: bool = True
+    ) -> processing.RequestKwargs:
+        return processing.RequestKwargs(
+            headers=self._get_headers(key_is_mandatory=mandatory_key),
+            session=self.session,
+            retry_options=self._retry_options,
+            sleep_max=self.sleep_max,
+            cleanup=self.cleanup,
+        )
+
     @functools.cached_property
     def catalogue_api(self) -> catalogue.Catalogue:
         return catalogue.Catalogue(
             f"{self.get_url()}/catalogue",
-            headers=self._get_headers(error=False),
-            session=self.session,
-            retry_options=self.retry_options,
-            sleep_max=self.sleep_max,
-            cleanup=self.cleanup,
+            **self._get_request_kwargs(mandatory_key=False),
         )
 
     @functools.cached_property
     def retrieve_api(self) -> processing.Processing:
         return processing.Processing(
-            f"{self.get_url()}/retrieve",
-            headers=self._get_headers(),
-            session=self.session,
-            retry_options=self.retry_options,
-            sleep_max=self.sleep_max,
-            cleanup=self.cleanup,
+            f"{self.get_url()}/retrieve", **self._get_request_kwargs()
         )
 
     @functools.cached_property
     def profile_api(self) -> profile.Profile:
         return profile.Profile(
-            f"{self.get_url()}/profiles",
-            headers=self._get_headers(),
-            session=self.session,
-            retry_options=self.retry_options,
-            sleep_max=self.sleep_max,
-            cleanup=self.cleanup,
+            f"{self.get_url()}/profiles", **self._get_request_kwargs()
         )
 
     def check_authentication(self) -> dict[str, Any]:

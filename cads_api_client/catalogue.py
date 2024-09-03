@@ -51,15 +51,10 @@ class Collection(processing.ApiResponse):
         self, headers: dict[str, str] | None = None
     ) -> processing.Process:
         url = self.get_link_href(rel="retrieve")
-        return processing.Process.from_request(
-            "get",
-            url,
-            headers=self.headers if headers is None else headers,
-            session=self.session,
-            retry_options=self.retry_options,
-            sleep_max=self.sleep_max,
-            cleanup=self.cleanup,
-        )
+        kwargs = self.request_kwargs
+        if headers is not None:
+            kwargs["headers"] = headers
+        return processing.Process.from_request("get", url, **kwargs)
 
     def submit(
         self,
@@ -92,39 +87,28 @@ class Catalogue:
         if not self.force_exact_url:
             self.url += f"/{config.SUPPORTED_API_VERSION}"
 
-    def collections(self, params: dict[str, Any] = {}) -> Collections:
-        url = f"{self.url}/datasets"
-        return Collections.from_request(
-            "get",
-            url,
-            params=params,
+    @property
+    def request_kwargs(self) -> processing.RequestKwargs:
+        return processing.RequestKwargs(
             headers=self.headers,
             session=self.session,
             retry_options=self.retry_options,
             sleep_max=self.sleep_max,
             cleanup=self.cleanup,
+        )
+
+    def collections(self, params: dict[str, Any] = {}) -> Collections:
+        url = f"{self.url}/datasets"
+        return Collections.from_request(
+            "get", url, params=params, **self.request_kwargs
         )
 
     def collection(self, collection_id: str) -> Collection:
         url = f"{self.url}/collections/{collection_id}"
-        return Collection.from_request(
-            "get",
-            url,
-            headers=self.headers,
-            session=self.session,
-            retry_options=self.retry_options,
-            sleep_max=self.sleep_max,
-            cleanup=self.cleanup,
-        )
+        return Collection.from_request("get", url, **self.request_kwargs)
 
     def licenses(self) -> dict[str, Any]:
         url = f"{self.url}/vocabularies/licences"
         return processing.ApiResponse.from_request(
-            "get",
-            url,
-            headers=self.headers,
-            session=self.session,
-            retry_options=self.retry_options,
-            sleep_max=self.sleep_max,
-            cleanup=self.cleanup,
+            "get", url, **self.request_kwargs
         ).json
