@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import functools
+import warnings
 from typing import Any
 
 import attrs
@@ -39,6 +40,7 @@ class ApiClient:
             try:
                 self.key = str(config.get_config("key"))
             except KeyError:
+                warnings.warn("The API key is missing", UserWarning)
                 pass
 
         if self.verify is None:
@@ -50,7 +52,7 @@ class ApiClient:
     def _get_headers(self, key_is_mandatory: bool = True) -> dict[str, str]:
         if self.key is None:
             if key_is_mandatory:
-                raise ValueError("A valid API key is needed to access this resource")
+                raise ValueError("The API key is needed to access this resource")
             return {}
         return {"PRIVATE-TOKEN": self.key}
 
