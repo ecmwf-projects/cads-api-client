@@ -135,3 +135,35 @@ def test_legacy_update(
     target = tmp_path / "test.grib"
     remote.download(str(target))
     assert target.stat().st_size == 1
+
+
+def test_legacy_api_client_kwargs(api_root_url: str, api_anon_key: str) -> None:
+    session = requests.Session()
+    client = legacy_api_client.LegacyApiClient(
+        url=api_root_url,
+        key=api_anon_key,
+        verify=False,
+        timeout=1,
+        progress=False,
+        delete=True,
+        retry_max=2,
+        sleep_max=3,
+        wait_until_complete=False,
+        session=session,
+    )
+    assert client.client.url == api_root_url
+    assert client.client.key == api_anon_key
+    assert client.client.verify is False
+    assert client.timeout == 1
+    assert client.client.progress is False
+    assert client.client.cleanup is True
+    assert client.client.maximum_tries == 2
+    assert client.client.sleep_max == 3
+
+
+def test_legacy_api_client_error(
+    api_root_url: str,
+    api_anon_key: str,
+) -> None:
+    with pytest.raises(ValueError, match="Wrong parameters: {'foo'}"):
+        legacy_api_client.LegacyApiClient(url=api_root_url, key=api_anon_key, foo="bar")

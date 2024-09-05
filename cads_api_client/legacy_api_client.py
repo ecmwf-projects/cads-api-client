@@ -76,6 +76,8 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
         **kwargs: Any,
     ) -> None:
         kwargs.update(zip(LEGACY_KWARGS, args))
+        if wrong_kwargs := set(kwargs) - set(LEGACY_KWARGS):
+            raise ValueError(f"Wrong parameters: {wrong_kwargs}.")
 
         self.url, self.key, self.verify = cdsapi.api.get_url_key_verify(
             url, key, verify
@@ -90,7 +92,6 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
         self.delete = kwargs.pop("delete", False)
         self.retry_max = kwargs.pop("retry_max", 500)
         self.session = kwargs.pop("session", requests.Session())
-
         if kwargs:
             warnings.warn(
                 "This is a beta version."
