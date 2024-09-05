@@ -29,6 +29,7 @@ class RequestKwargs(TypedDict):
     session: requests.Session
     retry_options: dict[str, Any]
     request_options: dict[str, Any]
+    download_options: dict[str, Any]
     sleep_max: int
     cleanup: bool
 
@@ -78,6 +79,7 @@ class ApiResponse:
     session: requests.Session
     retry_options: dict[str, Any]
     request_options: dict[str, Any]
+    download_options: dict[str, Any]
     sleep_max: int
     cleanup: bool
 
@@ -88,6 +90,7 @@ class ApiResponse:
             session=self.session,
             retry_options=self.retry_options,
             request_options=self.request_options,
+            download_options=self.download_options,
             sleep_max=self.sleep_max,
             cleanup=self.cleanup,
         )
@@ -101,6 +104,7 @@ class ApiResponse:
         session: requests.Session | None,
         retry_options: dict[str, Any],
         request_options: dict[str, Any],
+        download_options: dict[str, Any],
         sleep_max: int,
         cleanup: bool,
         **kwargs: Any,
@@ -124,6 +128,7 @@ class ApiResponse:
             session=session,
             retry_options=retry_options,
             request_options=request_options,
+            download_options=download_options,
             sleep_max=sleep_max,
             cleanup=cleanup,
         )
@@ -214,6 +219,7 @@ class Remote:
     session: requests.Session
     retry_options: dict[str, Any]
     request_options: dict[str, Any]
+    download_options: dict[str, Any]
     sleep_max: int
     cleanup: bool
 
@@ -228,6 +234,7 @@ class Remote:
             session=self.session,
             retry_options=self.retry_options,
             request_options=self.request_options,
+            download_options=self.download_options,
             sleep_max=self.sleep_max,
             cleanup=self.cleanup,
         )
@@ -441,12 +448,13 @@ class Results(ApiResponse):
             parts = urllib.parse.urlparse(url)
             target = parts.path.strip("/").split("/")[-1]
 
+        download_options = {"stream": True} | self.download_options
         multiurl.download(
             url,
-            stream=True,
             target=target,
             **self.retry_options,
             **self.request_options,
+            **download_options,
         )
         if (target_size := os.path.getsize(target)) != (size := self.content_length):
             raise DownloadError(
@@ -474,6 +482,7 @@ class Processing:
     session: requests.Session
     retry_options: dict[str, Any]
     request_options: dict[str, Any]
+    download_options: dict[str, Any]
     sleep_max: int
     cleanup: bool
     force_exact_url: bool = False
@@ -489,6 +498,7 @@ class Processing:
             session=self.session,
             retry_options=self.retry_options,
             request_options=self.request_options,
+            download_options=self.download_options,
             sleep_max=self.sleep_max,
             cleanup=self.cleanup,
         )

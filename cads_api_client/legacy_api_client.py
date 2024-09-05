@@ -12,7 +12,6 @@ import requests
 from . import api_client, processing
 
 LEGACY_KWARGS = [
-    "progress",
     "full_stack",
     "delete",
     "retry_max",
@@ -72,6 +71,7 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
         debug: bool = False,
         verify: bool | None = None,
         timeout: int = 60,
+        progress: bool = True,
         *args: Any,
         **kwargs: Any,
     ) -> None:
@@ -83,6 +83,7 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
         self.quiet = quiet
         self._debug = debug
         self.timeout = timeout
+        self.progress = progress
 
         self.sleep_max = kwargs.pop("sleep_max", 120)
         self.wait_until_complete = kwargs.pop("wait_until_complete", True)
@@ -107,6 +108,7 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
             maximum_tries=self.retry_max,
             retry_after=self.sleep_max,
             timeout=self.timeout,
+            progress=self.progress,
         )
         self.debug(
             "CDSAPI %s",
@@ -116,6 +118,7 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
                 "quiet": self.quiet,
                 "verify": self.verify,
                 "timeout": self.timeout,
+                "progress": self.progress,
                 "sleep_max": self.sleep_max,
                 "retry_max": self.retry_max,
                 "delete": self.delete,

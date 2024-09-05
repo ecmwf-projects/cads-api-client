@@ -15,6 +15,7 @@ class Profile:
     session: requests.Session
     retry_options: dict[str, Any]
     request_options: dict[str, Any]
+    download_options: dict[str, Any]
     sleep_max: int
     cleanup: bool
     force_exact_url: bool = False
@@ -30,6 +31,7 @@ class Profile:
             session=self.session,
             retry_options=self.retry_options,
             request_options=self.request_options,
+            download_options=self.download_options,
             sleep_max=self.sleep_max,
             cleanup=self.cleanup,
         )

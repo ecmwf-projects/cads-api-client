@@ -12,6 +12,7 @@ def proc(api_root_url: str, api_anon_key: str) -> processing.Processing:
         session=requests.Session(),
         retry_options={},
         request_options={},
+        download_options={},
         sleep_max=120,
         cleanup=False,
     )

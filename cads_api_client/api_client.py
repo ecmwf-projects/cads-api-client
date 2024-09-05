@@ -4,6 +4,7 @@ import functools
 from typing import Any
 
 import attrs
+import multiurl.base
 import requests
 
 from . import catalogue, config, processing, profile
@@ -23,6 +24,7 @@ class ApiClient:
     key: str | None = None
     verify: bool | None = None
     timeout: int = 60
+    progress: bool = True
     cleanup: bool = False
     sleep_max: int = 120
     retry_after: int = 120
@@ -60,6 +62,15 @@ class ApiClient:
         }
 
     @property
+    def _download_options(self) -> dict[str, Any]:
+        progress_bar = (
+            multiurl.base.progress_bar if self.progress else multiurl.base.NoBar
+        )
+        return {
+            "progress_bar": progress_bar,
+        }
+
+    @property
     def _request_options(self) -> dict[str, Any]:
         return {
             "timeout": self.timeout,
@@ -74,6 +85,7 @@ class ApiClient:
             session=self.session,
             retry_options=self._retry_options,
             request_options=self._request_options,
+            download_options=self._download_options,
             sleep_max=self.sleep_max,
             cleanup=self.cleanup,
         )
