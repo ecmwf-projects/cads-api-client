@@ -288,7 +288,7 @@ class Remote:
                 sleep *= 1.5
                 if sleep > self.sleep_max:
                     sleep = self.sleep_max
-            elif status == "dismissed":
+            elif status in ("dismissed", "deleted"):
                 raise ProcessingFailedError(f"API state {status!r}")
             else:
                 raise ProcessingFailedError(f"Unknown API state {status!r}")
