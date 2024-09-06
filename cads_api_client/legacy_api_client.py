@@ -12,9 +12,6 @@ import requests
 from . import api_client, processing
 
 LEGACY_KWARGS = [
-    "verify",
-    "timeout",
-    "progress",
     "full_stack",
     "delete",
     "retry_max",
@@ -72,35 +69,29 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
         key: str | None = None,
         quiet: bool = False,
         debug: bool = False,
+        verify: bool | None = None,
+        timeout: int = 60,
+        progress: bool = True,
         *args: Any,
         **kwargs: Any,
     ) -> None:
         kwargs.update(zip(LEGACY_KWARGS, args))
+        if wrong_kwargs := set(kwargs) - set(LEGACY_KWARGS):
+            raise ValueError(f"Wrong parameters: {wrong_kwargs}.")
 
-        self.url, self.key, _ = cdsapi.api.get_url_key_verify(url, key, None)
-        self.session = kwargs.pop("session", requests.Session())
-        self.sleep_max = kwargs.pop("sleep_max", 120)
-        self.delete = kwargs.pop("delete", False)
-        self.client = api_client.ApiClient(
-            url=self.url,
-            key=self.key,
-            session=self.session,
-            sleep_max=self.sleep_max,
-            cleanup=self.delete,
+        self.url, self.key, self.verify = cdsapi.api.get_url_key_verify(
+            url, key, verify
         )
-
-        self.timeout = kwargs.pop("timeout", 60)
-        self.retry_max = kwargs.pop("retry_max", 500)
-        self.retry_options = {
-            "maximum_tries": self.retry_max,
-            "retry_after": self.sleep_max,
-        }
-
         self.quiet = quiet
         self._debug = debug
+        self.timeout = timeout
+        self.progress = progress
 
+        self.sleep_max = kwargs.pop("sleep_max", 120)
         self.wait_until_complete = kwargs.pop("wait_until_complete", True)
-
+        self.delete = kwargs.pop("delete", False)
+        self.retry_max = kwargs.pop("retry_max", 500)
+        self.session = kwargs.pop("session", requests.Session())
         if kwargs:
             warnings.warn(
                 "This is a beta version."
@@ -108,13 +99,27 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
                 UserWarning,
             )
 
+        self.client = api_client.ApiClient(
+            url=self.url,
+            key=self.key,
+            verify=self.verify,
+            sleep_max=self.sleep_max,
+            session=self.session,
+            cleanup=self.delete,
+            maximum_tries=self.retry_max,
+            retry_after=self.sleep_max,
+            timeout=self.timeout,
+            progress=self.progress,
+        )
         self.debug(
             "CDSAPI %s",
             {
                 "url": self.url,
                 "key": self.key,
                 "quiet": self.quiet,
+                "verify": self.verify,
                 "timeout": self.timeout,
+                "progress": self.progress,
                 "sleep_max": self.sleep_max,
                 "retry_max": self.retry_max,
                 "delete": self.delete,
@@ -152,23 +157,16 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
         if self.wait_until_complete:
             submitted = self.logging_decorator(self.client.submit_and_wait_on_result)(
                 collection_id=name,
-                retry_options=self.retry_options,
                 **request,
             )
         else:
             submitted = self.logging_decorator(self.client.submit)(
                 collection_id=name,
-                retry_options=self.retry_options,
                 **request,
             )
 
-        # Assign legacy methods
-        partial_download: Callable[..., str] = functools.partial(
-            submitted.download,
-            timeout=self.timeout,
-            retry_options=self.retry_options,
-        )
-        submitted.download = self.logging_decorator(partial_download)  # type: ignore[method-assign]
+        # Decorate legacy methods
+        submitted.download = self.logging_decorator(submitted.download)  # type: ignore[method-assign]
         submitted.info = self.logging_decorator(submitted.info)  # type: ignore[method-assign]
         submitted.warning = self.logging_decorator(submitted.warning)  # type: ignore[method-assign]
         submitted.error = self.logging_decorator(submitted.error)  # type: ignore[method-assign]

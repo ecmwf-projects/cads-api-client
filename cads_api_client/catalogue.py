@@ -47,50 +47,72 @@ class Collection(processing.ApiResponse):
         assert isinstance(collection_id, str)
         return collection_id
 
-    def retrieve_process(self) -> processing.Process:
+    def retrieve_process(
+        self, headers: dict[str, str] | None = None
+    ) -> processing.Process:
         url = self.get_link_href(rel="retrieve")
-        return processing.Process.from_request(
-            "get", url, headers=self.headers, session=self.session
-        )
+        kwargs = self.request_kwargs
+        if headers is not None:
+            kwargs["headers"] = headers
+        return processing.Process.from_request("get", url, **kwargs)
 
-    def submit(self, **request: Any) -> processing.Remote:
-        retrieve_process = self.retrieve_process()
-        status_info = retrieve_process.execute(inputs=request, session=self.session)
+    def submit(
+        self,
+        **request: Any,
+    ) -> processing.Remote:
+        retrieve_process = self.retrieve_process(headers=self.headers)
+        status_info = retrieve_process.execute(inputs=request)
         return status_info.make_remote()
 
     def retrieve(
         self,
         target: str | None = None,
-        retry_options: dict[str, Any] = {},
         **request: Any,
     ) -> str:
         remote = self.submit(**request)
-        return remote.download(target, retry_options=retry_options)
+        return remote.download(target)
 
 
 @attrs.define(slots=False)
 class Catalogue:
     url: str
+    headers: dict[str, Any]
+    session: requests.Session
+    retry_options: dict[str, Any]
+    request_options: dict[str, Any]
+    download_options: dict[str, Any]
+    sleep_max: int
+    cleanup: bool
     force_exact_url: bool = False
-    headers: dict[str, Any] = {}
-    session: requests.Session = attrs.field(factory=requests.Session)
 
     def __attrs_post_init__(self) -> None:
         if not self.force_exact_url:
             self.url += f"/{config.SUPPORTED_API_VERSION}"
 
+    @property
+    def request_kwargs(self) -> processing.RequestKwargs:
+        return processing.RequestKwargs(
+            headers=self.headers,
+            session=self.session,
+            retry_options=self.retry_options,
+            request_options=self.request_options,
+            download_options=self.download_options,
+            sleep_max=self.sleep_max,
+            cleanup=self.cleanup,
+        )
+
     def collections(self, params: dict[str, Any] = {}) -> Collections:
         url = f"{self.url}/datasets"
-        return Collections.from_request("get", url, params=params, session=self.session)
+        return Collections.from_request(
+            "get", url, params=params, **self.request_kwargs
+        )
 
     def collection(self, collection_id: str) -> Collection:
         url = f"{self.url}/collections/{collection_id}"
-        return Collection.from_request(
-            "get", url, headers=self.headers, session=self.session
-        )
+        return Collection.from_request("get", url, **self.request_kwargs)
 
     def licenses(self) -> dict[str, Any]:
         url = f"{self.url}/vocabularies/licences"
         return processing.ApiResponse.from_request(
-            "get", url, headers=self.headers, session=self.session
+            "get", url, **self.request_kwargs
         ).json

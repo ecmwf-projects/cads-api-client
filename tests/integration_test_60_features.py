@@ -16,7 +16,6 @@ def test_features_url_cds_adaptor_area_selection(
         "variable": "grid_point_altitude",
         "reference_dataset": "cru",
         "version": "2.1",
-        "retry_options": {"maximum_tries": 0},
     }
 
     result_bigger = api_anon_client.retrieve(
@@ -58,7 +57,6 @@ def test_features_mars_cds_adaptor_format(
         "day": "02",
         "time": "00:00",
         "target": None,
-        "retry_options": {"maximum_tries": 0},
     }
 
     result = api_anon_client.retrieve(

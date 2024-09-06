@@ -1,54 +1,113 @@
 from __future__ import annotations
 
 import functools
+import warnings
 from typing import Any
 
 import attrs
+import multiurl.base
 import requests
 
 from . import catalogue, config, processing, profile
 
 
+def strtobool(value: str) -> bool:
+    if value.lower() in ("y", "yes", "t", "true", "on", "1"):
+        return True
+    if value.lower() in ("n", "no", "f", "false", "off", "0"):
+        return False
+    raise ValueError(f"invalid truth value {value!r}")
+
+
 @attrs.define(slots=False)
 class ApiClient:
-    key: str | None = None
     url: str | None = None
-    sleep_max: int = 120
+    key: str | None = None
+    verify: bool | None = None
+    timeout: int = 60
+    progress: bool = True
     cleanup: bool = False
+    sleep_max: int = 120
+    retry_after: int = 120
+    maximum_tries: int = 500
     session: requests.Session = attrs.field(factory=requests.Session)
 
-    def get_url(self) -> str:
-        return self.url or config.get_config("url")
+    def __attrs_post_init__(self) -> None:
+        if self.url is None:
+            self.url = str(config.get_config("url"))
 
-    def get_key(self) -> str:
-        return self.key or config.get_config("key")
+        if self.key is None:
+            try:
+                self.key = str(config.get_config("key"))
+            except KeyError:
+                warnings.warn("The API key is missing", UserWarning)
+                pass
+
+        if self.verify is None:
+            try:
+                self.verify = strtobool(str(config.get_config("verify")))
+            except KeyError:
+                self.verify = True
+
+    def _get_headers(self, key_is_mandatory: bool = True) -> dict[str, str]:
+        if self.key is None:
+            if key_is_mandatory:
+                raise ValueError("The API key is needed to access this resource")
+            return {}
+        return {"PRIVATE-TOKEN": self.key}
 
     @property
-    def _headers(self) -> dict[str, str]:
-        key = self.get_key()
-        if key is None:
-            raise ValueError("A valid API key is needed to access this resource")
-        return {"PRIVATE-TOKEN": key}
+    def _retry_options(self) -> dict[str, Any]:
+        return {
+            "maximum_tries": self.maximum_tries,
+            "retry_after": self.retry_after,
+        }
 
-    @functools.cached_property
-    def catalogue_api(self) -> catalogue.Catalogue:
-        return catalogue.Catalogue(
-            f"{self.get_url()}/catalogue", headers=self._headers, session=self.session
+    @property
+    def _download_options(self) -> dict[str, Any]:
+        progress_bar = (
+            multiurl.base.progress_bar if self.progress else multiurl.base.NoBar
         )
+        return {
+            "progress_bar": progress_bar,
+        }
 
-    @functools.cached_property
-    def retrieve_api(self) -> processing.Processing:
-        return processing.Processing(
-            f"{self.get_url()}/retrieve",
-            headers=self._headers,
+    @property
+    def _request_options(self) -> dict[str, Any]:
+        return {
+            "timeout": self.timeout,
+            "verify": self.verify,
+        }
+
+    def _get_request_kwargs(
+        self, mandatory_key: bool = True
+    ) -> processing.RequestKwargs:
+        return processing.RequestKwargs(
+            headers=self._get_headers(key_is_mandatory=mandatory_key),
             session=self.session,
+            retry_options=self._retry_options,
+            request_options=self._request_options,
+            download_options=self._download_options,
             sleep_max=self.sleep_max,
             cleanup=self.cleanup,
         )
 
     @functools.cached_property
+    def catalogue_api(self) -> catalogue.Catalogue:
+        return catalogue.Catalogue(
+            f"{self.url}/catalogue",
+            **self._get_request_kwargs(mandatory_key=False),
+        )
+
+    @functools.cached_property
+    def retrieve_api(self) -> processing.Processing:
+        return processing.Processing(
+            f"{self.url}/retrieve", **self._get_request_kwargs()
+        )
+
+    @functools.cached_property
     def profile_api(self) -> profile.Profile:
-        return profile.Profile(f"{self.get_url()}/profiles", headers=self._headers)
+        return profile.Profile(f"{self.url}/profiles", **self._get_request_kwargs())
 
     def check_authentication(self) -> dict[str, Any]:
         return self.profile_api.check_authentication()
@@ -65,30 +124,21 @@ class ApiClient:
     def process(self, process_id: str) -> processing.Process:
         return self.retrieve_api.process(process_id=process_id)
 
-    def submit(
-        self, collection_id: str, retry_options: dict[str, Any] = {}, **request: Any
-    ) -> processing.Remote:
-        return self.retrieve_api.submit(
-            collection_id, retry_options=retry_options, **request
-        )
+    def submit(self, collection_id: str, **request: Any) -> processing.Remote:
+        return self.retrieve_api.submit(collection_id, **request)
 
     def submit_and_wait_on_result(
-        self, collection_id: str, retry_options: dict[str, Any] = {}, **request: Any
+        self, collection_id: str, **request: Any
     ) -> processing.Results:
-        return self.retrieve_api.submit_and_wait_on_result(
-            collection_id, retry_options=retry_options, **request
-        )
+        return self.retrieve_api.submit_and_wait_on_result(collection_id, **request)
 
     def retrieve(
         self,
         collection_id: str,
         target: str | None = None,
-        retry_options: dict[str, Any] = {},
         **request: Any,
     ) -> str:
-        result = self.submit_and_wait_on_result(
-            collection_id, retry_options=retry_options, **request
-        )
+        result = self.submit_and_wait_on_result(collection_id, **request)
         return result.download(target)
 
     def get_requests(self, **params: dict[str, Any]) -> processing.JobList:
@@ -99,14 +149,10 @@ class ApiClient:
 
     def get_remote(self, request_uid: str) -> processing.Remote:
         request = self.get_request(request_uid=request_uid)
-        return request.make_remote(sleep_max=self.sleep_max, cleanup=self.cleanup)
+        return request.make_remote()
 
-    def download_result(
-        self, request_uid: str, target: str | None, retry_options: dict[str, Any] = {}
-    ) -> str:
-        return self.retrieve_api.download_result(
-            request_uid, target, retry_options=retry_options
-        )
+    def download_result(self, request_uid: str, target: str | None) -> str:
+        return self.retrieve_api.download_result(request_uid, target)
 
     def valid_values(
         self, collection_id: str, request: dict[str, Any]

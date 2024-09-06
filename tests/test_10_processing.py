@@ -2,6 +2,7 @@ import json
 import logging
 
 import pytest
+import requests
 import responses
 from responses.matchers import json_params_matcher
 
@@ -294,6 +295,20 @@ RESULT_FAILED_JSON = {
 }
 
 
+@pytest.fixture
+def catalogue() -> cads_api_client.Catalogue:
+    return cads_api_client.Catalogue(
+        CATALOGUE_URL,
+        headers={},
+        session=requests.Session(),
+        retry_options={},
+        request_options={},
+        download_options={},
+        sleep_max=120,
+        cleanup=False,
+    )
+
+
 def responses_add() -> None:
     responses.add(
         responses.GET,
@@ -374,10 +389,8 @@ def responses_add() -> None:
 
 
 @responses.activate
-def test_catalogue_collections() -> None:
+def test_catalogue_collections(catalogue: cads_api_client.Catalogue) -> None:
     responses_add()
-
-    catalogue = cads_api_client.Catalogue(CATALOGUE_URL)
 
     collections = catalogue.collections()
     assert collections.response.json() == COLLECTIONS_JSON
@@ -387,10 +400,9 @@ def test_catalogue_collections() -> None:
 
 
 @responses.activate
-def test_submit() -> None:
+def test_submit(catalogue: cads_api_client.Catalogue) -> None:
     responses_add()
 
-    catalogue = cads_api_client.Catalogue(CATALOGUE_URL)
     collection = catalogue.collection(COLLECTION_ID)
     process = collection.retrieve_process()
 
@@ -405,20 +417,18 @@ def test_submit() -> None:
 
 
 @responses.activate
-def test_wait_on_result() -> None:
+def test_wait_on_result(catalogue: cads_api_client.Catalogue) -> None:
     responses_add()
 
-    catalogue = cads_api_client.Catalogue(CATALOGUE_URL)
     collection = catalogue.collection(COLLECTION_ID)
     remote = collection.submit(variable="temperature", year="2022")
     remote.wait_on_result()
 
 
 @responses.activate
-def test_wait_on_result_failed() -> None:
+def test_wait_on_result_failed(catalogue: cads_api_client.Catalogue) -> None:
     responses_add()
 
-    catalogue = cads_api_client.Catalogue(CATALOGUE_URL)
     collection = catalogue.collection(COLLECTION_ID)
     remote = collection.submit(variable="temperature", year="0000")
     with pytest.raises(
@@ -429,10 +439,11 @@ def test_wait_on_result_failed() -> None:
 
 
 @responses.activate
-def test_remote_logs(caplog: pytest.LogCaptureFixture) -> None:
+def test_remote_logs(
+    caplog: pytest.LogCaptureFixture, catalogue: cads_api_client.Catalogue
+) -> None:
     responses_add()
 
-    catalogue = cads_api_client.Catalogue(CATALOGUE_URL)
     collection = catalogue.collection(COLLECTION_ID)
 
     with caplog.at_level(logging.DEBUG, logger="cads_api_client.processing"):
@@ -443,7 +454,7 @@ def test_remote_logs(caplog: pytest.LogCaptureFixture) -> None:
         (
             "cads_api_client.processing",
             10,
-            "GET http://localhost:8080/api/retrieve/v1/processes/reanalysis-era5-pressure-levels {}",
+            "GET http://localhost:8080/api/retrieve/v1/processes/reanalysis-era5-pressure-levels",
         ),
         (
             "cads_api_client.processing",
