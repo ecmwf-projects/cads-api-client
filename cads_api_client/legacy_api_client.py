@@ -9,6 +9,7 @@ from typing import Any, Callable, TypeVar, cast, overload
 import cdsapi.api
 import requests
 
+from . import __version__ as cads_api_client_version
 from . import api_client, processing
 
 LEGACY_KWARGS = [
@@ -123,6 +124,7 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
                 "sleep_max": self.sleep_max,
                 "retry_max": self.retry_max,
                 "delete": self.delete,
+                "cads_api_client_version": cads_api_client_version,
             },
         )
 
