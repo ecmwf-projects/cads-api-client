@@ -1,21 +1,15 @@
 import pytest
-import requests
 
-from cads_api_client import catalogue
+from cads_api_client import ApiClient, catalogue
 
 
 @pytest.fixture
-def cat(api_root_url: str) -> catalogue.Catalogue:
-    return catalogue.Catalogue(
-        f"{api_root_url}/catalogue",
-        headers={},
-        session=requests.Session(),
-        retry_options={},
-        request_options={},
-        download_options={},
-        sleep_max=120,
-        cleanup=False,
-    )
+def cat(api_root_url: str, monkeypatch: pytest.MonkeyPatch) -> catalogue.Catalogue:
+    monkeypatch.setenv("CADS_API_RC", "")
+    monkeypatch.delenv("CADS_API_KEY", raising=False)
+    with pytest.warns(UserWarning, match="The API key is missing"):
+        client = ApiClient(url=api_root_url, maximum_tries=0)
+    return client.catalogue_api
 
 
 def test_collections(cat: catalogue.Catalogue) -> None:

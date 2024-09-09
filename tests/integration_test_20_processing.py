@@ -1,21 +1,13 @@
 import pytest
 import requests
 
-from cads_api_client import processing
+from cads_api_client import ApiClient, processing
 
 
 @pytest.fixture
 def proc(api_root_url: str, api_anon_key: str) -> processing.Processing:
-    return processing.Processing(
-        f"{api_root_url}/retrieve",
-        headers={"PRIVATE-TOKEN": api_anon_key},
-        session=requests.Session(),
-        retry_options={},
-        request_options={},
-        download_options={},
-        sleep_max=120,
-        cleanup=False,
-    )
+    client = ApiClient(url=api_root_url, key=api_anon_key, maximum_tries=0)
+    return client.retrieve_api
 
 
 def test_processes(proc: processing.Processing) -> None:
