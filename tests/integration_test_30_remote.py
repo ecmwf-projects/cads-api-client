@@ -1,23 +1,14 @@
 import pathlib
 
 import pytest
-import requests
 
-from cads_api_client import catalogue, processing
+from cads_api_client import ApiClient, catalogue, processing
 
 
 @pytest.fixture
 def cat(api_root_url: str, api_anon_key: str) -> catalogue.Catalogue:
-    return catalogue.Catalogue(
-        f"{api_root_url}/catalogue",
-        headers={"PRIVATE-TOKEN": api_anon_key},
-        session=requests.Session(),
-        retry_options={},
-        request_options={},
-        download_options={},
-        sleep_max=120,
-        cleanup=False,
-    )
+    client = ApiClient(url=api_root_url, key=api_anon_key, maximum_tries=0)
+    return client.catalogue_api
 
 
 def test_from_collection_to_process(cat: catalogue.Catalogue) -> None:

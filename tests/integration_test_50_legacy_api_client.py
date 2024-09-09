@@ -45,7 +45,9 @@ def legacy_update(remote: processing.Remote) -> None:
 
 
 def test_retrieve(tmp_path: pathlib.Path, api_root_url: str, api_anon_key: str) -> None:
-    client = legacy_api_client.LegacyApiClient(url=api_root_url, key=api_anon_key)
+    client = legacy_api_client.LegacyApiClient(
+        url=api_root_url, key=api_anon_key, retry_max=0
+    )
 
     collection_id = "test-adaptor-dummy"
     request = {"size": 1}
@@ -76,7 +78,7 @@ def test_quiet(
     quiet: bool,
 ) -> None:
     client = legacy_api_client.LegacyApiClient(
-        url=api_root_url, key=api_anon_key, quiet=quiet
+        url=api_root_url, key=api_anon_key, quiet=quiet, retry_max=0
     )
     client.retrieve("test-adaptor-dummy", {})
     records = [record for record in caplog.records if record.levelname == "INFO"]
@@ -90,7 +92,9 @@ def test_debug(
     api_anon_key: str,
     debug: bool,
 ) -> None:
-    legacy_api_client.LegacyApiClient(url=api_root_url, key=api_anon_key, debug=debug)
+    legacy_api_client.LegacyApiClient(
+        url=api_root_url, key=api_anon_key, debug=debug, retry_max=0
+    )
     records = [record for record in caplog.records if record.levelname == "DEBUG"]
     assert records if debug else not records
 
@@ -110,6 +114,7 @@ def test_wait_until_complete(
         url=api_root_url,
         key=api_anon_key,
         wait_until_complete=wait_until_complete,
+        retry_max=0,
     )
 
     collection_id = "test-adaptor-dummy"
@@ -137,9 +142,7 @@ def test_legacy_update(
     raises: contextlib.nullcontext[Any],
 ) -> None:
     client = legacy_api_client.LegacyApiClient(
-        url=api_root_url,
-        key=api_anon_key,
-        wait_until_complete=False,
+        url=api_root_url, key=api_anon_key, wait_until_complete=False, retry_max=0
     )
     remote = client.retrieve(collection_id, {})
     assert isinstance(remote, processing.Remote)
