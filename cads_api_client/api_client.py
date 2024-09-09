@@ -41,7 +41,6 @@ class ApiClient:
                 self.key = str(config.get_config("key"))
             except (KeyError, FileNotFoundError):
                 warnings.warn("The API key is missing", UserWarning)
-                pass
 
         if self.verify is None:
             try:
