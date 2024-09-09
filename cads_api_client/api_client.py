@@ -39,14 +39,13 @@ class ApiClient:
         if self.key is None:
             try:
                 self.key = str(config.get_config("key"))
-            except KeyError:
+            except (KeyError, FileNotFoundError):
                 warnings.warn("The API key is missing", UserWarning)
-                pass
 
         if self.verify is None:
             try:
                 self.verify = strtobool(str(config.get_config("verify")))
-            except KeyError:
+            except (KeyError, FileNotFoundError):
                 self.verify = True
 
     def _get_headers(self, key_is_mandatory: bool = True) -> dict[str, str]:

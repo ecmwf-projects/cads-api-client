@@ -14,8 +14,13 @@ from cads_api_client import ApiClient
 does_not_raise = contextlib.nullcontext
 
 
+@pytest.fixture
+def api_anon_client(api_root_url: str, api_anon_key: str) -> ApiClient:
+    return ApiClient(url=api_root_url, key=api_anon_key, maximum_tries=0)
+
+
 def test_accept_licence() -> None:
-    client = ApiClient()
+    client = ApiClient(maximum_tries=0)
 
     licence = client.licences["licences"][0]
     licence_id = licence["id"]
@@ -74,12 +79,16 @@ def test_api_client_verify(
     api_anon_key: str,
     tmp_path: pathlib.Path,
 ) -> None:
-    secure_client = ApiClient(url=api_root_url, key=api_anon_key, verify=True)
+    secure_client = ApiClient(
+        url=api_root_url, key=api_anon_key, verify=True, maximum_tries=0
+    )
     with warnings.catch_warnings(category=InsecureRequestWarning):
         warnings.simplefilter("error")
         secure_client.retrieve("test-adaptor-dummy", target=str(tmp_path / "test.grib"))
 
-    insecure_client = ApiClient(url=api_root_url, key=api_anon_key, verify=False)
+    insecure_client = ApiClient(
+        url=api_root_url, key=api_anon_key, verify=False, maximum_tries=0
+    )
     with pytest.warns(InsecureRequestWarning):
         insecure_client.retrieve(
             "test-adaptor-dummy", target=str(tmp_path / "test.grib")
@@ -105,7 +114,9 @@ def test_api_client_progress(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     with capsys.disabled():
-        client = ApiClient(url=api_root_url, key=api_anon_key, progress=progress)
+        client = ApiClient(
+            url=api_root_url, key=api_anon_key, progress=progress, maximum_tries=0
+        )
         submitted = client.submit("test-adaptor-dummy")
     submitted.download(target=str(tmp_path / "test.grib"))
     captured = capsys.readouterr()
@@ -125,11 +136,13 @@ def test_api_client_cleanup(
     cleanup: bool,
     raises: contextlib.nullcontext[Any],
 ) -> None:
-    client = ApiClient(url=api_root_url, key=api_anon_key, cleanup=cleanup)
+    client = ApiClient(
+        url=api_root_url, key=api_anon_key, cleanup=cleanup, maximum_tries=0
+    )
     remote = client.submit("test-adaptor-dummy")
     request_uid = remote.request_uid
     del remote
 
-    client = ApiClient(url=api_root_url, key=api_anon_key)
+    client = ApiClient(url=api_root_url, key=api_anon_key, maximum_tries=0)
     with raises:
         client.get_request(request_uid)
