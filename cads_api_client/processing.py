@@ -457,7 +457,8 @@ class Results(ApiResponse):
             parts = urllib.parse.urlparse(url)
             target = parts.path.strip("/").split("/")[-1]
 
-        download_options = {"stream": True} | self.download_options
+        download_options = {"stream": True}
+        download_options.update(self.download_options)
         multiurl.download(
             url,
             target=target,

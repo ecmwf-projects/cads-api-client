@@ -35,11 +35,15 @@ class Collection(processing.ApiResponse):
 
     @property
     def begin_datetime(self) -> datetime.datetime:
-        return datetime.datetime.fromisoformat(self.temporal_interval[0])
+        return datetime.datetime.fromisoformat(
+            self.temporal_interval[0].replace("Z", "+00:00")
+        )
 
     @property
     def end_datetime(self) -> datetime.datetime:
-        return datetime.datetime.fromisoformat(self.temporal_interval[1])
+        return datetime.datetime.fromisoformat(
+            self.temporal_interval[1].replace("Z", "+00:00")
+        )
 
     @property
     def id(self) -> str:

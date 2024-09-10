@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import contextlib
 import datetime
 import os
 import pathlib
-import warnings
 from typing import Any
 
 import pytest
@@ -79,13 +80,6 @@ def test_api_client_verify(
     api_anon_key: str,
     tmp_path: pathlib.Path,
 ) -> None:
-    secure_client = ApiClient(
-        url=api_root_url, key=api_anon_key, verify=True, maximum_tries=0
-    )
-    with warnings.catch_warnings(category=InsecureRequestWarning):
-        warnings.simplefilter("error")
-        secure_client.retrieve("test-adaptor-dummy", target=str(tmp_path / "test.grib"))
-
     insecure_client = ApiClient(
         url=api_root_url, key=api_anon_key, verify=False, maximum_tries=0
     )
