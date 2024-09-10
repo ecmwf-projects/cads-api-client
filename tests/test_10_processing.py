@@ -159,18 +159,19 @@ PROCESS_JSON = {
             "schema": {"type": "string", "format": "url"},
         }
     },
+    "message": "WARNING: This is a warning message",
     "metadata": {
         "datasetMetadata": {
             "messages": [
                 {
                     "date": "2023-12-12T13:00:00",
                     "severity": "warning",
-                    "content": "This is a warning message",
+                    "content": "This is a warning dataset message",
                 },
                 {
                     "date": "2023-12-12T14:00:00",
                     "severity": "success",
-                    "content": "This is a success message",
+                    "content": "This is a success dataset message",
                 },
             ]
         }
@@ -464,12 +465,17 @@ def test_remote_logs(
         (
             "cads_api_client.processing",
             30,
-            "[2023-12-12T13:00:00] This is a warning message",
+            "This is a warning message",
+        ),
+        (
+            "cads_api_client.processing",
+            30,
+            "[2023-12-12T13:00:00] This is a warning dataset message",
         ),
         (
             "cads_api_client.processing",
             20,
-            "[2023-12-12T14:00:00] This is a success message",
+            "[2023-12-12T14:00:00] This is a success dataset message",
         ),
         (
             "cads_api_client.processing",
