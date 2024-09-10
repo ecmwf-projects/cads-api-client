@@ -198,7 +198,7 @@ class Process(ApiResponse):
         return process_id
 
     def execute(self, inputs: dict[str, Any]) -> StatusInfo:
-        url = f"{self.response.request.url}/execute"
+        url = f"{self.response.request.url}/execution"
         return StatusInfo.from_request(
             "post", url, json={"inputs": inputs}, **self.request_kwargs
         )
@@ -518,7 +518,7 @@ class Processing:
         process_id: str,
         inputs: dict[str, Any],
     ) -> StatusInfo:
-        url = f"{self.url}/processes/{process_id}/execute"
+        url = f"{self.url}/processes/{process_id}/execution"
         return StatusInfo.from_request(
             "post", url, json={"inputs": inputs}, **self.request_kwargs
         )

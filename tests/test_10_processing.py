@@ -19,7 +19,7 @@ COLLECTION_URL = (
     "http://localhost:8080/api/catalogue/v1/collections/reanalysis-era5-pressure-levels"
 )
 PROCESS_URL = f"http://localhost:8080/api/retrieve/v1/processes/{COLLECTION_ID}"
-EXECUTE_URL = f"{PROCESS_URL}/execute"
+EXECUTE_URL = f"{PROCESS_URL}/execution"
 
 JOB_RUNNING_URL = f"http://localhost:8080/api/retrieve/v1/jobs/{JOB_RUNNING_ID}"
 JOB_SUCCESSFUL_URL = f"http://localhost:8080/api/retrieve/v1/jobs/{JOB_SUCCESSFUL_ID}"
@@ -125,7 +125,7 @@ PROCESS_JSON = {
         {"href": COLLECTION_URL, "rel": "self", "type": "application/json"},
         {"rel": "retrieve", "href": PROCESS_URL, "type": "application/json"},
         {
-            "href": f"{COLLECTION_URL}/execute",
+            "href": f"{COLLECTION_URL}/execution",
             "rel": "execute",
             "type": "application/json",
             "title": "process execution",
@@ -186,7 +186,7 @@ JOB_RUNNING_JSON = {
     "updated": "2022-09-02T17:30:48.201217",
     "links": [
         {
-            "href": f"{COLLECTION_URL}/execute",
+            "href": f"{COLLECTION_URL}/execution",
             "rel": "self",
             "type": "application/json",
         },
@@ -476,7 +476,7 @@ def test_remote_logs(
             10,
             (
                 "POST http://localhost:8080/api/retrieve/v1/processes/"
-                "reanalysis-era5-pressure-levels/execute "
+                "reanalysis-era5-pressure-levels/execution "
                 "{'variable': 'temperature', 'year': '2022'}"
             ),
         ),
