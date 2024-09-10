@@ -72,6 +72,16 @@ def cads_raise_for_status(response: requests.Response) -> None:
     response.raise_for_status()
 
 
+def get_level_and_message(message: str) -> tuple[int, str]:
+    level = 20
+    for severity in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"):
+        if message.startswith(severity):
+            level = logging.getLevelName(severity)
+            message = message.replace(severity, "", 1).lstrip(":").lstrip()
+            break
+    return level, message
+
+
 @attrs.define(slots=False)
 class ApiResponse:
     response: requests.Response
@@ -141,15 +151,19 @@ class ApiResponse:
         return json
 
     def log_messages(self) -> None:
-        messages = (
+        if message := self.json.get("message"):
+            level, message = get_level_and_message(message)
+            logger.log(level, message)
+
+        dataset_messages = (
             self.json.get("metadata", {}).get("datasetMetadata", {}).get("messages", [])
         )
-        for message in messages:
-            if not (content := message.get("content")):
+        for dataset_message in dataset_messages:
+            if not (content := dataset_message.get("content")):
                 continue
-            if date := message.get("date"):
+            if date := dataset_message.get("date"):
                 content = f"[{date}] {content}"
-            severity = message.get("severity", "notset").upper()
+            severity = dataset_message.get("severity", "notset").upper()
             level = logging.getLevelName(severity)
             logger.log(level if isinstance(level, int) else 20, content)
 
@@ -242,12 +256,7 @@ class Remote:
     def log_metadata(self, metadata: dict[str, Any]) -> None:
         logs = metadata.get("log", [])
         for self.log_start_time, message in sorted(logs):
-            level = 20
-            for severity in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"):
-                if message.startswith(severity):
-                    level = logging.getLevelName(severity)
-                    message = message.replace(severity, "", 1).lstrip(":").lstrip()
-                    break
+            level, message = get_level_and_message(message)
             logger.log(level, message)
 
     def get_api_response(self, method: str, **kwargs: Any) -> ApiResponse:
