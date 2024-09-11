@@ -37,8 +37,8 @@ def test_read_configuration_error(tmp_path: pathlib.Path) -> None:
 def test_get_config_from_configuration_file(
     tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.delenv("CADS_API_KEY")
-    monkeypatch.delenv("CADS_API_URL")
+    monkeypatch.delenv("CADS_API_KEY", raising=False)
+    monkeypatch.delenv("CADS_API_URL", raising=False)
     expected_config = {"url": "dummy-url", "key": "dummy-key"}
 
     config_file = tmp_path / ".cads-api-client.json"
