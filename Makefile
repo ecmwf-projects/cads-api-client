@@ -39,4 +39,4 @@ integration-tests:
 doc-tests:
 	python -m pytest -vv --doctest-glob='*.md' README.md
 
-all-tests: default integration-tests doc-tests
+all-tests: unit-tests integration-tests doc-tests

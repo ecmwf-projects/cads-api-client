@@ -12,8 +12,11 @@ it is designed to be the least performant option to access the system.
 Draft Python API:
 
 ```python
+>>> import os
+>>> anon_key = os.getenv("CADS_API_ANON_KEY", "00112233-4455-6677-c899-aabbccddeeff")
+
 >>> import cads_api_client
->>> client = cads_api_client.ApiClient()
+>>> client = cads_api_client.ApiClient(key=anon_key)
 >>> assert client.check_authentication()
 
 >>> collection = client.collection("reanalysis-era5-pressure-levels")
