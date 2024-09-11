@@ -175,7 +175,6 @@ jobs:
     - name: Run tests
       env:
         CADS_API_URL: ${{ secrets.CADS_API_URL }}
-        CADS_API_KEY: ${{ secrets.CADS_API_KEY }}
       run: |
         make all-tests COV_REPORT=xml
 

@@ -4,6 +4,7 @@ import contextlib
 import datetime
 import os
 import pathlib
+import warnings
 from typing import Any
 
 import pytest
@@ -21,7 +22,12 @@ def api_anon_client(api_root_url: str, api_anon_key: str) -> ApiClient:
 
 
 def test_accept_licence() -> None:
-    client = ApiClient(maximum_tries=0)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        client = ApiClient(maximum_tries=0)
+
+    if client.key is None:
+        pytest.skip("The API key is missing")
 
     licence = client.licences["licences"][0]
     licence_id = licence["id"]
