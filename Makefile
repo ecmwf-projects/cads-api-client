@@ -44,5 +44,4 @@ doc-tests:
 
 all-tests: unit-tests integration-tests doc-tests
 
-ci-integration-tests:
-	unit-tests legacy-tests doc-tests
+ci-integration-tests: unit-tests legacy-tests doc-tests
