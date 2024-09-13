@@ -176,7 +176,7 @@ jobs:
       env:
         CADS_API_URL: ${{ secrets.CADS_API_URL }}
       run: |
-        make all-tests COV_REPORT=xml
+        make ci-integration-tests COV_REPORT=xml
 
   distribution:
     runs-on: ubuntu-latest
