@@ -12,6 +12,9 @@ it is designed to be the least performant option to access the system.
 Draft Python API:
 
 ```python
+>>> import logging
+>>> logging.basicConfig(level="INFO")
+
 >>> import os
 >>> anon_key = os.getenv("CADS_API_ANON_KEY", "00112233-4455-6677-c899-aabbccddeeff")
 
