@@ -196,6 +196,21 @@ class ApiClient:
         """
         return self._profile_api.check_authentication()
 
+    def get_remote(self, request_uid: str) -> processing.Remote:
+        """
+        Retrieve a previously submitted request.
+
+        Parameters
+        ----------
+        request_uid: str
+            Request UID
+
+        Returns
+        -------
+        processing.StatusInfo
+        """
+        return self._retrieve_api.job(request_uid).make_remote()
+
     def retrieve(
         self,
         collection_id: str,
@@ -269,13 +284,6 @@ class ApiClient:
 
     def get_requests(self, **params: dict[str, Any]) -> processing.JobList:
         return self._retrieve_api.jobs(params=params)
-
-    def get_request(self, request_uid: str) -> processing.StatusInfo:
-        return self._retrieve_api.job(request_uid)
-
-    def get_remote(self, request_uid: str) -> processing.Remote:
-        request = self.get_request(request_uid=request_uid)
-        return request.make_remote()
 
     def download_result(self, request_uid: str, target: str | None) -> str:
         return self._retrieve_api.download_result(request_uid, target)

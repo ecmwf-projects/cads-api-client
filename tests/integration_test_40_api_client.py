@@ -145,4 +145,4 @@ def test_api_client_cleanup(
 
     client = ApiClient(url=api_root_url, key=api_anon_key, maximum_tries=0)
     with raises:
-        client.get_request(request_uid)
+        client.get_remote(request_uid)
