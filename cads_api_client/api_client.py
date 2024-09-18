@@ -30,7 +30,8 @@ class ApiClient:
     key: str or None, default=None
         API Key. If None, infer from CADS_API_KEY or CADS_API_RC.
     verify: bool or None, default=None
-        Whether to verify the TLS certificate at the remote end. If None, infer from CADS_API_RC.
+        Whether to verify the TLS certificate at the remote end.
+        If None, infer from CADS_API_VERIFY or CADS_API_RC.
     timeout: float or tuple, default=60
         How many seconds to wait for the server to send data, as a float, or a (connect, read) tuple.
     progress: bool, default=True
@@ -52,7 +53,8 @@ class ApiClient:
     key: str | None = None
     """API Key. If None, infer from CADS_API_KEY or CADS_API_RC."""
     verify: bool | None = None
-    """Whether to verify the TLS certificate at the remote end. If None, infer from CADS_API_RC."""
+    """Whether to verify the TLS certificate at the remote end.
+    If None, infer from CADS_API_VERIFY or CADS_API_RC."""
     timeout: float | tuple[float, float] = 60
     """How many seconds to wait for the server to send data, as a float, or a (connect, read) tuple."""
     progress: bool = True
@@ -145,6 +147,18 @@ class ApiClient:
         return profile.Profile(f"{self.url}/profiles", **self._get_request_kwargs())
 
     def check_authentication(self) -> dict[str, Any]:
+        """Verify API authentication.
+
+        Returns
+        -------
+        dict
+            Content of the response.
+
+        Raises
+        ------
+        requests.HTTPError
+            If the authentication fails.
+        """
         return self._profile_api.check_authentication()
 
     def collections(self, **params: dict[str, Any]) -> catalogue.Collections:
