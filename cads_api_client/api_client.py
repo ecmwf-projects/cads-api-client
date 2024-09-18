@@ -162,16 +162,6 @@ class ApiClient:
         return self._catalogue_api.collections()
 
     @property
-    def requests(self) -> processing.JobList:
-        """Previously submitted requests.
-
-        Returns
-        -------
-        processing.JobList
-        """
-        return self._retrieve_api.jobs()
-
-    @property
     def licences(self) -> list[dict[str, Any]]:
         """List all licences.
 
@@ -183,6 +173,16 @@ class ApiClient:
         licences: list[dict[str, Any]]
         licences = self._catalogue_api.licenses.get("licences", [])
         return licences
+
+    @property
+    def requests(self) -> processing.JobList:
+        """Previously submitted requests.
+
+        Returns
+        -------
+        processing.JobList
+        """
+        return self._retrieve_api.jobs()
 
     def accept_licence(self, licence_id: str, revision: int) -> dict[str, Any]:
         """Accept a licence.
@@ -202,7 +202,7 @@ class ApiClient:
         return self._profile_api.accept_licence(licence_id, revision=revision)
 
     def check_authentication(self) -> dict[str, Any]:
-        """Verify API authentication.
+        """Verify authentication.
 
         Returns
         -------
