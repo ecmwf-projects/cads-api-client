@@ -16,7 +16,7 @@ class Profile:
     retry_options: dict[str, Any]
     request_options: dict[str, Any]
     download_options: dict[str, Any]
-    sleep_max: int
+    sleep_max: float
     cleanup: bool
     force_exact_url: bool = False
 

@@ -21,16 +21,52 @@ def strtobool(value: str) -> bool:
 
 @attrs.define(slots=False)
 class ApiClient:
+    """A client to interact with the CADS API.
+
+    Parameters
+    ----------
+    url: str or None, default=None
+        API URL. If None, infer from CADS_API_URL or CADS_API_RC.
+    key: str or None, default=None
+        API Key. If None, infer from CADS_API_KEY or CADS_API_RC.
+    verify: bool or None, default=None
+        Whether to verify the TLS certificate at the remote end. If None, infer from CADS_API_RC.
+    timeout: float or tuple, default=60
+        How many seconds to wait for the server to send data, as a float, or a (connect, read) tuple.
+    progress: bool, default=True
+        Whether to display the progress bar during download.
+    cleanup: bool, default=False
+        Whether to delete requests after completion.
+    sleep_max: float, default=120
+        Maximum time to wait (in seconds) while checking for a status change.
+    retry_after: float, default=120
+        Time to wait (in seconds) between retries.
+    maximum_tries: int, default=500
+        Maximum number of retries.
+    session: requests.Session
+        Requests session.
+    """
+
     url: str | None = None
+    """API URL. If None, infer from CADS_API_URL or CADS_API_RC."""
     key: str | None = None
+    """API Key. If None, infer from CADS_API_KEY or CADS_API_RC."""
     verify: bool | None = None
-    timeout: int = 60
+    """Whether to verify the TLS certificate at the remote end. If None, infer from CADS_API_RC."""
+    timeout: float | tuple[float, float] = 60
+    """How many seconds to wait for the server to send data, as a float, or a (connect, read) tuple."""
     progress: bool = True
+    """Whether to display the progress bar during download."""
     cleanup: bool = False
-    sleep_max: int = 120
-    retry_after: int = 120
+    """Whether to delete requests after completion."""
+    sleep_max: float = 120
+    """Maximum time to wait (in seconds) while checking for a status change."""
+    retry_after: float = 120
+    """Time to wait (in seconds) between retries."""
     maximum_tries: int = 500
+    """Maximum number of retries."""
     session: requests.Session = attrs.field(factory=requests.Session)
+    """Requests session."""
 
     def __attrs_post_init__(self) -> None:
         if self.url is None:
@@ -92,44 +128,44 @@ class ApiClient:
         )
 
     @functools.cached_property
-    def catalogue_api(self) -> catalogue.Catalogue:
+    def _catalogue_api(self) -> catalogue.Catalogue:
         return catalogue.Catalogue(
             f"{self.url}/catalogue",
             **self._get_request_kwargs(mandatory_key=False),
         )
 
     @functools.cached_property
-    def retrieve_api(self) -> processing.Processing:
+    def _retrieve_api(self) -> processing.Processing:
         return processing.Processing(
             f"{self.url}/retrieve", **self._get_request_kwargs()
         )
 
     @functools.cached_property
-    def profile_api(self) -> profile.Profile:
+    def _profile_api(self) -> profile.Profile:
         return profile.Profile(f"{self.url}/profiles", **self._get_request_kwargs())
 
     def check_authentication(self) -> dict[str, Any]:
-        return self.profile_api.check_authentication()
+        return self._profile_api.check_authentication()
 
     def collections(self, **params: dict[str, Any]) -> catalogue.Collections:
-        return self.catalogue_api.collections(params=params)
+        return self._catalogue_api.collections(params=params)
 
     def collection(self, collection_id: str) -> catalogue.Collection:
-        return self.catalogue_api.collection(collection_id)
+        return self._catalogue_api.collection(collection_id)
 
     def processes(self, **params: dict[str, Any]) -> processing.ProcessList:
-        return self.retrieve_api.processes(params=params)
+        return self._retrieve_api.processes(params=params)
 
     def process(self, process_id: str) -> processing.Process:
-        return self.retrieve_api.process(process_id=process_id)
+        return self._retrieve_api.process(process_id=process_id)
 
     def submit(self, collection_id: str, **request: Any) -> processing.Remote:
-        return self.retrieve_api.submit(collection_id, **request)
+        return self._retrieve_api.submit(collection_id, **request)
 
     def submit_and_wait_on_result(
         self, collection_id: str, **request: Any
     ) -> processing.Results:
-        return self.retrieve_api.submit_and_wait_on_result(collection_id, **request)
+        return self._retrieve_api.submit_and_wait_on_result(collection_id, **request)
 
     def retrieve(
         self,
@@ -141,31 +177,31 @@ class ApiClient:
         return result.download(target)
 
     def get_requests(self, **params: dict[str, Any]) -> processing.JobList:
-        return self.retrieve_api.jobs(params=params)
+        return self._retrieve_api.jobs(params=params)
 
     def get_request(self, request_uid: str) -> processing.StatusInfo:
-        return self.retrieve_api.job(request_uid)
+        return self._retrieve_api.job(request_uid)
 
     def get_remote(self, request_uid: str) -> processing.Remote:
         request = self.get_request(request_uid=request_uid)
         return request.make_remote()
 
     def download_result(self, request_uid: str, target: str | None) -> str:
-        return self.retrieve_api.download_result(request_uid, target)
+        return self._retrieve_api.download_result(request_uid, target)
 
     def valid_values(
         self, collection_id: str, request: dict[str, Any]
     ) -> dict[str, Any]:
-        process = self.retrieve_api.process(collection_id)
+        process = self._retrieve_api.process(collection_id)
         return process.valid_values(request)
 
     @property
     def licences(self) -> dict[str, Any]:
-        return self.catalogue_api.licenses()
+        return self._catalogue_api.licenses()
 
     @property
     def accepted_licences(self) -> dict[str, Any]:
-        return self.profile_api.accepted_licences()
+        return self._profile_api.accepted_licences()
 
     def accept_licence(self, licence_id: str, revision: int) -> dict[str, Any]:
-        return self.profile_api.accept_licence(licence_id, revision=revision)
+        return self._profile_api.accept_licence(licence_id, revision=revision)

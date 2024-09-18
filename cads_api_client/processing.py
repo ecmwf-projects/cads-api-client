@@ -30,7 +30,7 @@ class RequestKwargs(TypedDict):
     retry_options: dict[str, Any]
     request_options: dict[str, Any]
     download_options: dict[str, Any]
-    sleep_max: int
+    sleep_max: float
     cleanup: bool
 
 
@@ -90,7 +90,7 @@ class ApiResponse:
     retry_options: dict[str, Any]
     request_options: dict[str, Any]
     download_options: dict[str, Any]
-    sleep_max: int
+    sleep_max: float
     cleanup: bool
 
     @property
@@ -115,7 +115,7 @@ class ApiResponse:
         retry_options: dict[str, Any],
         request_options: dict[str, Any],
         download_options: dict[str, Any],
-        sleep_max: int,
+        sleep_max: float,
         cleanup: bool,
         **kwargs: Any,
     ) -> T_ApiResponse:
@@ -234,7 +234,7 @@ class Remote:
     retry_options: dict[str, Any]
     request_options: dict[str, Any]
     download_options: dict[str, Any]
-    sleep_max: int
+    sleep_max: float
     cleanup: bool
 
     def __attrs_post_init__(self) -> None:
@@ -493,7 +493,7 @@ class Processing:
     retry_options: dict[str, Any]
     request_options: dict[str, Any]
     download_options: dict[str, Any]
-    sleep_max: int
+    sleep_max: float
     cleanup: bool
     force_exact_url: bool = False
 

@@ -11,7 +11,7 @@ from cads_api_client import ApiClient, catalogue, processing
 @pytest.fixture
 def cat(api_root_url: str, api_anon_key: str) -> catalogue.Catalogue:
     client = ApiClient(url=api_root_url, key=api_anon_key, maximum_tries=0)
-    return client.catalogue_api
+    return client._catalogue_api
 
 
 def test_from_collection_to_process(cat: catalogue.Catalogue) -> None:

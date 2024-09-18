@@ -7,7 +7,7 @@ from cads_api_client import ApiClient, processing
 @pytest.fixture
 def proc(api_root_url: str, api_anon_key: str) -> processing.Processing:
     client = ApiClient(url=api_root_url, key=api_anon_key, maximum_tries=0)
-    return client.retrieve_api
+    return client._retrieve_api
 
 
 def test_processes(proc: processing.Processing) -> None:
