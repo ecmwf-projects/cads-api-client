@@ -29,7 +29,7 @@ def test_accept_licence() -> None:
     if client.key is None:
         pytest.skip("The API key is missing")
 
-    licence = client.licences["licences"][0]
+    licence = client.licences[0]
     licence_id = licence["id"]
     licence_revision = licence["revision"]
 
@@ -39,7 +39,7 @@ def test_accept_licence() -> None:
 
     assert any(
         licence["id"] == licence_id and licence["revision"] == licence_revision
-        for licence in client.accepted_licences["licences"]
+        for licence in client.accepted_licences
     )
 
 

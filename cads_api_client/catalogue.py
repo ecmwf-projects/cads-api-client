@@ -115,6 +115,7 @@ class Catalogue:
         url = f"{self.url}/collections/{collection_id}"
         return Collection.from_request("get", url, **self.request_kwargs)
 
+    @property
     def licenses(self) -> dict[str, Any]:
         url = f"{self.url}/vocabularies/licences"
         return processing.ApiResponse.from_request(

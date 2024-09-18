@@ -138,6 +138,49 @@ class ApiClient:
     def _profile_api(self) -> profile.Profile:
         return profile.Profile(f"{self.url}/profiles", **self._get_request_kwargs())
 
+    @property
+    def accepted_licences(self) -> list[dict[str, Any]]:
+        """List all accepted licences.
+
+        Returns
+        -------
+        list
+            List of dictionaries with license information.
+        """
+        licences: list[dict[str, Any]]
+        licences = self._profile_api.accepted_licences.get("licences", [])
+        return licences
+
+    @property
+    def licences(self) -> list[dict[str, Any]]:
+        """List all licences.
+
+        Returns
+        -------
+        list
+            List of dictionaries with license information.
+        """
+        licences: list[dict[str, Any]]
+        licences = self._catalogue_api.licenses.get("licences", [])
+        return licences
+
+    def accept_licence(self, licence_id: str, revision: int) -> dict[str, Any]:
+        """Accept a licence.
+
+        Parameters
+        ----------
+        licence_id: str
+            Licence ID.
+        revision: int
+            Licence revision number.
+
+        Returns
+        -------
+        dict
+            Content of the response.
+        """
+        return self._profile_api.accept_licence(licence_id, revision=revision)
+
     def check_authentication(self) -> dict[str, Any]:
         """Verify API authentication.
 
@@ -173,7 +216,7 @@ class ApiClient:
         Returns
         -------
         str
-            Path to the downloaded file
+            Path to the retrieved file.
         """
         result = self.submit_and_wait_on_result(collection_id, **request)
         return result.download(target)
@@ -242,14 +285,3 @@ class ApiClient:
     ) -> dict[str, Any]:
         process = self._retrieve_api.process(collection_id)
         return process.valid_values(request)
-
-    @property
-    def licences(self) -> dict[str, Any]:
-        return self._catalogue_api.licenses()
-
-    @property
-    def accepted_licences(self) -> dict[str, Any]:
-        return self._profile_api.accepted_licences()
-
-    def accept_licence(self, licence_id: str, revision: int) -> dict[str, Any]:
-        return self._profile_api.accept_licence(licence_id, revision=revision)

@@ -54,6 +54,7 @@ class Profile:
         url = f"{self.url}/account/licences/{licence_id}"
         return self.get_api_response("put", url, json={"revision": revision}).json
 
+    @property
     def accepted_licences(self) -> dict[str, Any]:
         url = f"{self.url}/account/licences"
         return self.get_api_response("get", url).json
