@@ -6,7 +6,7 @@ import requests
 import responses
 from responses.matchers import json_params_matcher
 
-import cads_api_client
+from cads_api_client import catalogue, processing
 
 COLLECTION_ID = "reanalysis-era5-pressure-levels"
 JOB_RUNNING_ID = "9bfc1362-2832-48e1-a235-359267420bb1"
@@ -297,8 +297,8 @@ RESULT_FAILED_JSON = {
 
 
 @pytest.fixture
-def catalogue() -> cads_api_client.Catalogue:
-    return cads_api_client.Catalogue(
+def cat() -> catalogue.Catalogue:
+    return catalogue.Catalogue(
         CATALOGUE_URL,
         headers={},
         session=requests.Session(),
@@ -390,21 +390,21 @@ def responses_add() -> None:
 
 
 @responses.activate
-def test_catalogue_collections(catalogue: cads_api_client.Catalogue) -> None:
+def test_catalogue_collections(cat: catalogue.Catalogue) -> None:
     responses_add()
 
-    collections = catalogue.collections()
+    collections = cat.collections()
     assert collections.response.json() == COLLECTIONS_JSON
 
-    collection = catalogue.collection(COLLECTION_ID)
+    collection = cat.collection(COLLECTION_ID)
     assert collection.response.json() == COLLECTION_JSON
 
 
 @responses.activate
-def test_submit(catalogue: cads_api_client.Catalogue) -> None:
+def test_submit(cat: catalogue.Catalogue) -> None:
     responses_add()
 
-    collection = catalogue.collection(COLLECTION_ID)
+    collection = cat.collection(COLLECTION_ID)
     process = collection.retrieve_process()
 
     assert process.response.json() == PROCESS_JSON
@@ -418,22 +418,22 @@ def test_submit(catalogue: cads_api_client.Catalogue) -> None:
 
 
 @responses.activate
-def test_wait_on_result(catalogue: cads_api_client.Catalogue) -> None:
+def test_wait_on_result(cat: catalogue.Catalogue) -> None:
     responses_add()
 
-    collection = catalogue.collection(COLLECTION_ID)
+    collection = cat.collection(COLLECTION_ID)
     remote = collection.submit(variable="temperature", year="2022")
     remote.wait_on_result()
 
 
 @responses.activate
-def test_wait_on_result_failed(catalogue: cads_api_client.Catalogue) -> None:
+def test_wait_on_result_failed(cat: catalogue.Catalogue) -> None:
     responses_add()
 
-    collection = catalogue.collection(COLLECTION_ID)
+    collection = cat.collection(COLLECTION_ID)
     remote = collection.submit(variable="temperature", year="0000")
     with pytest.raises(
-        cads_api_client.processing.ProcessingFailedError,
+        processing.ProcessingFailedError,
         match="job failed\nThis is a traceback",
     ):
         remote.wait_on_result()
@@ -441,11 +441,11 @@ def test_wait_on_result_failed(catalogue: cads_api_client.Catalogue) -> None:
 
 @responses.activate
 def test_remote_logs(
-    caplog: pytest.LogCaptureFixture, catalogue: cads_api_client.Catalogue
+    caplog: pytest.LogCaptureFixture, cat: catalogue.Catalogue
 ) -> None:
     responses_add()
 
-    collection = catalogue.collection(COLLECTION_ID)
+    collection = cat.collection(COLLECTION_ID)
 
     with caplog.at_level(logging.DEBUG, logger="cads_api_client.processing"):
         remote = collection.submit(variable="temperature", year="2022")

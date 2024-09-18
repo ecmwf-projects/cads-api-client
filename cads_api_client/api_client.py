@@ -11,14 +11,6 @@ import requests
 from . import catalogue, config, processing, profile
 
 
-def strtobool(value: str) -> bool:
-    if value.lower() in ("y", "yes", "t", "true", "on", "1"):
-        return True
-    if value.lower() in ("n", "no", "f", "false", "off", "0"):
-        return False
-    raise ValueError(f"invalid truth value {value!r}")
-
-
 @attrs.define(slots=False)
 class ApiClient:
     """A client to interact with the CADS API.
@@ -82,7 +74,7 @@ class ApiClient:
 
         if self.verify is None:
             try:
-                self.verify = strtobool(str(config.get_config("verify")))
+                self.verify = config.strtobool(str(config.get_config("verify")))
             except (KeyError, FileNotFoundError):
                 self.verify = True
 
@@ -161,6 +153,65 @@ class ApiClient:
         """
         return self._profile_api.check_authentication()
 
+    def retrieve(
+        self,
+        collection_id: str,
+        target: str | None = None,
+        **request: Any,
+    ) -> str:
+        """Submit a request and retrieve the result.
+
+        Parameters
+        ----------
+        collection_id: str
+            Collection ID (e.g., reanalysis-era5-pressure-levels).
+        target: str or None, default=None
+            Target path. If None, download to the working directory.
+        **request: dict
+            Request parameters.
+
+        Returns
+        -------
+        str
+            Path to the downloaded file
+        """
+        result = self.submit_and_wait_on_result(collection_id, **request)
+        return result.download(target)
+
+    def submit(self, collection_id: str, **request: Any) -> processing.Remote:
+        """Submit a request.
+
+        Parameters
+        ----------
+        collection_id: str
+            Collection ID (e.g., reanalysis-era5-pressure-levels).
+        **request: dict
+            Request parameters.
+
+        Returns
+        -------
+        processing.Remote
+        """
+        return self._retrieve_api.submit(collection_id, **request)
+
+    def submit_and_wait_on_result(
+        self, collection_id: str, **request: Any
+    ) -> processing.Results:
+        """Submit a request and wait for the result to be ready.
+
+        Parameters
+        ----------
+        collection_id: str
+            Collection ID (e.g., reanalysis-era5-pressure-levels).
+        **request: dict
+            Request parameters.
+
+        Returns
+        -------
+        processing.Results
+        """
+        return self._retrieve_api.submit_and_wait_on_result(collection_id, **request)
+
     def collections(self, **params: dict[str, Any]) -> catalogue.Collections:
         return self._catalogue_api.collections(params=params)
 
@@ -172,23 +223,6 @@ class ApiClient:
 
     def process(self, process_id: str) -> processing.Process:
         return self._retrieve_api.process(process_id=process_id)
-
-    def submit(self, collection_id: str, **request: Any) -> processing.Remote:
-        return self._retrieve_api.submit(collection_id, **request)
-
-    def submit_and_wait_on_result(
-        self, collection_id: str, **request: Any
-    ) -> processing.Results:
-        return self._retrieve_api.submit_and_wait_on_result(collection_id, **request)
-
-    def retrieve(
-        self,
-        collection_id: str,
-        target: str | None = None,
-        **request: Any,
-    ) -> str:
-        result = self.submit_and_wait_on_result(collection_id, **request)
-        return result.download(target)
 
     def get_requests(self, **params: dict[str, Any]) -> processing.JobList:
         return self._retrieve_api.jobs(params=params)
