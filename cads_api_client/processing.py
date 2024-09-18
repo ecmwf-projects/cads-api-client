@@ -191,17 +191,19 @@ class ApiResponse:
             out = None
         return out
 
+    @property
+    def next(self) -> Self | None:
+        return self.from_rel_href(rel="next")
+
+    @property
+    def prev(self) -> Self | None:
+        return self.from_rel_href(rel="prev")
+
 
 @attrs.define
 class ProcessList(ApiResponse):
     def process_ids(self) -> list[str]:
         return [proc["id"] for proc in self.json["processes"]]
-
-    def next(self) -> ApiResponse | None:
-        return self.from_rel_href(rel="next")
-
-    def prev(self) -> ApiResponse | None:
-        return self.from_rel_href(rel="prev")
 
 
 @attrs.define
@@ -405,14 +407,9 @@ class StatusInfo(ApiResponse):
 
 @attrs.define
 class JobList(ApiResponse):
+    @property
     def job_ids(self) -> list[str]:
         return [job["jobID"] for job in self.json["jobs"]]
-
-    def next(self) -> ApiResponse | None:
-        return self.from_rel_href(rel="next")
-
-    def prev(self) -> ApiResponse | None:
-        return self.from_rel_href(rel="prev")
 
 
 @attrs.define

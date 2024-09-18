@@ -25,8 +25,7 @@ def test_processes(proc: processing.Processing) -> None:
 def test_processes_limit(proc: processing.Processing) -> None:
     processes = proc.processes(params={"limit": 1})
 
-    res = processes.next()
-
+    res = processes.next
     if res is not None:
         assert res.response.status_code == 200
 
@@ -71,7 +70,7 @@ def test_jobs_list(proc: processing.Processing) -> None:
     assert len(res["jobs"]) == 1
 
     jobs = proc.jobs(params={"limit": 1})
-    res = jobs.next().json  # type: ignore
+    res = jobs.next.json  # type: ignore
 
     assert res is not None
     assert len(res["jobs"]) == 1

@@ -3,11 +3,6 @@ from __future__ import annotations
 import datetime
 from typing import Any
 
-try:
-    from typing import Self
-except ImportError:
-    from typing_extensions import Self
-
 import attrs
 import requests
 
@@ -18,12 +13,6 @@ from . import config, processing
 class Collections(processing.ApiResponse):
     def collection_ids(self) -> list[str]:
         return [collection["id"] for collection in self.json["collections"]]
-
-    def next(self) -> Self | None:
-        return self.from_rel_href(rel="next")
-
-    def prev(self) -> Self | None:
-        return self.from_rel_href(rel="prev")
 
 
 @attrs.define
