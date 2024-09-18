@@ -152,6 +152,26 @@ class ApiClient:
         return licences
 
     @property
+    def collections(self) -> catalogue.Collections:
+        """Catalogue collections.
+
+        Returns
+        -------
+        processing.Collections
+        """
+        return self._catalogue_api.collections()
+
+    @property
+    def requests(self) -> processing.JobList:
+        """Previously submitted requests.
+
+        Returns
+        -------
+        processing.JobList
+        """
+        return self._retrieve_api.jobs()
+
+    @property
     def licences(self) -> list[dict[str, Any]]:
         """List all licences.
 
@@ -196,7 +216,53 @@ class ApiClient:
         """
         return self._profile_api.check_authentication()
 
+    def download_result(self, request_uid: str, target: str | None) -> str:
+        """Download the result of a previously submitted request.
+
+        Parameters
+        ----------
+        collection_id: str
+            Collection ID (e.g., reanalysis-era5-pressure-levels).
+        target: str or None, default=None
+            Target path. If None, download to the working directory.
+
+        Returns
+        -------
+        str
+            Path to the retrieved file.
+        """
+        return self._retrieve_api.download_result(request_uid, target)
+
+    def get_collection(self, collection_id: str) -> catalogue.Collection:
+        """Get a catalogue collection.
+
+        Parameters
+        ----------
+        collection_id: str
+            Collection ID (e.g., reanalysis-era5-pressure-levels).
+
+        Returns
+        -------
+        catalogue.Collection
+        """
+        return self._catalogue_api.collection(collection_id)
+
     def get_remote(self, request_uid: str) -> processing.Remote:
+        """
+        Retrieve a previously submitted remote object.
+
+        Parameters
+        ----------
+        request_uid: str
+            Request UID
+
+        Returns
+        -------
+        processing.Remote
+        """
+        return self.get_request(request_uid).make_remote()
+
+    def get_request(self, request_uid: str) -> processing.StatusInfo:
         """
         Retrieve a previously submitted request.
 
@@ -209,7 +275,7 @@ class ApiClient:
         -------
         processing.StatusInfo
         """
-        return self._retrieve_api.job(request_uid).make_remote()
+        return self._retrieve_api.job(request_uid)
 
     def retrieve(
         self,
@@ -270,23 +336,11 @@ class ApiClient:
         """
         return self._retrieve_api.submit_and_wait_on_result(collection_id, **request)
 
-    def collections(self, **params: dict[str, Any]) -> catalogue.Collections:
-        return self._catalogue_api.collections(params=params)
-
-    def collection(self, collection_id: str) -> catalogue.Collection:
-        return self._catalogue_api.collection(collection_id)
-
     def processes(self, **params: dict[str, Any]) -> processing.ProcessList:
         return self._retrieve_api.processes(params=params)
 
     def process(self, process_id: str) -> processing.Process:
         return self._retrieve_api.process(process_id=process_id)
-
-    def get_requests(self, **params: dict[str, Any]) -> processing.JobList:
-        return self._retrieve_api.jobs(params=params)
-
-    def download_result(self, request_uid: str, target: str | None) -> str:
-        return self._retrieve_api.download_result(request_uid, target)
 
     def valid_values(
         self, collection_id: str, request: dict[str, Any]
