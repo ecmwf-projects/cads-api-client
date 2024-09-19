@@ -54,7 +54,7 @@ class Collection(processing.ApiResponse):
         **request: Any,
     ) -> processing.Remote:
         retrieve_process = self.retrieve_process(headers=self.headers)
-        status_info = retrieve_process.execute(inputs=request)
+        status_info = retrieve_process.execute(request=request)
         return status_info.make_remote()
 
     def retrieve(

@@ -26,7 +26,7 @@ def test_accept_licence() -> None:
         warnings.simplefilter("ignore")
         client = ApiClient(maximum_tries=0)
 
-    if client.key is None:
+    if client._key is None:
         pytest.skip("The API key is missing")
 
     licence = client.licences[0]
@@ -69,7 +69,7 @@ def test_download_result(api_anon_client: ApiClient, tmp_path: pathlib.Path) -> 
     remote = api_anon_client.submit("test-adaptor-dummy")
     target = str(tmp_path / "test.grib")
 
-    result = api_anon_client.download_result(remote.request_uid, target)
+    result = api_anon_client.download_results(remote.request_uid, target)
     assert result == target
     assert os.path.exists(result)
 

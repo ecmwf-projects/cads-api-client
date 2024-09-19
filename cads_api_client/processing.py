@@ -213,18 +213,34 @@ class Process(ApiResponse):
         process_id: str = self.json["id"]
         return process_id
 
-    def execute(self, inputs: dict[str, Any]) -> StatusInfo:
-        url = f"{self.response.request.url}/execution"
+    @property
+    def url(self) -> str:
+        return str(self.response.request.url)
+
+    def execute(self, request: dict[str, Any]) -> StatusInfo:
         return StatusInfo.from_request(
-            "post", url, json={"inputs": inputs}, **self.request_kwargs
+            "post",
+            f"{self.url}/execution",
+            json={"inputs": request},
+            **self.request_kwargs,
         )
 
-    def valid_values(self, request: dict[str, Any] = {}) -> dict[str, Any]:
-        url = f"{self.response.request.url}/constraints"
+    def apply_constraints(self, request: dict[str, Any] = {}) -> dict[str, Any]:
         response = ApiResponse.from_request(
-            "post", url, json={"inputs": request}, **self.request_kwargs
+            "post",
+            f"{self.url}/constraints",
+            json={"inputs": request},
+            **self.request_kwargs,
         )
-        response.response.raise_for_status()
+        return response.json
+
+    def estimate_costs(self, request: dict[str, Any] = {}) -> dict[str, Any]:
+        response = ApiResponse.from_request(
+            "post",
+            f"{self.url}/costing",
+            json={"inputs": request},
+            **self.request_kwargs,
+        )
         return response.json
 
 
@@ -284,7 +300,7 @@ class Remote:
         status: str = reply["status"]
         return status
 
-    def wait_on_result(self) -> None:
+    def wait_on_results(self) -> None:
         sleep = 1.0
         status = None
         while True:
@@ -303,7 +319,7 @@ class Remote:
                 raise ProcessingFailedError(f"API state {status!r}")
             else:
                 raise ProcessingFailedError(f"Unknown API state {status!r}")
-            self.debug(f"result not ready, waiting for {sleep} seconds")
+            self.debug(f"results not ready, waiting for {sleep} seconds")
             time.sleep(sleep)
 
     def build_status_info(self) -> StatusInfo:
@@ -329,7 +345,7 @@ class Remote:
         self,
         target: str | None = None,
     ) -> str:
-        self.wait_on_result()
+        self.wait_on_results()
         return self._download_result(target)
 
     def delete(self) -> dict[str, Any]:
@@ -550,7 +566,7 @@ class Processing:
 
     def submit_and_wait_on_result(self, collection_id: str, **request: Any) -> Results:
         remote = self.submit(collection_id, **request)
-        remote.wait_on_result()
+        remote.wait_on_results()
         return remote.make_results()
 
     def make_remote(self, job_id: str) -> Remote:
@@ -558,5 +574,5 @@ class Processing:
         return Remote(url, **self.request_kwargs)
 
     def download_result(self, job_id: str, target: str | None) -> str:
-        # NOTE: the remote waits for the result to be available
+        # NOTE: the remote waits for the results to be available
         return self.make_remote(job_id).download(target)
