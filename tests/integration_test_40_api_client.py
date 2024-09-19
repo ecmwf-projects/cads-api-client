@@ -39,7 +39,7 @@ def test_api_client_check_authentication(
     }
 
     bad_client = ApiClient(key="foo", url=api_root_url)
-    with pytest.raises(requests.exceptions.HTTPError, match="401 Client Error"):
+    with pytest.raises(requests.HTTPError, match="401 Client Error"):
         bad_client.check_authentication()
 
 
@@ -192,7 +192,7 @@ def test_api_client_progress(
 @pytest.mark.parametrize(
     "cleanup,raises",
     [
-        (True, pytest.raises(requests.exceptions.HTTPError, match="404 Client Error")),
+        (True, pytest.raises(requests.HTTPError, match="404 Client Error")),
         (False, does_not_raise()),
     ],
 )

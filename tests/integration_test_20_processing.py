@@ -79,6 +79,6 @@ def test_jobs_list(proc: processing.Processing) -> None:
 def test_validate_constraints_error(proc: processing.Processing) -> None:
     process_id = "test-adaptor-mars"
     process = proc.process(process_id)
-    with pytest.raises(requests.exceptions.HTTPError, match="422 Client Error") as exc:
+    with pytest.raises(requests.HTTPError, match="422 Client Error") as exc:
         process.apply_constraints({"invalid_param": 1})
         assert exc.response.status_code == 422  # type: ignore[attr-defined]

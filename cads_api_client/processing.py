@@ -68,7 +68,7 @@ def cads_raise_for_status(response: requests.Response) -> None:
                     error_json_to_message(error_json),
                 ]
             )
-            raise requests.exceptions.HTTPError(message, response=response)
+            raise requests.HTTPError(message, response=response)
     response.raise_for_status()
 
 
