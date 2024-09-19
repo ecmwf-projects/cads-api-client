@@ -70,7 +70,7 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
         key: str | None = None,
         quiet: bool = False,
         debug: bool = False,
-        verify: bool | None = None,
+        verify: bool | int | None = None,
         timeout: int = 60,
         progress: bool = True,
         *args: Any,
@@ -80,9 +80,8 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
         if wrong_kwargs := set(kwargs) - set(LEGACY_KWARGS):
             raise ValueError(f"Wrong parameters: {wrong_kwargs}.")
 
-        self.url, self.key, self.verify = cdsapi.api.get_url_key_verify(
-            url, key, verify
-        )
+        self.url, self.key, verify = cdsapi.api.get_url_key_verify(url, key, verify)
+        self.verify = bool(verify)
         self.quiet = quiet
         self._debug = debug
         self.timeout = timeout
