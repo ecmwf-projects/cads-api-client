@@ -17,26 +17,26 @@ class ApiClient:
 
     Parameters
     ----------
-    url: str or None, default=None
+    url: str or None
         API URL. If None, infer from CADS_API_URL or CADS_API_RC.
-    key: str or None, default=None
+    key: str or None
         API Key. If None, infer from CADS_API_KEY or CADS_API_RC.
-    verify: bool or None, default=None
+    verify: bool or None
         Whether to verify the TLS certificate at the remote end.
         If None, infer from CADS_API_VERIFY or CADS_API_RC.
-    timeout: float or tuple, default=60
+    timeout: float or tuple
         How many seconds to wait for the server to send data, as a float, or a (connect, read) tuple.
-    progress: bool, default=True
+    progress: bool
         Whether to display the progress bar during download.
-    cleanup: bool, default=False
+    cleanup: bool
         Whether to delete requests after completion.
-    sleep_max: float, default=120
+    sleep_max: float
         Maximum time to wait (in seconds) while checking for a status change.
-    retry_after: float, default=120
+    retry_after: float
         Time to wait (in seconds) between retries.
-    maximum_tries: int, default=500
+    maximum_tries: int
         Maximum number of retries.
-    session: requests._session
+    session: requests.Session
         Requests session.
     """
 
@@ -139,26 +139,24 @@ class ApiClient:
 
         Returns
         -------
-        dict
+        dict[str, Any]
             Content of the response.
         """
         return self._profile_api.accept_licence(licence_id, revision=revision)
 
-    def apply_constraints(
-        self, collection_id: str, **request: dict[str, Any]
-    ) -> dict[str, Any]:
+    def apply_constraints(self, collection_id: str, **request: Any) -> dict[str, Any]:
         """Apply constraints to a request.
 
         Parameters
         ----------
         collection_id: str
             Collection ID (e.g., reanalysis-era5-pressure-levels).
-        **request: dict
+        **request: Any
             Request parameters.
 
         Returns
         -------
-        dict
+        dict[str, Any]
             Valid values.
         """
         return self.get_process(collection_id).apply_constraints(request)
@@ -168,7 +166,7 @@ class ApiClient:
 
         Returns
         -------
-        dict
+        dict[str, Any]
             Content of the response.
 
         Raises
@@ -178,14 +176,14 @@ class ApiClient:
         """
         return self._profile_api.check_authentication()
 
-    def download_results(self, request_uid: str, target: str | None) -> str:
+    def download_results(self, request_uid: str, target: str | None = None) -> str:
         """Download the results of a job.
 
         Parameters
         ----------
         request_uid: str
             Request UID
-        target: str or None, default=None
+        target: str | None
             Target path. If None, download to the working directory.
 
         Returns
@@ -195,21 +193,19 @@ class ApiClient:
         """
         return self._retrieve_api.download_result(request_uid, target)
 
-    def estimate_costs(
-        self, collection_id: str, **request: dict[str, Any]
-    ) -> dict[str, Any]:
+    def estimate_costs(self, collection_id: str, **request: Any) -> dict[str, Any]:
         """Estimate costs of a request.
 
         Parameters
         ----------
         collection_id: str
             Collection ID (e.g., "reanalysis-era5-pressure-levels").
-        **request: dict
+        **request: Any
             Request parameters.
 
         Returns
         -------
-        dict
+        dict[str, Any]
             Valid values.
         """
         return self.get_process(collection_id).estimate_costs(request)
@@ -220,7 +216,7 @@ class ApiClient:
         Parameters
         ----------
         collection_id: str
-            Collection ID (e.g., reanalysis-era5-pressure-levels).
+            Collection ID (e.g., "reanalysis-era5-pressure-levels").
 
         Returns
         -------
@@ -229,8 +225,7 @@ class ApiClient:
         return self._catalogue_api.collection(collection_id)
 
     def get_job(self, request_uid: str) -> processing.StatusInfo:
-        """
-        Retrieve a submitted job.
+        """Retrieve a submitted job.
 
         Parameters
         ----------
@@ -243,20 +238,20 @@ class ApiClient:
         """
         return self._retrieve_api.job(request_uid)
 
-    def get_process(self, process_id: str) -> processing.Process:
+    def get_process(self, collection_id: str) -> processing.Process:
         """
         Retrieve a process.
 
         Parameters
         ----------
-        request_uid: str
-            Request UID
+        collection_id: str
+            Collection ID (e.g., "reanalysis-era5-pressure-levels").
 
         Returns
         -------
         processing.Process
         """
-        return self._retrieve_api.process(process_id=process_id)
+        return self._retrieve_api.process(collection_id)
 
     def get_remote(self, request_uid: str) -> processing.Remote:
         """
@@ -285,9 +280,9 @@ class ApiClient:
         ----------
         collection_id: str
             Collection ID (e.g., reanalysis-era5-pressure-levels).
-        target: str or None, default=None
+        target: str | None
             Target path. If None, download to the working directory.
-        **request: dict
+        **request: Any
             Request parameters.
 
         Returns
@@ -305,7 +300,7 @@ class ApiClient:
         ----------
         collection_id: str
             Collection ID (e.g., reanalysis-era5-pressure-levels).
-        **request: dict
+        **request: Any
             Request parameters.
 
         Returns
@@ -323,7 +318,7 @@ class ApiClient:
         ----------
         collection_id: str
             Collection ID (e.g., reanalysis-era5-pressure-levels).
-        **request: dict
+        **request: Any
             Request parameters.
 
         Returns
@@ -338,7 +333,7 @@ class ApiClient:
 
         Returns
         -------
-        list
+        list[dict[str, Any]]
             List of dictionaries with license information.
         """
         licences: list[dict[str, Any]]
@@ -351,7 +346,7 @@ class ApiClient:
 
         Returns
         -------
-        processing.Collections
+        catalogue.Collections
         """
         return self._catalogue_api.collections()
 
@@ -371,7 +366,7 @@ class ApiClient:
 
         Returns
         -------
-        list
+        list[dict[str, Any]]
             List of dictionaries with license information.
         """
         licences: list[dict[str, Any]]
