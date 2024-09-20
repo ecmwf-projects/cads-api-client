@@ -1,0 +1,44 @@
+cads_api_client.Remote
+======================
+
+.. py:class:: cads_api_client.Remote
+
+   A class to interact with a submitted job.
+
+
+   .. py:method:: delete()
+
+      Delete job.
+
+      :returns: Content of the response.
+      :rtype: :class:`dict[str`, :class:`Any]`
+
+
+
+   .. py:method:: download(target = None)
+
+      Download the results.
+
+      :param target: Target path. If None, download to the working directory.
+      :type target: :class:`str | None`
+
+      :returns: Path to the retrieved file.
+      :rtype: :class:`str`
+
+
+
+   .. py:property:: request_uid
+      :type: str
+
+      Request UID.
+
+      :rtype: :class:`str`
+
+
+   .. py:property:: status
+      :type: str
+
+      Request status.
+
+      :rtype: :class:`str`
+
