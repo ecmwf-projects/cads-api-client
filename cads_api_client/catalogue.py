@@ -10,7 +10,7 @@ from . import config, processing
 
 
 @attrs.define
-class Collections(processing.ApiResponse):
+class Collections(processing.ApiResponseList):
     def collection_ids(self) -> list[str]:
         return [collection["id"] for collection in self.json["collections"]]
 

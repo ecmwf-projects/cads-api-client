@@ -197,6 +197,9 @@ class ApiResponse:
             out = None
         return out
 
+
+@attrs.define
+class ApiResponseList(ApiResponse):
     @property
     def next(self) -> Self | None:
         """Next page.
@@ -219,7 +222,7 @@ class ApiResponse:
 
 
 @attrs.define
-class ProcessList(ApiResponse):
+class ProcessList(ApiResponseList):
     def process_ids(self) -> list[str]:
         return [proc["id"] for proc in self.json["processes"]]
 
@@ -468,7 +471,7 @@ class StatusInfo(ApiResponse):
 
 
 @attrs.define
-class JobList(ApiResponse):
+class JobList(ApiResponseList):
     @property
     def job_ids(self) -> list[str]:
         return [job["jobID"] for job in self.json["jobs"]]
@@ -526,14 +529,6 @@ class Results(ApiResponse):
         )
         self._check_size(target)
         return target
-
-    @property
-    def next(self) -> Self | None:
-        raise NotImplementedError
-
-    @property
-    def prev(self) -> Self | None:
-        raise NotImplementedError
 
     # cdsapi backward compatibility methods
     @property
