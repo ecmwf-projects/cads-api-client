@@ -70,7 +70,7 @@ Package Contents
       :param \*\*request: Request parameters.
       :type \*\*request: :class:`Any`
 
-      :returns: Valid values.
+      :returns: Dictionary of valid values.
       :rtype: :class:`dict[str`, :class:`Any]`
 
 
@@ -109,7 +109,7 @@ Package Contents
       :param \*\*request: Request parameters.
       :type \*\*request: :class:`Any`
 
-      :returns: Valid values.
+      :returns: Dictionary of estimated costs.
       :rtype: :class:`dict[str`, :class:`Any]`
 
 
