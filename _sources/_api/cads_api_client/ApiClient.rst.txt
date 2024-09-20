@@ -102,13 +102,13 @@ cads_api_client.ApiClient
       :param collection_id: Collection ID (e.g., ``"reanalysis-era5-pressure-levels"``).
       :type collection_id: :class:`str`
 
-      :rtype: :class:`catalogue.Collection`
+      :rtype: :class:`cads_api_client.Collection`
 
 
 
    .. py:method:: get_job(request_uid)
 
-      Retrieve a submitted job.
+      Retrieve a job.
 
       :param request_uid: Request UID
       :type request_uid: :class:`str`
@@ -130,12 +130,23 @@ cads_api_client.ApiClient
 
    .. py:method:: get_remote(request_uid)
 
-      Retrieve the remote object of a submitted job.
+      Retrieve the remote object of a job.
 
       :param request_uid: Request UID
       :type request_uid: :class:`str`
 
       :rtype: :class:`cads_api_client.Remote`
+
+
+
+   .. py:method:: get_results(request_uid)
+
+      Retrieve the results of a job.
+
+      :param request_uid: Request UID
+      :type request_uid: :class:`str`
+
+      :rtype: :class:`cads_api_client.Results`
 
 
 

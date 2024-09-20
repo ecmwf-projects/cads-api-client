@@ -16,12 +16,14 @@ Classes
    :hidden:
 
    /_api/cads_api_client/ApiClient
+   /_api/cads_api_client/Collection
    /_api/cads_api_client/Remote
    /_api/cads_api_client/Results
 
 .. autoapisummary::
 
    cads_api_client.ApiClient
+   cads_api_client.Collection
    cads_api_client.Remote
    cads_api_client.Results
 

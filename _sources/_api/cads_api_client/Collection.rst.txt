@@ -1,0 +1,61 @@
+cads_api_client.Collection
+==========================
+
+.. py:class:: cads_api_client.Collection
+
+   Bases: :py:obj:`cads_api_client.processing.ApiResponse`
+
+
+   A class to interact with a catalogue collection.
+
+
+   .. py:method:: submit(**request)
+
+      Submit a job.
+
+      :param \*\*request: Request parameters.
+      :type \*\*request: :class:`Any`
+
+      :rtype: :class:`cads_api_client.Remote`
+
+
+
+   .. py:property:: begin_datetime
+      :type: datetime.datetime
+
+      Begin datetime of the collection.
+
+      :rtype: :class:`datetime.datetime`
+
+
+   .. py:property:: end_datetime
+      :type: datetime.datetime
+
+      End datetime of the collection.
+
+      :rtype: :class:`datetime.datetime`
+
+
+   .. py:property:: id
+      :type: str
+
+      Collection ID.
+
+      :rtype: :class:`str`
+
+
+   .. py:property:: json
+      :type: dict[str, Any]
+
+      Content of the response.
+
+      :rtype: :class:`dict[str`, :class:`Any]`
+
+
+   .. py:property:: process
+      :type: cads_api_client.processing.Process
+
+      Collection process.
+
+      :rtype: :class:`processing.Process`
+
