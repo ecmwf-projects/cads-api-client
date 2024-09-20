@@ -157,7 +157,7 @@ class ApiClient:
         Returns
         -------
         dict[str, Any]
-            Valid values.
+            Dictionary of valid values.
         """
         return self.get_process(collection_id).apply_constraints(request)
 
@@ -206,7 +206,7 @@ class ApiClient:
         Returns
         -------
         dict[str, Any]
-            Valid values.
+            Dictionary of estimated costs.
         """
         return self.get_process(collection_id).estimate_costs(request)
 
