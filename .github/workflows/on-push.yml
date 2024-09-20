@@ -146,7 +146,7 @@ jobs:
       if: github.ref == 'refs/heads/main'
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./docs/_build
+        publish_dir: ./docs/_build/html/
 
   integration-tests:
     needs: [combine-environments, unit-tests]
