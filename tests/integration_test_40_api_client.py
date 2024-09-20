@@ -9,7 +9,7 @@ import pytest
 import requests
 from urllib3.exceptions import InsecureRequestWarning
 
-from cads_api_client import ApiClient, catalogue, config, processing
+from cads_api_client import ApiClient, Remote, Results, catalogue, config, processing
 
 does_not_raise = contextlib.nullcontext
 
@@ -80,6 +80,12 @@ def test_api_client_get_remote(api_anon_client: ApiClient) -> None:
     assert remote.request_uid == request_uid
 
 
+def test_api_client_get_results(api_anon_client: ApiClient) -> None:
+    request_uid = api_anon_client.submit("test-adaptor-dummy").request_uid
+    results = api_anon_client.get_results(request_uid)
+    assert isinstance(results, Results)
+
+
 def test_api_client_retrieve(
     api_anon_client: ApiClient,
     tmp_path: pathlib.Path,
@@ -94,12 +100,12 @@ def test_api_client_retrieve(
 
 def test_api_client_submit(api_anon_client: ApiClient) -> None:
     remote = api_anon_client.submit("test-adaptor-dummy")
-    assert isinstance(remote, processing.Remote)
+    assert isinstance(remote, Remote)
 
 
 def test_api_client_submit_and_wait_on_results(api_anon_client: ApiClient) -> None:
     results = api_anon_client.submit_and_wait_on_results("test-adaptor-dummy")
-    assert isinstance(results, processing.Results)
+    assert isinstance(results, Results)
 
 
 def test_api_client_collections(api_anon_client: ApiClient) -> None:

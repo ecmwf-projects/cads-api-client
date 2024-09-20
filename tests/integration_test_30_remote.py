@@ -17,10 +17,7 @@ def cat(api_root_url: str, api_anon_key: str) -> catalogue.Catalogue:
 def test_from_collection_to_process(cat: catalogue.Catalogue) -> None:
     collection_id = "test-adaptor-dummy"
     dataset = cat.collection(collection_id)
-
-    res = dataset.retrieve_process()
-
-    assert isinstance(res, processing.Process)
+    assert isinstance(dataset.process, processing.Process)
 
 
 def test_collection_submit(cat: catalogue.Catalogue) -> None:
@@ -42,10 +39,8 @@ def test_collection_retrieve_with_dummy_adaptor(
     dataset = cat.collection(collection_id)
     target = str(tmp_path / "dummy.txt")
 
-    res = dataset.retrieve(
-        _timestamp=datetime.datetime.now().isoformat(),
-        target=target,
-    )
+    remote = dataset.submit(_timestamp=datetime.datetime.now().isoformat())
+    res = remote.download(target)
     assert res == target
     assert os.path.exists(target)
 
@@ -63,18 +58,14 @@ def test_collection_retrieve_with_url_cds_adaptor(
         "_timestamp": datetime.datetime.now().isoformat(),
     }
     target1 = str(tmp_path / "wfde1.zip")
-    res = dataset.retrieve(
-        **request,
-        target=target1,
-    )
+    remote = dataset.submit(**request)
+    res = remote.download(target1)
     assert res == target1
     assert os.path.exists(target1)
 
     target2 = str(tmp_path / "wfde2.zip")
-    res = dataset.retrieve(
-        **request,
-        target=target2,
-    )
+    remote = dataset.submit(**request)
+    res = remote.download(target2)
     assert filecmp.cmp(target1, target2)
 
 
@@ -95,11 +86,11 @@ def test_collection_retrieve_with_direct_mars_cds_adaptor(
         "class": "ea",
     }
     target = str(tmp_path / "era5-complete.grib")
-    res = dataset.retrieve(
-        target=target,
+    remote = dataset.submit(
         _timestamp=datetime.datetime.now().isoformat(),
         **request,
     )
+    res = remote.download(target)
     assert res == target
     assert os.path.exists(target)
 
@@ -118,10 +109,10 @@ def test_collection_retrieve_with_mars_cds_adaptor(
         "time": "00:00",
     }
     target = str(tmp_path / "era5.grib")
-    res = dataset.retrieve(
+    remote = dataset.submit(
         **request,
         _timestamp=datetime.datetime.now().isoformat(),
-        target=target,
     )
+    res = remote.download(target)
     assert res == target
     assert os.path.exists(target)

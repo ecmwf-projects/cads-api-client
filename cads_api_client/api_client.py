@@ -193,7 +193,7 @@ class ApiClient:
         str
             Path to the retrieved file.
         """
-        return self._retrieve_api.download_results(request_uid, target)
+        return self.get_remote(request_uid).download(target)
 
     def estimate_costs(self, collection_id: str, **request: Any) -> dict[str, Any]:
         """Estimate costs of a request.
@@ -212,7 +212,7 @@ class ApiClient:
         """
         return self.get_process(collection_id).estimate_costs(request)
 
-    def get_collection(self, collection_id: str) -> catalogue.Collection:
+    def get_collection(self, collection_id: str) -> cads_api_client.Collection:
         """Retrieve a catalogue collection.
 
         Parameters
@@ -222,12 +222,12 @@ class ApiClient:
 
         Returns
         -------
-        catalogue.Collection
+        cads_api_client.Collection
         """
         return self._catalogue_api.collection(collection_id)
 
     def get_job(self, request_uid: str) -> processing.StatusInfo:
-        """Retrieve a submitted job.
+        """Retrieve a job.
 
         Parameters
         ----------
@@ -257,7 +257,7 @@ class ApiClient:
 
     def get_remote(self, request_uid: str) -> cads_api_client.Remote:
         """
-        Retrieve the remote object of a submitted job.
+        Retrieve the remote object of a job.
 
         Parameters
         ----------
@@ -269,6 +269,21 @@ class ApiClient:
         cads_api_client.Remote
         """
         return self.get_job(request_uid).make_remote()
+
+    def get_results(self, request_uid: str) -> cads_api_client.Results:
+        """
+        Retrieve the results of a job.
+
+        Parameters
+        ----------
+        request_uid: str
+            Request UID
+
+        Returns
+        -------
+        cads_api_client.Results
+        """
+        return self.get_remote(request_uid).make_results()
 
     def retrieve(
         self,
@@ -292,8 +307,7 @@ class ApiClient:
         str
             Path to the retrieved file.
         """
-        results = self.submit_and_wait_on_results(collection_id, **request)
-        return results.download(target)
+        return self.submit(collection_id, **request).download(target)
 
     def submit(self, collection_id: str, **request: Any) -> cads_api_client.Remote:
         """Submit a job.
@@ -327,7 +341,7 @@ class ApiClient:
         -------
         cads_api_client.Results
         """
-        return self._retrieve_api.submit_and_wait_on_results(collection_id, **request)
+        return self._retrieve_api.submit(collection_id, **request).make_results()
 
     @property
     def accepted_licences(self) -> list[dict[str, Any]]:
