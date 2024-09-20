@@ -6,6 +6,8 @@ from typing import Any
 import attrs
 import requests
 
+import cads_api_client
+
 from . import config, processing
 
 
@@ -17,53 +19,72 @@ class Collections(processing.ApiResponseList):
 
 @attrs.define
 class Collection(processing.ApiResponse):
+    """A class to interact with a catalogue collection."""
+
     @property
-    def temporal_interval(self) -> tuple[str, str]:
+    def _temporal_interval(self) -> tuple[str, str]:
         begin, end = map(str, self.json["extent"]["temporal"]["interval"][0])
         return (begin, end)
 
     @property
     def begin_datetime(self) -> datetime.datetime:
+        """Begin datetime of the collection.
+
+        Returns
+        -------
+        datetime.datetime
+        """
         return datetime.datetime.fromisoformat(
-            self.temporal_interval[0].replace("Z", "+00:00")
+            self._temporal_interval[0].replace("Z", "+00:00")
         )
 
     @property
     def end_datetime(self) -> datetime.datetime:
+        """End datetime of the collection.
+
+        Returns
+        -------
+        datetime.datetime
+        """
         return datetime.datetime.fromisoformat(
-            self.temporal_interval[1].replace("Z", "+00:00")
+            self._temporal_interval[1].replace("Z", "+00:00")
         )
 
     @property
     def id(self) -> str:
-        collection_id = self.json["id"]
-        assert isinstance(collection_id, str)
-        return collection_id
+        """Collection ID.
 
-    def retrieve_process(
-        self, headers: dict[str, str] | None = None
-    ) -> processing.Process:
+        Returns
+        -------
+        str
+        """
+        return str(self.json["id"])
+
+    @property
+    def process(self) -> processing.Process:
+        """
+        Collection process.
+
+        Returns
+        -------
+        processing.Process
+        """
         url = self._get_link_href(rel="retrieve")
-        kwargs = self._request_kwargs
-        if headers is not None:
-            kwargs["headers"] = headers
-        return processing.Process.from_request("get", url, **kwargs)
+        return processing.Process.from_request("get", url, **self._request_kwargs)
 
-    def submit(
-        self,
-        **request: Any,
-    ) -> processing.Remote:
-        retrieve_process = self.retrieve_process(headers=self.headers)
-        status_info = retrieve_process.execute(request=request)
-        return status_info.make_remote()
+    def submit(self, **request: Any) -> cads_api_client.Remote:
+        """Submit a job.
 
-    def retrieve(
-        self,
-        target: str | None = None,
-        **request: Any,
-    ) -> str:
-        remote = self.submit(**request)
-        return remote.download(target)
+        Parameters
+        ----------
+        **request: Any
+            Request parameters.
+
+        Returns
+        -------
+        cads_api_client.Remote
+        """
+        return self.process.execute(request=request).make_remote()
 
 
 @attrs.define(slots=False)
