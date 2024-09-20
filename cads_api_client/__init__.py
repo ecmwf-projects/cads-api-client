@@ -23,5 +23,6 @@ except ImportError:  # pragma: no cover
     __version__ = "999"
 
 from .api_client import ApiClient
+from .processing import Remote
 
-__all__ = ["__version__", "ApiClient"]
+__all__ = ["__version__", "ApiClient", "Remote"]

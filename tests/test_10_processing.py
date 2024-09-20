@@ -423,7 +423,7 @@ def test_wait_on_result(cat: catalogue.Catalogue) -> None:
 
     collection = cat.collection(COLLECTION_ID)
     remote = collection.submit(variable="temperature", year="2022")
-    remote.wait_on_results()
+    remote._wait_on_results()
 
 
 @responses.activate
@@ -436,7 +436,7 @@ def test_wait_on_result_failed(cat: catalogue.Catalogue) -> None:
         processing.ProcessingFailedError,
         match="job failed\nThis is a traceback",
     ):
-        remote.wait_on_results()
+        remote._wait_on_results()
 
 
 @responses.activate
@@ -449,7 +449,7 @@ def test_remote_logs(
 
     with caplog.at_level(logging.DEBUG, logger="cads_api_client.processing"):
         remote = collection.submit(variable="temperature", year="2022")
-        remote.wait_on_results()
+        remote._wait_on_results()
 
     assert caplog.record_tuples == [
         (

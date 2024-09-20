@@ -8,6 +8,8 @@ import attrs
 import multiurl.base
 import requests
 
+import cads_api_client
+
 from . import catalogue, config, processing, profile
 
 
@@ -191,7 +193,7 @@ class ApiClient:
         str
             Path to the retrieved file.
         """
-        return self._retrieve_api.download_result(request_uid, target)
+        return self._retrieve_api.download_results(request_uid, target)
 
     def estimate_costs(self, collection_id: str, **request: Any) -> dict[str, Any]:
         """Estimate costs of a request.
@@ -253,7 +255,7 @@ class ApiClient:
         """
         return self._retrieve_api.process(collection_id)
 
-    def get_remote(self, request_uid: str) -> processing.Remote:
+    def get_remote(self, request_uid: str) -> cads_api_client.Remote:
         """
         Retrieve the remote object of a submitted job.
 
@@ -264,7 +266,7 @@ class ApiClient:
 
         Returns
         -------
-        processing.Remote
+        cads_api_client.Remote
         """
         return self.get_job(request_uid).make_remote()
 
@@ -293,7 +295,7 @@ class ApiClient:
         results = self.submit_and_wait_on_results(collection_id, **request)
         return results.download(target)
 
-    def submit(self, collection_id: str, **request: Any) -> processing.Remote:
+    def submit(self, collection_id: str, **request: Any) -> cads_api_client.Remote:
         """Submit a job.
 
         Parameters
@@ -305,7 +307,7 @@ class ApiClient:
 
         Returns
         -------
-        processing.Remote
+        cads_api_client.Remote
         """
         return self._retrieve_api.submit(collection_id, **request)
 
@@ -325,7 +327,7 @@ class ApiClient:
         -------
         processing.Results
         """
-        return self._retrieve_api.submit_and_wait_on_result(collection_id, **request)
+        return self._retrieve_api.submit_and_wait_on_results(collection_id, **request)
 
     @property
     def accepted_licences(self) -> list[dict[str, Any]]:

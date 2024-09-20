@@ -246,6 +246,8 @@ class Process(ApiResponse):
 
 @attrs.define(slots=False)
 class Remote:
+    """A class to interact with a submitted job."""
+
     url: str
     headers: dict[str, str]
     session: requests.Session
@@ -260,7 +262,7 @@ class Remote:
         self.info(f"Request ID is {self.request_uid}")
 
     @property
-    def request_kwargs(self) -> RequestKwargs:
+    def _request_kwargs(self) -> RequestKwargs:
         return RequestKwargs(
             headers=self.headers,
             session=self.session,
@@ -271,19 +273,25 @@ class Remote:
             cleanup=self.cleanup,
         )
 
-    def log_metadata(self, metadata: dict[str, Any]) -> None:
+    def _log_metadata(self, metadata: dict[str, Any]) -> None:
         logs = metadata.get("log", [])
         for self.log_start_time, message in sorted(logs):
             level, message = get_level_and_message(message)
             logger.log(level, message)
 
-    def get_api_response(self, method: str, **kwargs: Any) -> ApiResponse:
+    def _get_api_response(self, method: str, **kwargs: Any) -> ApiResponse:
         return ApiResponse.from_request(
-            method, self.url, **self.request_kwargs, **kwargs
+            method, self.url, **self._request_kwargs, **kwargs
         )
 
-    @functools.cached_property
+    @property
     def request_uid(self) -> str:
+        """Request UID.
+
+        Returns
+        -------
+        str
+        """
         return self.url.rpartition("/")[2]
 
     @property
@@ -291,16 +299,22 @@ class Remote:
         params = {"log": True}
         if self.log_start_time:
             params["logStartTime"] = self.log_start_time
-        return self.get_api_response("get", params=params).json
+        return self._get_api_response("get", params=params).json
 
     @property
     def status(self) -> str:
+        """Request status.
+
+        Returns
+        -------
+        str
+        """
         reply = self._reply
-        self.log_metadata(reply.get("metadata", {}))
+        self._log_metadata(reply.get("metadata", {}))
         status: str = reply["status"]
         return status
 
-    def wait_on_results(self) -> None:
+    def _wait_on_results(self) -> None:
         sleep = 1.0
         status = None
         while True:
@@ -309,7 +323,7 @@ class Remote:
             if status == "successful":
                 break
             elif status == "failed":
-                results = self.make_results()
+                results = self.make_results(wait_on_results=False)
                 raise ProcessingFailedError(error_json_to_message(results.json))
             elif status in ("accepted", "running"):
                 sleep *= 1.5
@@ -323,33 +337,47 @@ class Remote:
             time.sleep(sleep)
 
     def build_status_info(self) -> StatusInfo:
-        return StatusInfo.from_request("get", self.url, **self.request_kwargs)
+        return StatusInfo.from_request("get", self.url, **self._request_kwargs)
 
-    def make_results(self) -> Results:
-        response = self.get_api_response("get")
+    def make_results(self, wait_on_results: bool = True) -> Results:
+        if wait_on_results:
+            self._wait_on_results()
+        response = self._get_api_response("get")
         try:
             results_url = response.get_link_href(rel="results")
         except LinkError:
             results_url = f"{self.url}/results"
-        results = Results.from_request("get", results_url, **self.request_kwargs)
+        results = Results.from_request("get", results_url, **self._request_kwargs)
         return results
-
-    def _download_result(
-        self,
-        target: str | None = None,
-    ) -> str:
-        results = self.make_results()
-        return results.download(target)
 
     def download(
         self,
         target: str | None = None,
     ) -> str:
-        self.wait_on_results()
-        return self._download_result(target)
+        """Download the results.
+
+        Parameters
+        ----------
+        target: str | None
+            Target path. If None, download to the working directory.
+
+        Returns
+        -------
+        str
+            Path to the retrieved file.
+        """
+        results = self.make_results()
+        return results.download(target)
 
     def delete(self) -> dict[str, Any]:
-        response = self.get_api_response("delete")
+        """Delete job.
+
+        Returns
+        -------
+        dict[str, Any]
+            Content of the response.
+        """
+        response = self._get_api_response("delete")
         self.cleanup = False
         return response.json
 
@@ -564,15 +592,14 @@ class Processing:
         status_info = self.process_execute(collection_id, request)
         return status_info.make_remote()
 
-    def submit_and_wait_on_result(self, collection_id: str, **request: Any) -> Results:
+    def submit_and_wait_on_results(self, collection_id: str, **request: Any) -> Results:
         remote = self.submit(collection_id, **request)
-        remote.wait_on_results()
         return remote.make_results()
 
     def make_remote(self, job_id: str) -> Remote:
         url = f"{self.url}/jobs/{job_id}"
         return Remote(url, **self.request_kwargs)
 
-    def download_result(self, job_id: str, target: str | None) -> str:
+    def download_results(self, job_id: str, target: str | None) -> str:
         # NOTE: the remote waits for the results to be available
         return self.make_remote(job_id).download(target)
