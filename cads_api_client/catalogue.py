@@ -3,11 +3,6 @@ from __future__ import annotations
 import datetime
 from typing import Any
 
-try:
-    from typing import Self
-except ImportError:
-    from typing_extensions import Self
-
 import attrs
 import requests
 
@@ -18,12 +13,6 @@ from . import config, processing
 class Collections(processing.ApiResponse):
     def collection_ids(self) -> list[str]:
         return [collection["id"] for collection in self.json["collections"]]
-
-    def next(self) -> Self | None:
-        return self.from_rel_href(rel="next")
-
-    def prev(self) -> Self | None:
-        return self.from_rel_href(rel="prev")
 
 
 @attrs.define
@@ -65,7 +54,7 @@ class Collection(processing.ApiResponse):
         **request: Any,
     ) -> processing.Remote:
         retrieve_process = self.retrieve_process(headers=self.headers)
-        status_info = retrieve_process.execute(inputs=request)
+        status_info = retrieve_process.execute(request=request)
         return status_info.make_remote()
 
     def retrieve(
@@ -85,7 +74,7 @@ class Catalogue:
     retry_options: dict[str, Any]
     request_options: dict[str, Any]
     download_options: dict[str, Any]
-    sleep_max: int
+    sleep_max: float
     cleanup: bool
     force_exact_url: bool = False
 
@@ -115,6 +104,7 @@ class Catalogue:
         url = f"{self.url}/collections/{collection_id}"
         return Collection.from_request("get", url, **self.request_kwargs)
 
+    @property
     def licenses(self) -> dict[str, Any]:
         url = f"{self.url}/vocabularies/licences"
         return processing.ApiResponse.from_request(

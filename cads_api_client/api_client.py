@@ -11,24 +11,43 @@ import requests
 from . import catalogue, config, processing, profile
 
 
-def strtobool(value: str) -> bool:
-    if value.lower() in ("y", "yes", "t", "true", "on", "1"):
-        return True
-    if value.lower() in ("n", "no", "f", "false", "off", "0"):
-        return False
-    raise ValueError(f"invalid truth value {value!r}")
-
-
 @attrs.define(slots=False)
 class ApiClient:
+    """A client to interact with the CADS API.
+
+    Parameters
+    ----------
+    url: str or None
+        API URL. If None, infer from CADS_API_URL or CADS_API_RC.
+    key: str or None
+        API Key. If None, infer from CADS_API_KEY or CADS_API_RC.
+    verify: bool or None
+        Whether to verify the TLS certificate at the remote end.
+        If None, infer from CADS_API_VERIFY or CADS_API_RC.
+    timeout: float or tuple
+        How many seconds to wait for the server to send data, as a float, or a (connect, read) tuple.
+    progress: bool
+        Whether to display the progress bar during download.
+    cleanup: bool
+        Whether to delete requests after completion.
+    sleep_max: float
+        Maximum time to wait (in seconds) while checking for a status change.
+    retry_after: float
+        Time to wait (in seconds) between retries.
+    maximum_tries: int
+        Maximum number of retries.
+    session: requests.Session
+        Requests session.
+    """
+
     url: str | None = None
     key: str | None = None
     verify: bool | None = None
-    timeout: int = 60
+    timeout: float | tuple[float, float] = 60
     progress: bool = True
     cleanup: bool = False
-    sleep_max: int = 120
-    retry_after: int = 120
+    sleep_max: float = 120
+    retry_after: float = 120
     maximum_tries: int = 500
     session: requests.Session = attrs.field(factory=requests.Session)
 
@@ -44,7 +63,7 @@ class ApiClient:
 
         if self.verify is None:
             try:
-                self.verify = strtobool(str(config.get_config("verify")))
+                self.verify = config.strtobool(str(config.get_config("verify")))
             except (KeyError, FileNotFoundError):
                 self.verify = True
 
@@ -92,44 +111,162 @@ class ApiClient:
         )
 
     @functools.cached_property
-    def catalogue_api(self) -> catalogue.Catalogue:
+    def _catalogue_api(self) -> catalogue.Catalogue:
         return catalogue.Catalogue(
             f"{self.url}/catalogue",
             **self._get_request_kwargs(mandatory_key=False),
         )
 
     @functools.cached_property
-    def retrieve_api(self) -> processing.Processing:
+    def _retrieve_api(self) -> processing.Processing:
         return processing.Processing(
             f"{self.url}/retrieve", **self._get_request_kwargs()
         )
 
     @functools.cached_property
-    def profile_api(self) -> profile.Profile:
+    def _profile_api(self) -> profile.Profile:
         return profile.Profile(f"{self.url}/profiles", **self._get_request_kwargs())
 
+    def accept_licence(self, licence_id: str, revision: int) -> dict[str, Any]:
+        """Accept a licence.
+
+        Parameters
+        ----------
+        licence_id: str
+            Licence ID.
+        revision: int
+            Licence revision number.
+
+        Returns
+        -------
+        dict[str, Any]
+            Content of the response.
+        """
+        return self._profile_api.accept_licence(licence_id, revision=revision)
+
+    def apply_constraints(self, collection_id: str, **request: Any) -> dict[str, Any]:
+        """Apply constraints to a request.
+
+        Parameters
+        ----------
+        collection_id: str
+            Collection ID (e.g., reanalysis-era5-pressure-levels).
+        **request: Any
+            Request parameters.
+
+        Returns
+        -------
+        dict[str, Any]
+            Valid values.
+        """
+        return self.get_process(collection_id).apply_constraints(request)
+
     def check_authentication(self) -> dict[str, Any]:
-        return self.profile_api.check_authentication()
+        """Verify authentication.
 
-    def collections(self, **params: dict[str, Any]) -> catalogue.Collections:
-        return self.catalogue_api.collections(params=params)
+        Returns
+        -------
+        dict[str, Any]
+            Content of the response.
 
-    def collection(self, collection_id: str) -> catalogue.Collection:
-        return self.catalogue_api.collection(collection_id)
+        Raises
+        ------
+        requests.HTTPError
+            If the authentication fails.
+        """
+        return self._profile_api.check_authentication()
 
-    def processes(self, **params: dict[str, Any]) -> processing.ProcessList:
-        return self.retrieve_api.processes(params=params)
+    def download_results(self, request_uid: str, target: str | None = None) -> str:
+        """Download the results of a job.
 
-    def process(self, process_id: str) -> processing.Process:
-        return self.retrieve_api.process(process_id=process_id)
+        Parameters
+        ----------
+        request_uid: str
+            Request UID
+        target: str | None
+            Target path. If None, download to the working directory.
 
-    def submit(self, collection_id: str, **request: Any) -> processing.Remote:
-        return self.retrieve_api.submit(collection_id, **request)
+        Returns
+        -------
+        str
+            Path to the retrieved file.
+        """
+        return self._retrieve_api.download_result(request_uid, target)
 
-    def submit_and_wait_on_result(
-        self, collection_id: str, **request: Any
-    ) -> processing.Results:
-        return self.retrieve_api.submit_and_wait_on_result(collection_id, **request)
+    def estimate_costs(self, collection_id: str, **request: Any) -> dict[str, Any]:
+        """Estimate costs of a request.
+
+        Parameters
+        ----------
+        collection_id: str
+            Collection ID (e.g., "reanalysis-era5-pressure-levels").
+        **request: Any
+            Request parameters.
+
+        Returns
+        -------
+        dict[str, Any]
+            Valid values.
+        """
+        return self.get_process(collection_id).estimate_costs(request)
+
+    def get_collection(self, collection_id: str) -> catalogue.Collection:
+        """Retrieve a catalogue collection.
+
+        Parameters
+        ----------
+        collection_id: str
+            Collection ID (e.g., "reanalysis-era5-pressure-levels").
+
+        Returns
+        -------
+        catalogue.Collection
+        """
+        return self._catalogue_api.collection(collection_id)
+
+    def get_job(self, request_uid: str) -> processing.StatusInfo:
+        """Retrieve a submitted job.
+
+        Parameters
+        ----------
+        request_uid: str
+            Request UID
+
+        Returns
+        -------
+        processing.StatusInfo
+        """
+        return self._retrieve_api.job(request_uid)
+
+    def get_process(self, collection_id: str) -> processing.Process:
+        """
+        Retrieve a process.
+
+        Parameters
+        ----------
+        collection_id: str
+            Collection ID (e.g., "reanalysis-era5-pressure-levels").
+
+        Returns
+        -------
+        processing.Process
+        """
+        return self._retrieve_api.process(collection_id)
+
+    def get_remote(self, request_uid: str) -> processing.Remote:
+        """
+        Retrieve the remote object of a submitted job.
+
+        Parameters
+        ----------
+        request_uid: str
+            Request UID
+
+        Returns
+        -------
+        processing.Remote
+        """
+        return self.get_job(request_uid).make_remote()
 
     def retrieve(
         self,
@@ -137,35 +274,111 @@ class ApiClient:
         target: str | None = None,
         **request: Any,
     ) -> str:
-        result = self.submit_and_wait_on_result(collection_id, **request)
-        return result.download(target)
+        """Submit a job and retrieve the results.
 
-    def get_requests(self, **params: dict[str, Any]) -> processing.JobList:
-        return self.retrieve_api.jobs(params=params)
+        Parameters
+        ----------
+        collection_id: str
+            Collection ID (e.g., reanalysis-era5-pressure-levels).
+        target: str | None
+            Target path. If None, download to the working directory.
+        **request: Any
+            Request parameters.
 
-    def get_request(self, request_uid: str) -> processing.StatusInfo:
-        return self.retrieve_api.job(request_uid)
+        Returns
+        -------
+        str
+            Path to the retrieved file.
+        """
+        results = self.submit_and_wait_on_results(collection_id, **request)
+        return results.download(target)
 
-    def get_remote(self, request_uid: str) -> processing.Remote:
-        request = self.get_request(request_uid=request_uid)
-        return request.make_remote()
+    def submit(self, collection_id: str, **request: Any) -> processing.Remote:
+        """Submit a job.
 
-    def download_result(self, request_uid: str, target: str | None) -> str:
-        return self.retrieve_api.download_result(request_uid, target)
+        Parameters
+        ----------
+        collection_id: str
+            Collection ID (e.g., reanalysis-era5-pressure-levels).
+        **request: Any
+            Request parameters.
 
-    def valid_values(
-        self, collection_id: str, request: dict[str, Any]
-    ) -> dict[str, Any]:
-        process = self.retrieve_api.process(collection_id)
-        return process.valid_values(request)
+        Returns
+        -------
+        processing.Remote
+        """
+        return self._retrieve_api.submit(collection_id, **request)
+
+    def submit_and_wait_on_results(
+        self, collection_id: str, **request: Any
+    ) -> processing.Results:
+        """Submit a job and wait for the results to be ready.
+
+        Parameters
+        ----------
+        collection_id: str
+            Collection ID (e.g., reanalysis-era5-pressure-levels).
+        **request: Any
+            Request parameters.
+
+        Returns
+        -------
+        processing.Results
+        """
+        return self._retrieve_api.submit_and_wait_on_result(collection_id, **request)
 
     @property
-    def licences(self) -> dict[str, Any]:
-        return self.catalogue_api.licenses()
+    def accepted_licences(self) -> list[dict[str, Any]]:
+        """Accepted licences.
+
+        Returns
+        -------
+        list[dict[str, Any]]
+            List of dictionaries with license information.
+        """
+        licences: list[dict[str, Any]]
+        licences = self._profile_api.accepted_licences.get("licences", [])
+        return licences
 
     @property
-    def accepted_licences(self) -> dict[str, Any]:
-        return self.profile_api.accepted_licences()
+    def collections(self) -> catalogue.Collections:
+        """Catalogue collections.
 
-    def accept_licence(self, licence_id: str, revision: int) -> dict[str, Any]:
-        return self.profile_api.accept_licence(licence_id, revision=revision)
+        Returns
+        -------
+        catalogue.Collections
+        """
+        return self._catalogue_api.collections()
+
+    @property
+    def jobs(self) -> processing.JobList:
+        """Submitted jobs.
+
+        Returns
+        -------
+        processing.JobList
+        """
+        return self._retrieve_api.jobs()
+
+    @property
+    def licences(self) -> list[dict[str, Any]]:
+        """Licences.
+
+        Returns
+        -------
+        list[dict[str, Any]]
+            List of dictionaries with license information.
+        """
+        licences: list[dict[str, Any]]
+        licences = self._catalogue_api.licenses.get("licences", [])
+        return licences
+
+    @property
+    def processes(self) -> processing.ProcessList:
+        """Available processes.
+
+        Returns
+        -------
+        processing.ProcessList
+        """
+        return self._retrieve_api.processes()

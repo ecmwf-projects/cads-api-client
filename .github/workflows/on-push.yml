@@ -114,6 +114,8 @@ jobs:
   docs-build:
     needs: [combine-environments, unit-tests]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
     - uses: actions/checkout@v4
@@ -139,6 +141,12 @@ jobs:
     - name: Build documentation
       run: |
         make docs-build
+    - name: Deploy documentation
+      uses: peaceiris/actions-gh-pages@v4
+      if: github.ref == 'refs/heads/main'
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs/_build
 
   integration-tests:
     needs: [combine-environments, unit-tests]

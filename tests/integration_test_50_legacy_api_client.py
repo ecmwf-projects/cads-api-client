@@ -169,7 +169,7 @@ def test_legacy_api_client_kwargs(api_root_url: str, api_anon_key: str) -> None:
     assert client.client.url == api_root_url
     assert client.client.key == api_anon_key
     assert client.client.verify is False
-    assert client.timeout == 1
+    assert client.client.timeout == 1
     assert client.client.progress is False
     assert client.client.cleanup is True
     assert client.client.maximum_tries == 2

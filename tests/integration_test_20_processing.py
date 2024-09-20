@@ -7,7 +7,7 @@ from cads_api_client import ApiClient, processing
 @pytest.fixture
 def proc(api_root_url: str, api_anon_key: str) -> processing.Processing:
     client = ApiClient(url=api_root_url, key=api_anon_key, maximum_tries=0)
-    return client.retrieve_api
+    return client._retrieve_api
 
 
 def test_processes(proc: processing.Processing) -> None:
@@ -25,8 +25,7 @@ def test_processes(proc: processing.Processing) -> None:
 def test_processes_limit(proc: processing.Processing) -> None:
     processes = proc.processes(params={"limit": 1})
 
-    res = processes.next()
-
+    res = processes.next
     if res is not None:
         assert res.response.status_code == 200
 
@@ -45,7 +44,7 @@ def test_process(proc: processing.Processing) -> None:
 def test_validate_constraints(proc: processing.Processing) -> None:
     process_id = "test-adaptor-mars"
     process = proc.process(process_id)
-    res = process.valid_values({})
+    res = process.apply_constraints({})
 
     assert set(["product_type", "variable", "year", "month", "time"]) <= set(res)
 
@@ -53,7 +52,7 @@ def test_validate_constraints(proc: processing.Processing) -> None:
 def test_collection_anonymous_user(proc: processing.Processing) -> None:
     collection_id = "test-adaptor-mars"
     process = proc.process(collection_id)
-    response = process.execute(inputs={})
+    response = process.execute(request={})
     assert "message" in response.json
 
 
@@ -61,8 +60,8 @@ def test_jobs_list(proc: processing.Processing) -> None:
     collection_id = "test-adaptor-dummy"
     process = proc.process(collection_id)
 
-    _ = process.execute(inputs={})
-    _ = process.execute(inputs={})
+    _ = process.execute(request={})
+    _ = process.execute(request={})
 
     res = proc.jobs().json
     assert len(res["jobs"]) >= 2
@@ -71,7 +70,7 @@ def test_jobs_list(proc: processing.Processing) -> None:
     assert len(res["jobs"]) == 1
 
     jobs = proc.jobs(params={"limit": 1})
-    res = jobs.next().json  # type: ignore
+    res = jobs.next.json  # type: ignore
 
     assert res is not None
     assert len(res["jobs"]) == 1
@@ -80,6 +79,6 @@ def test_jobs_list(proc: processing.Processing) -> None:
 def test_validate_constraints_error(proc: processing.Processing) -> None:
     process_id = "test-adaptor-mars"
     process = proc.process(process_id)
-    with pytest.raises(requests.exceptions.HTTPError, match="422 Client Error") as exc:
-        process.valid_values({"invalid_param": 1})
+    with pytest.raises(requests.HTTPError, match="422 Client Error") as exc:
+        process.apply_constraints({"invalid_param": 1})
         assert exc.response.status_code == 422  # type: ignore[attr-defined]

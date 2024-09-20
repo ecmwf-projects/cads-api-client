@@ -9,7 +9,7 @@ def cat(api_root_url: str, monkeypatch: pytest.MonkeyPatch) -> catalogue.Catalog
     monkeypatch.delenv("CADS_API_KEY", raising=False)
     with pytest.warns(UserWarning, match="The API key is missing"):
         client = ApiClient(url=api_root_url, maximum_tries=0)
-    return client.catalogue_api
+    return client._catalogue_api
 
 
 def test_collections(cat: catalogue.Catalogue) -> None:
@@ -23,7 +23,7 @@ def test_collections(cat: catalogue.Catalogue) -> None:
 
     collection_ids = res.collection_ids()
     while len(collection_ids) != res.json["numberMatched"]:
-        res = res.next()
+        res = res.next
         assert res is not None
         collection_ids.extend(res.collection_ids())
 
@@ -34,8 +34,7 @@ def test_collections(cat: catalogue.Catalogue) -> None:
 def test_collections_limit(cat: catalogue.Catalogue) -> None:
     collections = cat.collections(params={"limit": 1})
 
-    res = collections.next()
-
+    res = collections.next
     if res is not None:
         assert res.response.status_code == 200
 

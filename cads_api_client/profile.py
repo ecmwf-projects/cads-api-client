@@ -16,7 +16,7 @@ class Profile:
     retry_options: dict[str, Any]
     request_options: dict[str, Any]
     download_options: dict[str, Any]
-    sleep_max: int
+    sleep_max: float
     cleanup: bool
     force_exact_url: bool = False
 
@@ -54,6 +54,7 @@ class Profile:
         url = f"{self.url}/account/licences/{licence_id}"
         return self.get_api_response("put", url, json={"revision": revision}).json
 
+    @property
     def accepted_licences(self) -> dict[str, Any]:
         url = f"{self.url}/account/licences"
         return self.get_api_response("get", url).json

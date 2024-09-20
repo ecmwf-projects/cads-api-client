@@ -156,7 +156,7 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
     ) -> str | processing.Remote | processing.Results:
         submitted: processing.Remote | processing.Results
         if self.wait_until_complete:
-            submitted = self.logging_decorator(self.client.submit_and_wait_on_result)(
+            submitted = self.logging_decorator(self.client.submit_and_wait_on_results)(
                 collection_id=name,
                 **request,
             )
