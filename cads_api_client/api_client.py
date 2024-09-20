@@ -150,7 +150,7 @@ class ApiClient:
         Parameters
         ----------
         collection_id: str
-            Collection ID (e.g., reanalysis-era5-pressure-levels).
+            Collection ID (e.g., `"reanalysis-era5-pressure-levels"`).
         **request: Any
             Request parameters.
 
@@ -199,7 +199,7 @@ class ApiClient:
         Parameters
         ----------
         collection_id: str
-            Collection ID (e.g., "reanalysis-era5-pressure-levels").
+            Collection ID (e.g., `"reanalysis-era5-pressure-levels"`).
         **request: Any
             Request parameters.
 
@@ -216,7 +216,7 @@ class ApiClient:
         Parameters
         ----------
         collection_id: str
-            Collection ID (e.g., "reanalysis-era5-pressure-levels").
+            Collection ID (e.g., `"reanalysis-era5-pressure-levels"`).
 
         Returns
         -------
@@ -245,7 +245,7 @@ class ApiClient:
         Parameters
         ----------
         collection_id: str
-            Collection ID (e.g., "reanalysis-era5-pressure-levels").
+            Collection ID (e.g., `"reanalysis-era5-pressure-levels"`).
 
         Returns
         -------
@@ -279,7 +279,7 @@ class ApiClient:
         Parameters
         ----------
         collection_id: str
-            Collection ID (e.g., reanalysis-era5-pressure-levels).
+            Collection ID (e.g., `"reanalysis-era5-pressure-levels"`).
         target: str | None
             Target path. If None, download to the working directory.
         **request: Any
@@ -299,7 +299,7 @@ class ApiClient:
         Parameters
         ----------
         collection_id: str
-            Collection ID (e.g., reanalysis-era5-pressure-levels).
+            Collection ID (e.g., `"reanalysis-era5-pressure-levels"`).
         **request: Any
             Request parameters.
 
@@ -317,7 +317,7 @@ class ApiClient:
         Parameters
         ----------
         collection_id: str
-            Collection ID (e.g., reanalysis-era5-pressure-levels).
+            Collection ID (e.g., `"reanalysis-era5-pressure-levels"`).
         **request: Any
             Request parameters.
 
