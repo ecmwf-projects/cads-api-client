@@ -65,7 +65,7 @@ Package Contents
 
       Apply constraints to a request.
 
-      :param collection_id: Collection ID (e.g., reanalysis-era5-pressure-levels).
+      :param collection_id: Collection ID (e.g., `"reanalysis-era5-pressure-levels"`).
       :type collection_id: :class:`str`
       :param \*\*request: Request parameters.
       :type \*\*request: :class:`Any`
@@ -104,7 +104,7 @@ Package Contents
 
       Estimate costs of a request.
 
-      :param collection_id: Collection ID (e.g., "reanalysis-era5-pressure-levels").
+      :param collection_id: Collection ID (e.g., `"reanalysis-era5-pressure-levels"`).
       :type collection_id: :class:`str`
       :param \*\*request: Request parameters.
       :type \*\*request: :class:`Any`
@@ -118,7 +118,7 @@ Package Contents
 
       Retrieve a catalogue collection.
 
-      :param collection_id: Collection ID (e.g., "reanalysis-era5-pressure-levels").
+      :param collection_id: Collection ID (e.g., `"reanalysis-era5-pressure-levels"`).
       :type collection_id: :class:`str`
 
       :rtype: :class:`catalogue.Collection`
@@ -140,7 +140,7 @@ Package Contents
 
       Retrieve a process.
 
-      :param collection_id: Collection ID (e.g., "reanalysis-era5-pressure-levels").
+      :param collection_id: Collection ID (e.g., `"reanalysis-era5-pressure-levels"`).
       :type collection_id: :class:`str`
 
       :rtype: :class:`processing.Process`
@@ -162,7 +162,7 @@ Package Contents
 
       Submit a job and retrieve the results.
 
-      :param collection_id: Collection ID (e.g., reanalysis-era5-pressure-levels).
+      :param collection_id: Collection ID (e.g., `"reanalysis-era5-pressure-levels"`).
       :type collection_id: :class:`str`
       :param target: Target path. If None, download to the working directory.
       :type target: :class:`str | None`
@@ -178,7 +178,7 @@ Package Contents
 
       Submit a job.
 
-      :param collection_id: Collection ID (e.g., reanalysis-era5-pressure-levels).
+      :param collection_id: Collection ID (e.g., `"reanalysis-era5-pressure-levels"`).
       :type collection_id: :class:`str`
       :param \*\*request: Request parameters.
       :type \*\*request: :class:`Any`
@@ -191,7 +191,7 @@ Package Contents
 
       Submit a job and wait for the results to be ready.
 
-      :param collection_id: Collection ID (e.g., reanalysis-era5-pressure-levels).
+      :param collection_id: Collection ID (e.g., `"reanalysis-era5-pressure-levels"`).
       :type collection_id: :class:`str`
       :param \*\*request: Request parameters.
       :type \*\*request: :class:`Any`
