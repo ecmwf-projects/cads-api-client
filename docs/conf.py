@@ -48,7 +48,6 @@ autoapi_options = [
     "imported-members",
 ]
 autoapi_root = "_api"
-autoapi_member_order = "groupwise"
 
 # napoleon configuration
 napoleon_google_docstring = False
