@@ -94,7 +94,7 @@ class ApiResponse:
     cleanup: bool
 
     @property
-    def request_kwargs(self) -> RequestKwargs:
+    def _request_kwargs(self) -> RequestKwargs:
         return RequestKwargs(
             headers=self.headers,
             session=self.session,
@@ -147,6 +147,12 @@ class ApiResponse:
 
     @property
     def json(self) -> dict[str, Any]:
+        """Content of the response.
+
+        Returns
+        -------
+        dict[str, Any]
+        """
         json: dict[str, Any] = self.response.json()
         return json
 
@@ -167,41 +173,56 @@ class ApiResponse:
             level = logging.getLevelName(severity)
             logger.log(level if isinstance(level, int) else 20, content)
 
-    def get_links(self, rel: str | None = None) -> list[dict[str, str]]:
+    def _get_links(self, rel: str | None = None) -> list[dict[str, str]]:
         links = []
         for link in self.json.get("links", []):
             if rel is not None and link.get("rel") == rel:
                 links.append(link)
         return links
 
-    def get_link_href(self, rel: str | None = None) -> str:
-        links = self.get_links(rel)
+    def _get_link_href(self, rel: str | None = None) -> str:
+        links = self._get_links(rel)
         if len(links) != 1:
             raise LinkError(f"link not found or not unique {rel=}")
         return links[0]["href"]
 
-    def from_rel_href(self, rel: str) -> Self | None:
-        rels = self.get_links(rel=rel)
+    def _from_rel_href(self, rel: str) -> Self | None:
+        rels = self._get_links(rel=rel)
         if len(rels) > 1:
             raise LinkError(f"link not unique {rel=}")
 
         if len(rels) == 1:
-            out = self.from_request("get", rels[0]["href"], **self.request_kwargs)
+            out = self.from_request("get", rels[0]["href"], **self._request_kwargs)
         else:
             out = None
         return out
 
+
+@attrs.define
+class ApiResponseList(ApiResponse):
     @property
     def next(self) -> Self | None:
-        return self.from_rel_href(rel="next")
+        """Next page.
+
+        Returns
+        -------
+        Self | None
+        """
+        return self._from_rel_href(rel="next")
 
     @property
     def prev(self) -> Self | None:
-        return self.from_rel_href(rel="prev")
+        """Previous page.
+
+        Returns
+        -------
+        Self | None
+        """
+        return self._from_rel_href(rel="prev")
 
 
 @attrs.define
-class ProcessList(ApiResponse):
+class ProcessList(ApiResponseList):
     def process_ids(self) -> list[str]:
         return [proc["id"] for proc in self.json["processes"]]
 
@@ -222,7 +243,7 @@ class Process(ApiResponse):
             "post",
             f"{self.url}/execution",
             json={"inputs": request},
-            **self.request_kwargs,
+            **self._request_kwargs,
         )
 
     def apply_constraints(self, request: dict[str, Any] = {}) -> dict[str, Any]:
@@ -230,7 +251,7 @@ class Process(ApiResponse):
             "post",
             f"{self.url}/constraints",
             json={"inputs": request},
-            **self.request_kwargs,
+            **self._request_kwargs,
         )
         return response.json
 
@@ -239,7 +260,7 @@ class Process(ApiResponse):
             "post",
             f"{self.url}/costing",
             json={"inputs": request},
-            **self.request_kwargs,
+            **self._request_kwargs,
         )
         return response.json
 
@@ -344,7 +365,7 @@ class Remote:
             self._wait_on_results()
         response = self._get_api_response("get")
         try:
-            results_url = response.get_link_href(rel="results")
+            results_url = response._get_link_href(rel="results")
         except LinkError:
             results_url = f"{self.url}/results"
         results = Results.from_request("get", results_url, **self._request_kwargs)
@@ -443,14 +464,14 @@ class Remote:
 class StatusInfo(ApiResponse):
     def make_remote(self) -> Remote:
         if self.response.request.method == "POST":
-            url = self.get_link_href(rel="monitor")
+            url = self._get_link_href(rel="monitor")
         else:
-            url = self.get_link_href(rel="self")
-        return Remote(url, **self.request_kwargs)
+            url = self._get_link_href(rel="self")
+        return Remote(url, **self._request_kwargs)
 
 
 @attrs.define
-class JobList(ApiResponse):
+class JobList(ApiResponseList):
     @property
     def job_ids(self) -> list[str]:
         return [job["jobID"] for job in self.json["jobs"]]
@@ -458,41 +479,40 @@ class JobList(ApiResponse):
 
 @attrs.define
 class Results(ApiResponse):
-    @property
-    def status_code(self) -> int:
-        return self.response.status_code
+    """A class to interact with the results of a job."""
 
-    @property
-    def reason(self) -> str:
-        return self.response.reason
-
-    def get_result_href(self) -> str:
-        if self.status_code != 200:
-            raise KeyError("result_href not available for processing failed results")
-        href: str = self.json["asset"]["value"]["href"]
-        return href
+    def _check_size(self, target: str) -> None:
+        if (target_size := os.path.getsize(target)) != (size := self.content_length):
+            raise DownloadError(
+                f"Download failed: downloaded {target_size} byte(s) out of {size}"
+            )
 
     @property
     def asset(self) -> dict[str, Any]:
+        """Asset dictionary.
+
+        Returns
+        -------
+        dict[str, Any]
+        """
         return dict(self.json["asset"]["value"])
-
-    @property
-    def location(self) -> str:
-        result_href = self.get_result_href()
-        return urllib.parse.urljoin(self.response.url, result_href)
-
-    @property
-    def content_length(self) -> int:
-        return int(self.asset["file:size"])
-
-    @property
-    def content_type(self) -> str:
-        return str(self.asset["type"])
 
     def download(
         self,
         target: str | None = None,
     ) -> str:
+        """Download the results.
+
+        Parameters
+        ----------
+        target: str | None
+            Target path. If None, download to the working directory.
+
+        Returns
+        -------
+        str
+            Path to the retrieved file.
+        """
         url = self.location
         if target is None:
             parts = urllib.parse.urlparse(url)
@@ -507,11 +527,22 @@ class Results(ApiResponse):
             **self.request_options,
             **download_options,
         )
-        if (target_size := os.path.getsize(target)) != (size := self.content_length):
-            raise DownloadError(
-                "Download failed: downloaded %s byte(s) out of %s" % (target_size, size)
-            )
+        self._check_size(target)
         return target
+
+    # cdsapi backward compatibility methods
+    @property
+    def location(self) -> str:
+        result_href = self.asset["href"]
+        return urllib.parse.urljoin(self.response.url, result_href)
+
+    @property
+    def content_length(self) -> int:
+        return int(self.asset["file:size"])
+
+    @property
+    def content_type(self) -> str:
+        return str(self.asset["type"])
 
     def info(self, *args: Any, **kwargs: Any) -> None:
         logger.info(*args, **kwargs)

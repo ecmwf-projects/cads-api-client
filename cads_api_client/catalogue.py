@@ -10,7 +10,7 @@ from . import config, processing
 
 
 @attrs.define
-class Collections(processing.ApiResponse):
+class Collections(processing.ApiResponseList):
     def collection_ids(self) -> list[str]:
         return [collection["id"] for collection in self.json["collections"]]
 
@@ -43,8 +43,8 @@ class Collection(processing.ApiResponse):
     def retrieve_process(
         self, headers: dict[str, str] | None = None
     ) -> processing.Process:
-        url = self.get_link_href(rel="retrieve")
-        kwargs = self.request_kwargs
+        url = self._get_link_href(rel="retrieve")
+        kwargs = self._request_kwargs
         if headers is not None:
             kwargs["headers"] = headers
         return processing.Process.from_request("get", url, **kwargs)
