@@ -19,7 +19,7 @@ Draft Python API:
 >>> client = cads_api_client.ApiClient()
 >>> assert client.check_authentication()
 
->>> collection = client.collection("reanalysis-era5-pressure-levels")
+>>> collection = client.get_collection("reanalysis-era5-pressure-levels")
 >>> collection.end_datetime
 datetime.datetime(...)
 
