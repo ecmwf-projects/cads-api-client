@@ -157,7 +157,7 @@ def test_legacy_api_client_kwargs(api_root_url: str, api_anon_key: str) -> None:
     client = legacy_api_client.LegacyApiClient(
         url=api_root_url,
         key=api_anon_key,
-        verify=False,
+        verify=0,
         timeout=1,
         progress=False,
         delete=True,
