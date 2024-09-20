@@ -14,11 +14,6 @@ from cads_api_client import ApiClient, catalogue, config, processing
 does_not_raise = contextlib.nullcontext
 
 
-@pytest.fixture
-def api_anon_client(api_root_url: str, api_anon_key: str) -> ApiClient:
-    return ApiClient(url=api_root_url, key=api_anon_key, maximum_tries=0)
-
-
 def test_api_client_apply_constraints(api_anon_client: ApiClient) -> None:
     result = api_anon_client.apply_constraints(
         "test-adaptor-url", version="deprecated (1.0)"
