@@ -177,7 +177,7 @@ cads_api_client.ApiClient
       :param \*\*request: Request parameters.
       :type \*\*request: :class:`Any`
 
-      :rtype: :class:`processing.Results`
+      :rtype: :class:`cads_api_client.Results`
 
 
 
