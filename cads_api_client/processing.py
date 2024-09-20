@@ -458,41 +458,40 @@ class JobList(ApiResponse):
 
 @attrs.define
 class Results(ApiResponse):
-    @property
-    def status_code(self) -> int:
-        return self.response.status_code
+    """A class to interact with the results of a job."""
 
-    @property
-    def reason(self) -> str:
-        return self.response.reason
-
-    def get_result_href(self) -> str:
-        if self.status_code != 200:
-            raise KeyError("result_href not available for processing failed results")
-        href: str = self.json["asset"]["value"]["href"]
-        return href
+    def _check_size(self, target: str) -> None:
+        if (target_size := os.path.getsize(target)) != (size := self.content_length):
+            raise DownloadError(
+                "Download failed: downloaded %s byte(s) out of %s" % (target_size, size)
+            )
 
     @property
     def asset(self) -> dict[str, Any]:
+        """Asset dictionary.
+
+        Returns
+        -------
+        dict[str, Any]
+        """
         return dict(self.json["asset"]["value"])
-
-    @property
-    def location(self) -> str:
-        result_href = self.get_result_href()
-        return urllib.parse.urljoin(self.response.url, result_href)
-
-    @property
-    def content_length(self) -> int:
-        return int(self.asset["file:size"])
-
-    @property
-    def content_type(self) -> str:
-        return str(self.asset["type"])
 
     def download(
         self,
         target: str | None = None,
     ) -> str:
+        """Download the results.
+
+        Parameters
+        ----------
+        target: str | None
+            Target path. If None, download to the working directory.
+
+        Returns
+        -------
+        str
+            Path to the retrieved file.
+        """
         url = self.location
         if target is None:
             parts = urllib.parse.urlparse(url)
@@ -507,11 +506,22 @@ class Results(ApiResponse):
             **self.request_options,
             **download_options,
         )
-        if (target_size := os.path.getsize(target)) != (size := self.content_length):
-            raise DownloadError(
-                "Download failed: downloaded %s byte(s) out of %s" % (target_size, size)
-            )
+        self._check_size(target)
         return target
+
+    # cdsapi backward compatibility methods
+    @property
+    def location(self) -> str:
+        result_href = self.asset["href"]
+        return urllib.parse.urljoin(self.response.url, result_href)
+
+    @property
+    def content_length(self) -> int:
+        return int(self.asset["file:size"])
+
+    @property
+    def content_type(self) -> str:
+        return str(self.asset["type"])
 
     def info(self, *args: Any, **kwargs: Any) -> None:
         logger.info(*args, **kwargs)

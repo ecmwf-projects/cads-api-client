@@ -313,7 +313,7 @@ class ApiClient:
 
     def submit_and_wait_on_results(
         self, collection_id: str, **request: Any
-    ) -> processing.Results:
+    ) -> cads_api_client.Results:
         """Submit a job and wait for the results to be ready.
 
         Parameters
@@ -325,7 +325,7 @@ class ApiClient:
 
         Returns
         -------
-        processing.Results
+        cads_api_client.Results
         """
         return self._retrieve_api.submit_and_wait_on_results(collection_id, **request)
 
