@@ -93,7 +93,7 @@ class Collection(processing.ApiResponse):
         -------
         cads_api_client.Remote
         """
-        return self.process.execute(request=request).make_remote()
+        return self.process.submit(request)
 
 
 @attrs.define(slots=False)

@@ -24,15 +24,15 @@ except ImportError:  # pragma: no cover
 
 from .api_client import ApiClient
 from .catalogue import Collection, Collections
-from .processing import Job, Jobs, Remote, Results
+from .processing import Jobs, Processes, Remote, Results
 
 __all__ = [
     "__version__",
     "ApiClient",
     "Collection",
     "Collections",
-    "Job",
     "Jobs",
+    "Processes",
     "Remote",
     "Results",
 ]

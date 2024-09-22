@@ -239,7 +239,7 @@ class ApiClient:
         -------
         processing.Process
         """
-        return self._retrieve_api.process(collection_id)
+        return self._retrieve_api.get_process(collection_id)
 
     def get_remote(self, request_uid: str) -> cads_api_client.Remote:
         """
@@ -254,7 +254,7 @@ class ApiClient:
         -------
         cads_api_client.Remote
         """
-        return self._retrieve_api.job(request_uid).make_remote()
+        return self._retrieve_api.get_job(request_uid).make_remote()
 
     def get_results(self, request_uid: str) -> cads_api_client.Results:
         """
@@ -360,7 +360,7 @@ class ApiClient:
         -------
         cads_api_client.Jobs
         """
-        return self._retrieve_api.jobs()
+        return self._retrieve_api.jobs
 
     @property
     def licences(self) -> list[dict[str, Any]]:
@@ -376,11 +376,11 @@ class ApiClient:
         return licences
 
     @property
-    def processes(self) -> processing.ProcessList:
+    def processes(self) -> processing.Processes:
         """Available processes.
 
         Returns
         -------
         processing.ProcessList
         """
-        return self._retrieve_api.processes()
+        return self._retrieve_api.processes

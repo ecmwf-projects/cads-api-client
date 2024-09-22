@@ -146,6 +146,10 @@ class ApiResponse:
         return self
 
     @property
+    def url(self) -> str:
+        return str(self.response.request.url)
+
+    @property
     def json(self) -> dict[str, Any]:
         """Content of the response.
 
@@ -222,8 +226,16 @@ class ApiResponseList(ApiResponse):
 
 
 @attrs.define
-class ProcessList(ApiResponseList):
+class Processes(ApiResponseList):
+    """A class to interact with available processes."""
+
     def process_ids(self) -> list[str]:
+        """Available process IDs.
+
+        Returns
+        -------
+        list[str]
+        """
         return [proc["id"] for proc in self.json["processes"]]
 
 
@@ -234,17 +246,16 @@ class Process(ApiResponse):
         process_id: str = self.json["id"]
         return process_id
 
-    @property
-    def url(self) -> str:
-        return str(self.response.request.url)
-
-    def execute(self, request: dict[str, Any]) -> Job:
+    def submit_job(self, request: dict[str, Any]) -> Job:
         return Job.from_request(
             "post",
             f"{self.url}/execution",
             json={"inputs": request},
             **self._request_kwargs,
         )
+
+    def submit(self, request: dict[str, Any]) -> Remote:
+        return self.submit_job(request).make_remote()
 
     def apply_constraints(self, request: dict[str, Any] = {}) -> dict[str, Any]:
         response = ApiResponse.from_request(
@@ -344,7 +355,7 @@ class Remote:
             if status == "successful":
                 break
             elif status == "failed":
-                results = self.make_results(wait_on_results=False)
+                results = self.make_results(wait=False)
                 raise ProcessingFailedError(error_json_to_message(results.json))
             elif status in ("accepted", "running"):
                 sleep *= 1.5
@@ -360,8 +371,8 @@ class Remote:
     def build_job(self) -> Job:
         return Job.from_request("get", self.url, **self._request_kwargs)
 
-    def make_results(self, wait_on_results: bool = True) -> Results:
-        if wait_on_results:
+    def make_results(self, wait: bool = True) -> Results:
+        if wait:
             self._wait_on_results()
         response = self._get_api_response("get")
         try:
@@ -371,10 +382,7 @@ class Remote:
         results = Results.from_request("get", results_url, **self._request_kwargs)
         return results
 
-    def download(
-        self,
-        target: str | None = None,
-    ) -> str:
+    def download(self, target: str | None = None) -> str:
         """Download the results.
 
         Parameters
@@ -582,7 +590,7 @@ class Processing:
             self.url += f"/{config.SUPPORTED_API_VERSION}"
 
     @property
-    def request_kwargs(self) -> RequestKwargs:
+    def _request_kwargs(self) -> RequestKwargs:
         return RequestKwargs(
             headers=self.headers,
             session=self.session,
@@ -593,42 +601,23 @@ class Processing:
             cleanup=self.cleanup,
         )
 
-    def processes(self, params: dict[str, Any] = {}) -> ProcessList:
+    @property
+    def processes(self) -> Processes:
         url = f"{self.url}/processes"
-        return ProcessList.from_request(
-            "get", url, params=params, **self.request_kwargs
-        )
+        return Processes.from_request("get", url, **self._request_kwargs)
 
-    def process(self, process_id: str) -> Process:
+    def get_process(self, process_id: str) -> Process:
         url = f"{self.url}/processes/{process_id}"
-        return Process.from_request("get", url, **self.request_kwargs)
+        return Process.from_request("get", url, **self._request_kwargs)
 
-    def process_execute(
-        self,
-        process_id: str,
-        inputs: dict[str, Any],
-    ) -> Job:
-        url = f"{self.url}/processes/{process_id}/execution"
-        return Job.from_request(
-            "post", url, json={"inputs": inputs}, **self.request_kwargs
-        )
-
-    def jobs(self, params: dict[str, Any] = {}) -> Jobs:
+    @property
+    def jobs(self) -> Jobs:
         url = f"{self.url}/jobs"
-        return Jobs.from_request("get", url, params=params, **self.request_kwargs)
+        return Jobs.from_request("get", url, **self._request_kwargs)
 
-    def job(self, job_id: str) -> Job:
+    def get_job(self, job_id: str) -> Job:
         url = f"{self.url}/jobs/{job_id}"
-        return Job.from_request("get", url, **self.request_kwargs)
-
-    def job_results(self, job_id: str) -> Results:
-        url = f"{self.url}/jobs/{job_id}/results"
-        return Results.from_request("get", url, **self.request_kwargs)
+        return Job.from_request("get", url, **self._request_kwargs)
 
     def submit(self, collection_id: str, **request: Any) -> Remote:
-        job = self.process_execute(collection_id, request)
-        return job.make_remote()
-
-    def make_remote(self, job_id: str) -> Remote:
-        url = f"{self.url}/jobs/{job_id}"
-        return Remote(url, **self.request_kwargs)
+        return self.get_process(collection_id).submit_job(request).make_remote()

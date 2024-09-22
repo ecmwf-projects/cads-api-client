@@ -117,7 +117,7 @@ def test_api_client_licences(api_anon_client: ApiClient) -> None:
 
 
 def test_api_client_processes(api_anon_client: ApiClient) -> None:
-    assert isinstance(api_anon_client.processes, processing.ProcessList)
+    assert isinstance(api_anon_client.processes, processing.Processes)
 
 
 def test_api_client_accept_licence() -> None:
