@@ -16,13 +16,13 @@ def cat(api_root_url: str, api_anon_key: str) -> catalogue.Catalogue:
 
 def test_from_collection_to_process(cat: catalogue.Catalogue) -> None:
     collection_id = "test-adaptor-dummy"
-    dataset = cat.collection(collection_id)
+    dataset = cat.get_collection(collection_id)
     assert isinstance(dataset.process, processing.Process)
 
 
 def test_collection_submit(cat: catalogue.Catalogue) -> None:
     collection_id = "test-adaptor-dummy"
-    dataset = cat.collection(collection_id)
+    dataset = cat.get_collection(collection_id)
 
     res = dataset.submit()
 
@@ -36,7 +36,7 @@ def test_collection_retrieve_with_dummy_adaptor(
     cat: catalogue.Catalogue, tmp_path: pathlib.Path
 ) -> None:
     collection_id = "test-adaptor-dummy"
-    dataset = cat.collection(collection_id)
+    dataset = cat.get_collection(collection_id)
     target = str(tmp_path / "dummy.txt")
 
     remote = dataset.submit(_timestamp=datetime.datetime.now().isoformat())
@@ -49,7 +49,7 @@ def test_collection_retrieve_with_url_cds_adaptor(
     cat: catalogue.Catalogue, tmp_path: pathlib.Path
 ) -> None:
     collection_id = "test-adaptor-url"
-    dataset = cat.collection(collection_id)
+    dataset = cat.get_collection(collection_id)
     request = {
         "variable": "grid_point_altitude",
         "reference_dataset": "cru",
@@ -73,7 +73,7 @@ def test_collection_retrieve_with_direct_mars_cds_adaptor(
     cat: catalogue.Catalogue, tmp_path: pathlib.Path
 ) -> None:
     collection_id = "test-adaptor-direct-mars"
-    dataset = cat.collection(collection_id)
+    dataset = cat.get_collection(collection_id)
     request = {
         "levelist": "1",
         "dataset": "reanalysis",
@@ -99,7 +99,7 @@ def test_collection_retrieve_with_mars_cds_adaptor(
     cat: catalogue.Catalogue, tmp_path: pathlib.Path
 ) -> None:
     collection_id = "test-adaptor-mars"
-    dataset = cat.collection(collection_id)
+    dataset = cat.get_collection(collection_id)
     request = {
         "product_type": "reanalysis",
         "variable": "2m_temperature",

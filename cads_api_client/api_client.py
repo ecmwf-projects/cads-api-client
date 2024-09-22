@@ -224,21 +224,7 @@ class ApiClient:
         -------
         cads_api_client.Collection
         """
-        return self._catalogue_api.collection(collection_id)
-
-    def get_job(self, request_uid: str) -> processing.StatusInfo:
-        """Retrieve a job.
-
-        Parameters
-        ----------
-        request_uid: str
-            Request UID
-
-        Returns
-        -------
-        processing.StatusInfo
-        """
-        return self._retrieve_api.job(request_uid)
+        return self._catalogue_api.get_collection(collection_id)
 
     def get_process(self, collection_id: str) -> processing.Process:
         """
@@ -268,7 +254,7 @@ class ApiClient:
         -------
         cads_api_client.Remote
         """
-        return self.get_job(request_uid).make_remote()
+        return self._retrieve_api.job(request_uid).make_remote()
 
     def get_results(self, request_uid: str) -> cads_api_client.Results:
         """
@@ -357,22 +343,22 @@ class ApiClient:
         return licences
 
     @property
-    def collections(self) -> catalogue.Collections:
+    def collections(self) -> cads_api_client.Collections:
         """Catalogue collections.
 
         Returns
         -------
-        catalogue.Collections
+        cads_api_client.Collections
         """
-        return self._catalogue_api.collections()
+        return self._catalogue_api.collections
 
     @property
-    def jobs(self) -> processing.JobList:
+    def jobs(self) -> cads_api_client.Jobs:
         """Submitted jobs.
 
         Returns
         -------
-        processing.JobList
+        cads_api_client.Jobs
         """
         return self._retrieve_api.jobs()
 

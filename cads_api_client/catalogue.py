@@ -13,7 +13,16 @@ from . import config, processing
 
 @attrs.define
 class Collections(processing.ApiResponseList):
+    """A class to interact with catalogue collections."""
+
+    @property
     def collection_ids(self) -> list[str]:
+        """List of collection IDs.
+
+        Return
+        ------
+        list[str]
+        """
         return [collection["id"] for collection in self.json["collections"]]
 
 
@@ -104,7 +113,7 @@ class Catalogue:
             self.url += f"/{config.SUPPORTED_API_VERSION}"
 
     @property
-    def request_kwargs(self) -> processing.RequestKwargs:
+    def _request_kwargs(self) -> processing.RequestKwargs:
         return processing.RequestKwargs(
             headers=self.headers,
             session=self.session,
@@ -115,19 +124,19 @@ class Catalogue:
             cleanup=self.cleanup,
         )
 
-    def collections(self, params: dict[str, Any] = {}) -> Collections:
+    @property
+    def collections(self) -> Collections:
         url = f"{self.url}/datasets"
-        return Collections.from_request(
-            "get", url, params=params, **self.request_kwargs
-        )
+        return Collections.from_request("get", url, **self._request_kwargs)
 
-    def collection(self, collection_id: str) -> Collection:
+    def get_collection(self, collection_id: str) -> Collection:
         url = f"{self.url}/collections/{collection_id}"
-        return Collection.from_request("get", url, **self.request_kwargs)
+        return Collection.from_request("get", url, **self._request_kwargs)
 
     @property
     def licenses(self) -> dict[str, Any]:
         url = f"{self.url}/vocabularies/licences"
-        return processing.ApiResponse.from_request(
-            "get", url, **self.request_kwargs
-        ).json
+        response = processing.ApiResponse.from_request(
+            "get", url, **self._request_kwargs
+        )
+        return response.json

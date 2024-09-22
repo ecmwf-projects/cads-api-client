@@ -238,8 +238,8 @@ class Process(ApiResponse):
     def url(self) -> str:
         return str(self.response.request.url)
 
-    def execute(self, request: dict[str, Any]) -> StatusInfo:
-        return StatusInfo.from_request(
+    def execute(self, request: dict[str, Any]) -> Job:
+        return Job.from_request(
             "post",
             f"{self.url}/execution",
             json={"inputs": request},
@@ -357,8 +357,8 @@ class Remote:
             self.debug(f"results not ready, waiting for {sleep} seconds")
             time.sleep(sleep)
 
-    def build_status_info(self) -> StatusInfo:
-        return StatusInfo.from_request("get", self.url, **self._request_kwargs)
+    def build_job(self) -> Job:
+        return Job.from_request("get", self.url, **self._request_kwargs)
 
     def make_results(self, wait_on_results: bool = True) -> Results:
         if wait_on_results:
@@ -461,7 +461,7 @@ class Remote:
 
 
 @attrs.define
-class StatusInfo(ApiResponse):
+class Job(ApiResponse):
     def make_remote(self) -> Remote:
         if self.response.request.method == "POST":
             url = self._get_link_href(rel="monitor")
@@ -471,9 +471,17 @@ class StatusInfo(ApiResponse):
 
 
 @attrs.define
-class JobList(ApiResponseList):
+class Jobs(ApiResponseList):
+    """A class to interact with submitted jobs."""
+
     @property
     def job_ids(self) -> list[str]:
+        """List of job IDs.
+
+        Returns
+        -------
+        list[str]
+        """
         return [job["jobID"] for job in self.json["jobs"]]
 
 
@@ -599,27 +607,27 @@ class Processing:
         self,
         process_id: str,
         inputs: dict[str, Any],
-    ) -> StatusInfo:
+    ) -> Job:
         url = f"{self.url}/processes/{process_id}/execution"
-        return StatusInfo.from_request(
+        return Job.from_request(
             "post", url, json={"inputs": inputs}, **self.request_kwargs
         )
 
-    def jobs(self, params: dict[str, Any] = {}) -> JobList:
+    def jobs(self, params: dict[str, Any] = {}) -> Jobs:
         url = f"{self.url}/jobs"
-        return JobList.from_request("get", url, params=params, **self.request_kwargs)
+        return Jobs.from_request("get", url, params=params, **self.request_kwargs)
 
-    def job(self, job_id: str) -> StatusInfo:
+    def job(self, job_id: str) -> Job:
         url = f"{self.url}/jobs/{job_id}"
-        return StatusInfo.from_request("get", url, **self.request_kwargs)
+        return Job.from_request("get", url, **self.request_kwargs)
 
     def job_results(self, job_id: str) -> Results:
         url = f"{self.url}/jobs/{job_id}/results"
         return Results.from_request("get", url, **self.request_kwargs)
 
     def submit(self, collection_id: str, **request: Any) -> Remote:
-        status_info = self.process_execute(collection_id, request)
-        return status_info.make_remote()
+        job = self.process_execute(collection_id, request)
+        return job.make_remote()
 
     def make_remote(self, job_id: str) -> Remote:
         url = f"{self.url}/jobs/{job_id}"

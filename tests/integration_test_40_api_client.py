@@ -62,12 +62,6 @@ def test_api_client_get_collection(api_anon_client: ApiClient) -> None:
     assert collection.id == "test-adaptor-dummy"
 
 
-def test_api_client_get_job(api_anon_client: ApiClient) -> None:
-    remote = api_anon_client.submit("test-adaptor-dummy")
-    job = api_anon_client.get_job(remote.request_uid)
-    assert isinstance(job, processing.StatusInfo)
-
-
 def test_api_client_get_process(api_anon_client: ApiClient) -> None:
     process = api_anon_client.get_process("test-adaptor-dummy")
     assert isinstance(process, processing.Process)
@@ -113,7 +107,7 @@ def test_api_client_collections(api_anon_client: ApiClient) -> None:
 
 
 def test_api_client_jobs(api_anon_client: ApiClient) -> None:
-    assert isinstance(api_anon_client.jobs, processing.JobList)
+    assert isinstance(api_anon_client.jobs, processing.Jobs)
 
 
 def test_api_client_licences(api_anon_client: ApiClient) -> None:
