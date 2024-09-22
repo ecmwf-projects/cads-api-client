@@ -406,9 +406,7 @@ def test_submit(cat: catalogue.Catalogue) -> None:
 
     assert collection.process.response.json() == PROCESS_JSON
 
-    job = collection.process.submit_job(
-        request={"variable": "temperature", "year": "2022"}
-    )
+    job = collection.process.submit_job(variable="temperature", year="2022")
     assert job.response.json() == JOB_SUCCESSFUL_JSON
 
     remote = collection.submit(variable="temperature", year="2022")

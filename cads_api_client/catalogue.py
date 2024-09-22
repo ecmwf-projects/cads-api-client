@@ -8,11 +8,12 @@ import requests
 
 import cads_api_client
 
-from . import config, processing
+from . import config
+from .processing import ApiResponse, ApiResponseList, RequestKwargs
 
 
 @attrs.define
-class Collections(processing.ApiResponseList):
+class Collections(ApiResponseList):
     """A class to interact with catalogue collections."""
 
     @property
@@ -27,7 +28,7 @@ class Collections(processing.ApiResponseList):
 
 
 @attrs.define
-class Collection(processing.ApiResponse):
+class Collection(ApiResponse):
     """A class to interact with a catalogue collection."""
 
     @property
@@ -70,19 +71,19 @@ class Collection(processing.ApiResponse):
         return str(self.json["id"])
 
     @property
-    def process(self) -> processing.Process:
+    def process(self) -> cads_api_client.Process:
         """
         Collection process.
 
         Returns
         -------
-        processing.Process
+        cads_api_client.Process
         """
         url = self._get_link_href(rel="retrieve")
-        return processing.Process.from_request("get", url, **self._request_kwargs)
+        return cads_api_client.Process.from_request("get", url, **self._request_kwargs)
 
     def submit(self, **request: Any) -> cads_api_client.Remote:
-        """Submit a job.
+        """Submit a request.
 
         Parameters
         ----------
@@ -93,7 +94,7 @@ class Collection(processing.ApiResponse):
         -------
         cads_api_client.Remote
         """
-        return self.process.submit(request)
+        return self.process.submit(**request)
 
 
 @attrs.define(slots=False)
@@ -113,8 +114,8 @@ class Catalogue:
             self.url += f"/{config.SUPPORTED_API_VERSION}"
 
     @property
-    def _request_kwargs(self) -> processing.RequestKwargs:
-        return processing.RequestKwargs(
+    def _request_kwargs(self) -> RequestKwargs:
+        return RequestKwargs(
             headers=self.headers,
             session=self.session,
             retry_options=self.retry_options,
@@ -136,7 +137,5 @@ class Catalogue:
     @property
     def licenses(self) -> dict[str, Any]:
         url = f"{self.url}/vocabularies/licences"
-        response = processing.ApiResponse.from_request(
-            "get", url, **self._request_kwargs
-        )
+        response = ApiResponse.from_request("get", url, **self._request_kwargs)
         return response.json

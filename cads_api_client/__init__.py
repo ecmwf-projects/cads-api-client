@@ -24,7 +24,7 @@ except ImportError:  # pragma: no cover
 
 from .api_client import ApiClient
 from .catalogue import Collection, Collections
-from .processing import Jobs, Processes, Remote, Results
+from .processing import Jobs, Process, Processes, Remote, Results
 
 __all__ = [
     "__version__",
@@ -32,6 +32,7 @@ __all__ = [
     "Collection",
     "Collections",
     "Jobs",
+    "Process",
     "Processes",
     "Remote",
     "Results",

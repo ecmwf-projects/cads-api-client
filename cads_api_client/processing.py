@@ -17,6 +17,8 @@ import attrs
 import multiurl
 import requests
 
+import cads_api_client
+
 from . import config
 
 T_ApiResponse = TypeVar("T_ApiResponse", bound="ApiResponse")
@@ -241,12 +243,20 @@ class Processes(ApiResponseList):
 
 @attrs.define
 class Process(ApiResponse):
+    """A class to interact with a process."""
+
     @property
     def id(self) -> str:
+        """Process ID.
+
+        Returns
+        -------
+        str
+        """
         process_id: str = self.json["id"]
         return process_id
 
-    def submit_job(self, request: dict[str, Any]) -> Job:
+    def submit_job(self, **request: Any) -> Job:
         return Job.from_request(
             "post",
             f"{self.url}/execution",
@@ -254,10 +264,33 @@ class Process(ApiResponse):
             **self._request_kwargs,
         )
 
-    def submit(self, request: dict[str, Any]) -> Remote:
-        return self.submit_job(request).make_remote()
+    def submit(self, **request: Any) -> cads_api_client.Remote:
+        """Submit a request.
 
-    def apply_constraints(self, request: dict[str, Any] = {}) -> dict[str, Any]:
+        Parameters
+        ----------
+        **request: Any
+            Request parameters.
+
+        Returns
+        -------
+        cads_api_client.Remote
+        """
+        return self.submit_job(**request).make_remote()
+
+    def apply_constraints(self, **request: Any) -> dict[str, Any]:
+        """Apply constraints to a request.
+
+        Parameters
+        ----------
+        **request: Any
+            Request parameters.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary of valid values.
+        """
         response = ApiResponse.from_request(
             "post",
             f"{self.url}/constraints",
@@ -266,7 +299,19 @@ class Process(ApiResponse):
         )
         return response.json
 
-    def estimate_costs(self, request: dict[str, Any] = {}) -> dict[str, Any]:
+    def estimate_costs(self, **request: Any) -> dict[str, Any]:
+        """Estimate costs of a request.
+
+        Parameters
+        ----------
+        **request: Any
+            Request parameters.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary of estimated costs.
+        """
         response = ApiResponse.from_request(
             "post",
             f"{self.url}/costing",
@@ -620,4 +665,4 @@ class Processing:
         return Job.from_request("get", url, **self._request_kwargs)
 
     def submit(self, collection_id: str, **request: Any) -> Remote:
-        return self.get_process(collection_id).submit_job(request).make_remote()
+        return self.get_process(collection_id).submit(**request)

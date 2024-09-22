@@ -44,7 +44,7 @@ def test_process(proc: processing.Processing) -> None:
 def test_validate_constraints(proc: processing.Processing) -> None:
     process_id = "test-adaptor-mars"
     process = proc.get_process(process_id)
-    res = process.apply_constraints({})
+    res = process.apply_constraints()
 
     assert set(["product_type", "variable", "year", "month", "time"]) <= set(res)
 
@@ -52,7 +52,7 @@ def test_validate_constraints(proc: processing.Processing) -> None:
 def test_collection_anonymous_user(proc: processing.Processing) -> None:
     collection_id = "test-adaptor-mars"
     process = proc.get_process(collection_id)
-    job = process.submit_job(request={})
+    job = process.submit_job()
     assert "message" in job.json
 
 
@@ -60,8 +60,8 @@ def test_jobs_list(proc: processing.Processing) -> None:
     collection_id = "test-adaptor-dummy"
     process = proc.get_process(collection_id)
 
-    _ = process.submit(request={})
-    _ = process.submit(request={})
+    _ = process.submit()
+    _ = process.submit()
 
     res = proc.jobs.json
     assert len(res["jobs"]) >= 2
@@ -80,5 +80,5 @@ def test_validate_constraints_error(proc: processing.Processing) -> None:
     process_id = "test-adaptor-mars"
     process = proc.get_process(process_id)
     with pytest.raises(requests.HTTPError, match="422 Client Error") as exc:
-        process.apply_constraints({"invalid_param": 1})
+        process.apply_constraints(invalid_param=1)
         assert exc.response.status_code == 422  # type: ignore[attr-defined]

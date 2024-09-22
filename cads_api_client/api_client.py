@@ -17,16 +17,16 @@ from . import catalogue, config, processing, profile
 class ApiClient:
     """A client to interact with the CADS API.
 
-    Parameters
+    Attributes
     ----------
-    url: str or None
+    url: str | None
         API URL. If None, infer from CADS_API_URL or CADS_API_RC.
-    key: str or None
+    key: str | None
         API Key. If None, infer from CADS_API_KEY or CADS_API_RC.
-    verify: bool or None
+    verify: bool | None
         Whether to verify the TLS certificate at the remote end.
         If None, infer from CADS_API_VERIFY or CADS_API_RC.
-    timeout: float or tuple
+    timeout: float | tuple
         How many seconds to wait for the server to send data, as a float, or a (connect, read) tuple.
     progress: bool
         Whether to display the progress bar during download.
@@ -161,7 +161,7 @@ class ApiClient:
         dict[str, Any]
             Dictionary of valid values.
         """
-        return self.get_process(collection_id).apply_constraints(request)
+        return self.get_process(collection_id).apply_constraints(**request)
 
     def check_authentication(self) -> dict[str, Any]:
         """Verify authentication.
@@ -210,7 +210,7 @@ class ApiClient:
         dict[str, Any]
             Dictionary of estimated costs.
         """
-        return self.get_process(collection_id).estimate_costs(request)
+        return self.get_process(collection_id).estimate_costs(**request)
 
     def get_collection(self, collection_id: str) -> cads_api_client.Collection:
         """Retrieve a catalogue collection.
@@ -243,7 +243,7 @@ class ApiClient:
 
     def get_remote(self, request_uid: str) -> cads_api_client.Remote:
         """
-        Retrieve the remote object of a job.
+        Retrieve the remote object of a request.
 
         Parameters
         ----------
@@ -258,7 +258,7 @@ class ApiClient:
 
     def get_results(self, request_uid: str) -> cads_api_client.Results:
         """
-        Retrieve the results of a job.
+        Retrieve the results of a request.
 
         Parameters
         ----------
@@ -277,7 +277,7 @@ class ApiClient:
         target: str | None = None,
         **request: Any,
     ) -> str:
-        """Submit a job and retrieve the results.
+        """Submit of a request and retrieve the results.
 
         Parameters
         ----------
@@ -296,7 +296,7 @@ class ApiClient:
         return self.submit(collection_id, **request).download(target)
 
     def submit(self, collection_id: str, **request: Any) -> cads_api_client.Remote:
-        """Submit a job.
+        """Submit of a request.
 
         Parameters
         ----------
@@ -314,7 +314,7 @@ class ApiClient:
     def submit_and_wait_on_results(
         self, collection_id: str, **request: Any
     ) -> cads_api_client.Results:
-        """Submit a job and wait for the results to be ready.
+        """Submit a request and wait for the results to be ready.
 
         Parameters
         ----------
@@ -381,6 +381,6 @@ class ApiClient:
 
         Returns
         -------
-        processing.ProcessList
+        processing.Processes
         """
         return self._retrieve_api.processes
