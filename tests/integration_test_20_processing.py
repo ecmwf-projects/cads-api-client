@@ -1,84 +1,70 @@
+import logging
+
 import pytest
-import requests
+from requests import HTTPError
 
-from cads_api_client import ApiClient, processing
-
-
-@pytest.fixture
-def proc(api_root_url: str, api_anon_key: str) -> processing.Processing:
-    client = ApiClient(url=api_root_url, key=api_anon_key, maximum_tries=0)
-    return client._retrieve_api
+from cads_api_client import ApiClient, Process, Processes, Remote
 
 
-def test_processes(proc: processing.Processing) -> None:
-    res = proc.processes
-
-    assert isinstance(res, processing.Processes)
-    assert "processes" in res.json
-    assert isinstance(res.json["processes"], list)
-    assert "links" in res.json
-    assert isinstance(res.json["links"], list)
-
-    assert len(res.process_ids()) == 10
+def test_processig_processes_limit(api_anon_client: ApiClient) -> None:
+    processes = api_anon_client.get_processes(limit=1)
+    assert isinstance(processes, Processes)
+    assert len(processes.process_ids) == 1
+    next_processes = processes.next
+    assert next_processes is not None
+    assert len(next_processes.process_ids) == 1
 
 
-def test_processes_limit(proc: processing.Processing) -> None:
-    processes = proc.processes
+def test_processing_processes_sortby(api_anon_client: ApiClient) -> None:
+    processes = api_anon_client.get_processes(sortby="id")
+    assert len(processes.process_ids) > 1
+    assert processes.process_ids == sorted(processes.process_ids)
 
-    res = processes.next
-    if res is not None:
-        assert res.response.status_code == 200
-
-
-def test_process(proc: processing.Processing) -> None:
-    process_id = "test-adaptor-dummy"
-
-    res = proc.get_process(process_id)
-
-    assert isinstance(res, processing.Process)
-    assert res.id == process_id
-    assert "links" in res.json
-    assert isinstance(res.json["links"], list)
+    processes = api_anon_client.get_processes(sortby="-id")
+    assert processes.process_ids == sorted(processes.process_ids, reverse=True)
 
 
-def test_validate_constraints(proc: processing.Processing) -> None:
-    process_id = "test-adaptor-mars"
-    process = proc.get_process(process_id)
-    res = process.apply_constraints()
+def test_processing_process(
+    caplog: pytest.LogCaptureFixture, api_anon_client: ApiClient
+) -> None:
+    process = api_anon_client.get_process("test-adaptor-dummy")
+    assert isinstance(process, Process)
+    assert process.id == "test-adaptor-dummy"
 
-    assert set(["product_type", "variable", "year", "month", "time"]) <= set(res)
-
-
-def test_collection_anonymous_user(proc: processing.Processing) -> None:
-    collection_id = "test-adaptor-mars"
-    process = proc.get_process(collection_id)
-    job = process.submit_job()
-    assert "message" in job.json
+    with caplog.at_level(logging.INFO, logger="cads_api_client.processing"):
+        remote = process.submit()
+    assert isinstance(remote, Remote)
+    assert "The job has been submitted as an anonymous user" in caplog.text
 
 
-def test_jobs_list(proc: processing.Processing) -> None:
-    collection_id = "test-adaptor-dummy"
-    process = proc.get_process(collection_id)
+def test_processing_apply_constraints(api_anon_client: ApiClient) -> None:
+    result = api_anon_client.apply_constraints(
+        "test-adaptor-url", version="deprecated (1.0)"
+    )
+    assert result["reference_dataset"] == ["cru", "cru_and_gpcc"]
 
-    _ = process.submit()
-    _ = process.submit()
-
-    res = proc.jobs.json
-    assert len(res["jobs"]) >= 2
-
-    """res = proc.jobs(params={"limit": 1}).json
-    assert len(res["jobs"]) == 1
-
-    jobs = proc.jobs(params={"limit": 1})
-    res = jobs.next.json  # type: ignore
-
-    assert res is not None
-    assert len(res["jobs"]) == 1"""
+    with pytest.raises(HTTPError, match="invalid param 'foo'"):
+        api_anon_client.apply_constraints("test-adaptor-url", foo="bar")
 
 
-def test_validate_constraints_error(proc: processing.Processing) -> None:
-    process_id = "test-adaptor-mars"
-    process = proc.get_process(process_id)
-    with pytest.raises(requests.HTTPError, match="422 Client Error") as exc:
-        process.apply_constraints(invalid_param=1)
-        assert exc.response.status_code == 422  # type: ignore[attr-defined]
+def test_processing_estimate_costs(api_anon_client: ApiClient) -> None:
+    result = api_anon_client.estimate_costs(
+        "test-layout-sandbox-nogecko-dataset", size=100
+    )
+    assert result["cost"] == 100
+
+
+def test_processing_get_jobs_satus(api_anon_client: ApiClient) -> None:
+    remote = api_anon_client.submit("test-adaptor-url", foo="bar")
+    request_uid = remote.request_uid
+    with pytest.raises(HTTPError):
+        remote.make_results()
+    assert request_uid in api_anon_client.get_jobs(status="failed").job_ids
+    assert request_uid not in api_anon_client.get_jobs(status="successful").job_ids
+
+
+def test_processing_get_jobs_sortby(api_anon_client: ApiClient) -> None:
+    uid1 = api_anon_client.submit("test-adaptor-dummy").request_uid
+    uid2 = api_anon_client.submit("test-adaptor-dummy").request_uid
+    assert [uid2, uid1] == api_anon_client.get_jobs(sortby="-created", limit=2).job_ids
+    assert [uid2] != api_anon_client.get_jobs(sortby="created", limit=1).job_ids

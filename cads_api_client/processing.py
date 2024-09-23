@@ -25,6 +25,17 @@ T_ApiResponse = TypeVar("T_ApiResponse", bound="ApiResponse")
 
 logger = logging.getLogger(__name__)
 
+LEVEL_NAMES_MAPPING = {
+    "CRITICAL": 50,
+    "FATAL": 50,
+    "ERROR": 40,
+    "WARNING": 30,
+    "WARN": 30,
+    "INFO": 20,
+    "DEBUG": 10,
+    "NOTSET": 0,
+}
+
 
 class RequestKwargs(TypedDict):
     headers: dict[str, str]
@@ -76,9 +87,9 @@ def cads_raise_for_status(response: requests.Response) -> None:
 
 def get_level_and_message(message: str) -> tuple[int, str]:
     level = 20
-    for severity in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"):
+    for severity in LEVEL_NAMES_MAPPING:
         if message.startswith(severity):
-            level = logging.getLevelName(severity)
+            level = LEVEL_NAMES_MAPPING[severity]
             message = message.replace(severity, "", 1).lstrip(":").lstrip()
             break
     return level, message
@@ -149,6 +160,12 @@ class ApiResponse:
 
     @property
     def url(self) -> str:
+        """URL.
+
+        Returns
+        -------
+        str
+        """
         return str(self.response.request.url)
 
     @property
@@ -159,8 +176,7 @@ class ApiResponse:
         -------
         dict[str, Any]
         """
-        json: dict[str, Any] = self.response.json()
-        return json
+        return dict(self.response.json())
 
     def log_messages(self) -> None:
         if message := self.json.get("message"):
@@ -176,8 +192,8 @@ class ApiResponse:
             if date := dataset_message.get("date"):
                 content = f"[{date}] {content}"
             severity = dataset_message.get("severity", "notset").upper()
-            level = logging.getLevelName(severity)
-            logger.log(level if isinstance(level, int) else 20, content)
+            level = LEVEL_NAMES_MAPPING.get(severity, 20)
+            logger.log(level, content)
 
     def _get_links(self, rel: str | None = None) -> list[dict[str, str]]:
         links = []
@@ -205,7 +221,7 @@ class ApiResponse:
 
 
 @attrs.define
-class ApiResponseList(ApiResponse):
+class ApiResponsePaginated(ApiResponse):
     @property
     def next(self) -> Self | None:
         """Next page.
@@ -228,9 +244,10 @@ class ApiResponseList(ApiResponse):
 
 
 @attrs.define
-class Processes(ApiResponseList):
+class Processes(ApiResponsePaginated):
     """A class to interact with available processes."""
 
+    @property
     def process_ids(self) -> list[str]:
         """Available process IDs.
 
@@ -256,14 +273,6 @@ class Process(ApiResponse):
         process_id: str = self.json["id"]
         return process_id
 
-    def submit_job(self, **request: Any) -> Job:
-        return Job.from_request(
-            "post",
-            f"{self.url}/execution",
-            json={"inputs": request},
-            **self._request_kwargs,
-        )
-
     def submit(self, **request: Any) -> cads_api_client.Remote:
         """Submit a request.
 
@@ -276,7 +285,13 @@ class Process(ApiResponse):
         -------
         cads_api_client.Remote
         """
-        return self.submit_job(**request).make_remote()
+        job = Job.from_request(
+            "post",
+            f"{self.url}/execution",
+            json={"inputs": request},
+            **self._request_kwargs,
+        )
+        return job.make_remote()
 
     def apply_constraints(self, **request: Any) -> dict[str, Any]:
         """Apply constraints to a request.
@@ -372,11 +387,37 @@ class Remote:
         return self.url.rpartition("/")[2]
 
     @property
-    def _reply(self) -> dict[str, Any]:
-        params = {"log": True}
+    def json(self) -> dict[str, Any]:
+        """Content of the response.
+
+        Returns
+        -------
+        dict[str, Any]
+        """
+        params = {"log": True, "request": True}
         if self.log_start_time:
             params["logStartTime"] = self.log_start_time
         return self._get_api_response("get", params=params).json
+
+    @property
+    def collection_id(self) -> str:
+        """Collection ID.
+
+        Returns
+        -------
+        str
+        """
+        return str(self.json["processID"])
+
+    @property
+    def request(self) -> dict[str, Any]:
+        """Request parameters.
+
+        Returns
+        -------
+        dict[str, Any]
+        """
+        return dict(self.json["metadata"]["request"]["ids"])
 
     @property
     def status(self) -> str:
@@ -386,7 +427,7 @@ class Remote:
         -------
         str
         """
-        reply = self._reply
+        reply = self.json
         self._log_metadata(reply.get("metadata", {}))
         status: str = reply["status"]
         return status
@@ -403,18 +444,13 @@ class Remote:
                 results = self.make_results(wait=False)
                 raise ProcessingFailedError(error_json_to_message(results.json))
             elif status in ("accepted", "running"):
-                sleep *= 1.5
-                if sleep > self.sleep_max:
-                    sleep = self.sleep_max
+                sleep = min(sleep * 1.5, self.sleep_max)
             elif status in ("dismissed", "deleted"):
                 raise ProcessingFailedError(f"API state {status!r}")
             else:
                 raise ProcessingFailedError(f"Unknown API state {status!r}")
             self.debug(f"results not ready, waiting for {sleep} seconds")
             time.sleep(sleep)
-
-    def build_job(self) -> Job:
-        return Job.from_request("get", self.url, **self._request_kwargs)
 
     def make_results(self, wait: bool = True) -> Results:
         if wait:
@@ -476,7 +512,7 @@ class Remote:
     def reply(self) -> dict[str, Any]:
         self._warn()
 
-        reply = self._reply
+        reply = self.json
         reply.setdefault("state", reply["status"])
 
         if reply["state"] == "successful":
@@ -524,7 +560,7 @@ class Job(ApiResponse):
 
 
 @attrs.define
-class Jobs(ApiResponseList):
+class Jobs(ApiResponsePaginated):
     """A class to interact with submitted jobs."""
 
     @property
@@ -646,19 +682,17 @@ class Processing:
             cleanup=self.cleanup,
         )
 
-    @property
-    def processes(self) -> Processes:
+    def get_processes(self, **params: Any) -> Processes:
         url = f"{self.url}/processes"
-        return Processes.from_request("get", url, **self._request_kwargs)
+        return Processes.from_request("get", url, params=params, **self._request_kwargs)
 
     def get_process(self, process_id: str) -> Process:
         url = f"{self.url}/processes/{process_id}"
         return Process.from_request("get", url, **self._request_kwargs)
 
-    @property
-    def jobs(self) -> Jobs:
+    def get_jobs(self, **params: Any) -> Jobs:
         url = f"{self.url}/jobs"
-        return Jobs.from_request("get", url, **self._request_kwargs)
+        return Jobs.from_request("get", url, params=params, **self._request_kwargs)
 
     def get_job(self, job_id: str) -> Job:
         url = f"{self.url}/jobs/{job_id}"

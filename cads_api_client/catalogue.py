@@ -9,11 +9,11 @@ import requests
 import cads_api_client
 
 from . import config
-from .processing import ApiResponse, ApiResponseList, RequestKwargs
+from .processing import ApiResponse, ApiResponsePaginated, RequestKwargs
 
 
 @attrs.define
-class Collections(ApiResponseList):
+class Collections(ApiResponsePaginated):
     """A class to interact with catalogue collections."""
 
     @property
@@ -125,17 +125,19 @@ class Catalogue:
             cleanup=self.cleanup,
         )
 
-    @property
-    def collections(self) -> Collections:
+    def get_collections(self, **params: Any) -> Collections:
         url = f"{self.url}/datasets"
-        return Collections.from_request("get", url, **self._request_kwargs)
+        return Collections.from_request(
+            "get", url, params=params, **self._request_kwargs
+        )
 
     def get_collection(self, collection_id: str) -> Collection:
         url = f"{self.url}/collections/{collection_id}"
         return Collection.from_request("get", url, **self._request_kwargs)
 
-    @property
-    def licenses(self) -> dict[str, Any]:
+    def get_licenses(self, **params: Any) -> dict[str, Any]:
         url = f"{self.url}/vocabularies/licences"
-        response = ApiResponse.from_request("get", url, **self._request_kwargs)
+        response = ApiResponse.from_request(
+            "get", url, params=params, **self._request_kwargs
+        )
         return response.json

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import os
 import pathlib
 import time
 from typing import Any
@@ -46,34 +47,54 @@ def legacy_update(remote: processing.Remote) -> None:
             )
 
 
-def test_retrieve(tmp_path: pathlib.Path, api_root_url: str, api_anon_key: str) -> None:
+def test_legacy_api_client_retrieve(
+    tmp_path: pathlib.Path,
+    api_root_url: str,
+    api_anon_key: str,
+) -> None:
     client = legacy_api_client.LegacyApiClient(
         url=api_root_url, key=api_anon_key, retry_max=0
     )
-
     collection_id = "test-adaptor-dummy"
     request = {"size": 1}
+    target = str(tmp_path / "dummy.grib")
+    actual_target = client.retrieve(collection_id, request, target)
+    assert target == actual_target
+    assert os.path.getsize(target) == 1
 
-    target = tmp_path / "test-retrieve-with-target.grib"
-    actual_target = client.retrieve(collection_id, request, str(target))
-    assert str(target) == actual_target
-    assert target.stat().st_size == 1
 
+def test_legacy_api_client_result(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: pathlib.Path,
+    api_root_url: str,
+    api_anon_key: str,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+
+    client = legacy_api_client.LegacyApiClient(
+        url=api_root_url, key=api_anon_key, retry_max=0
+    )
+    collection_id = "test-adaptor-dummy"
+    request = {"size": 1}
     result = client.retrieve(collection_id, request)
-    target = tmp_path / "test-retrieve-no-target.grib"
-    actual_target = result.download(str(target))
-    assert str(target) == actual_target
-    assert target.stat().st_size == 1
+
+    target = result.download()
+    assert os.path.basename(target) == os.path.basename(result.location)
+    assert os.path.getsize(target) == 1
+
+    target = str(tmp_path / "dummy.grib")
+    actual_target = result.download(target)
+    assert target == actual_target
+    assert os.path.getsize(target) == 1
 
     response = requests.head(result.location)
     assert response.status_code == 200
-
     assert result.content_length == 1
     assert result.content_type == "application/x-grib"
 
 
 @pytest.mark.parametrize("quiet", [True, False])
-def test_quiet(
+def test_legacy_api_client_quiet(
     caplog: pytest.LogCaptureFixture,
     api_root_url: str,
     api_anon_key: str,
@@ -88,7 +109,7 @@ def test_quiet(
 
 
 @pytest.mark.parametrize("debug", [True, False])
-def test_debug(
+def test_legacy_api_client_debug(
     caplog: pytest.LogCaptureFixture,
     api_root_url: str,
     api_anon_key: str,
@@ -105,7 +126,7 @@ def test_debug(
     "wait_until_complete,expected_type",
     [(True, processing.Results), (False, processing.Remote)],
 )
-def test_wait_until_complete(
+def test_legacy_api_client_wait_until_complete(
     tmp_path: pathlib.Path,
     api_root_url: str,
     api_anon_key: str,
@@ -137,7 +158,7 @@ def test_wait_until_complete(
         ("test-adaptor-mars", pytest.raises(Exception, match="400 Client Error")),
     ],
 )
-def test_legacy_update(
+def test_legacy_api_client_update(
     api_root_url: str,
     api_anon_key: str,
     collection_id: str,
@@ -182,3 +203,20 @@ def test_legacy_api_client_error(
 ) -> None:
     with pytest.raises(ValueError, match="Wrong parameters: {'foo'}"):
         legacy_api_client.LegacyApiClient(url=api_root_url, key=api_anon_key, foo="bar")
+
+
+def test_legacy_api_client_logging(
+    caplog: pytest.LogCaptureFixture,
+    api_root_url: str,
+    api_anon_key: str,
+) -> None:
+    client = legacy_api_client.LegacyApiClient(url=api_root_url, key=api_anon_key)
+    client.info("Info message")
+    client.warning("Warning message")
+    client.error("Error message")
+    print(caplog.record_tuples)
+    assert caplog.record_tuples == [
+        ("cads_api_client.legacy_api_client", 20, "Info message"),
+        ("cads_api_client.legacy_api_client", 30, "Warning message"),
+        ("cads_api_client.legacy_api_client", 40, "Error message"),
+    ]

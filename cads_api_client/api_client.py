@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import functools
 import warnings
-from typing import Any
+from typing import Any, Literal
 
 import attrs
 import multiurl.base
@@ -23,10 +23,9 @@ class ApiClient:
         API URL. If None, infer from CADS_API_URL or CADS_API_RC.
     key: str | None
         API Key. If None, infer from CADS_API_KEY or CADS_API_RC.
-    verify: bool | None
+    verify: bool
         Whether to verify the TLS certificate at the remote end.
-        If None, infer from CADS_API_VERIFY or CADS_API_RC.
-    timeout: float | tuple
+    timeout: float | tuple[float, float]
         How many seconds to wait for the server to send data, as a float, or a (connect, read) tuple.
     progress: bool
         Whether to display the progress bar during download.
@@ -44,7 +43,7 @@ class ApiClient:
 
     url: str | None = None
     key: str | None = None
-    verify: bool | None = None
+    verify: bool = True
     timeout: float | tuple[float, float] = 60
     progress: bool = True
     cleanup: bool = False
@@ -62,12 +61,6 @@ class ApiClient:
                 self.key = str(config.get_config("key"))
             except (KeyError, FileNotFoundError):
                 warnings.warn("The API key is missing", UserWarning)
-
-        if self.verify is None:
-            try:
-                self.verify = config.strtobool(str(config.get_config("verify")))
-            except (KeyError, FileNotFoundError):
-                self.verify = True
 
     def _get_headers(self, key_is_mandatory: bool = True) -> dict[str, str]:
         if self.key is None:
@@ -226,7 +219,89 @@ class ApiClient:
         """
         return self._catalogue_api.get_collection(collection_id)
 
-    def get_process(self, collection_id: str) -> processing.Process:
+    def get_collections(
+        self,
+        limit: int | None = None,
+        sortby: Literal["id", "relevance", "title", "update"] | None = None,
+        query: str | None = None,
+        keywords: list[str] | None = None,
+    ) -> cads_api_client.Collections:
+        """Get catalogue collections.
+
+        Parameters
+        ----------
+        limit: int | None
+            Number of processes per page.
+        sortby: Literal["id", "relevance", "title", "update"] | None
+            Field to sort results by.
+        query: str | None
+            Full-text search query
+        keywords: list[str] | None
+            Filter by keywords
+
+        Returns
+        -------
+        cads_api_client.Collections
+        """
+        params = {
+            k: v
+            for k, v in zip(
+                ["limit", "sortby", "q", "kw"], [limit, sortby, query, keywords]
+            )
+            if v is not None
+        }
+        return self._catalogue_api.get_collections(**params)
+
+    def get_jobs(
+        self,
+        limit: int | None = None,
+        sortby: Literal["created", "-created"] | None = None,
+        status: Literal["accepted", "running", "successful", "failed"] | None = None,
+    ) -> cads_api_client.Jobs:
+        """Jobs submitted.
+
+        Parameters
+        ----------
+        limit: int | None
+            Number of processes per page.
+        sortby: Literal["created", "-created"] | None
+            Field to sort results by.
+        status: Literal["accepted", "running", "successful", "failed"] | None
+            Status of the results.
+
+        Returns
+        -------
+        cads_api_client.Jobs
+        """
+        params = {
+            k: v
+            for k, v in zip(["limit", "sortby", "status"], [limit, sortby, status])
+            if v is not None
+        }
+        return self._retrieve_api.get_jobs(**params)
+
+    def get_licences(
+        self,
+        scope: Literal["all", "dataset", "portal"] | None = None,
+    ) -> list[dict[str, Any]]:
+        """Licences.
+
+        Parameters
+        ----------
+        scope: Literal["all", "dataset", "portal"] | None
+            Licence scope.
+
+        Returns
+        -------
+        list[dict[str, Any]]
+            List of dictionaries with license information.
+        """
+        params = {k: v for k, v in zip(["scope"], [scope]) if v is not None}
+        licences: list[dict[str, Any]]
+        licences = self._catalogue_api.get_licenses(**params).get("licences", [])
+        return licences
+
+    def get_process(self, collection_id: str) -> cads_api_client.Process:
         """
         Retrieve a process.
 
@@ -237,9 +312,30 @@ class ApiClient:
 
         Returns
         -------
-        processing.Process
+        cads_api_client.Process
         """
         return self._retrieve_api.get_process(collection_id)
+
+    def get_processes(
+        self, limit: int | None = None, sortby: Literal["id", "-id"] | None = None
+    ) -> cads_api_client.Processes:
+        """Get available processes.
+
+        Parameters
+        ----------
+        limit: int | None
+            Number of processes per page.
+        sortby: Literal["id", "-id"] | None
+            Field to sort results by.
+
+        Returns
+        -------
+        cads_api_client.Processes
+        """
+        params = {
+            k: v for k, v in zip(["limit", "sortby"], [limit, sortby]) if v is not None
+        }
+        return self._retrieve_api.get_processes(**params)
 
     def get_remote(self, request_uid: str) -> cads_api_client.Remote:
         """
@@ -277,7 +373,7 @@ class ApiClient:
         target: str | None = None,
         **request: Any,
     ) -> str:
-        """Submit of a request and retrieve the results.
+        """Submit a request and retrieve the results.
 
         Parameters
         ----------
@@ -296,7 +392,7 @@ class ApiClient:
         return self.submit(collection_id, **request).download(target)
 
     def submit(self, collection_id: str, **request: Any) -> cads_api_client.Remote:
-        """Submit of a request.
+        """Submit a request.
 
         Parameters
         ----------
@@ -341,46 +437,3 @@ class ApiClient:
         licences: list[dict[str, Any]]
         licences = self._profile_api.accepted_licences.get("licences", [])
         return licences
-
-    @property
-    def collections(self) -> cads_api_client.Collections:
-        """Catalogue collections.
-
-        Returns
-        -------
-        cads_api_client.Collections
-        """
-        return self._catalogue_api.collections
-
-    @property
-    def jobs(self) -> cads_api_client.Jobs:
-        """Submitted jobs.
-
-        Returns
-        -------
-        cads_api_client.Jobs
-        """
-        return self._retrieve_api.jobs
-
-    @property
-    def licences(self) -> list[dict[str, Any]]:
-        """Licences.
-
-        Returns
-        -------
-        list[dict[str, Any]]
-            List of dictionaries with license information.
-        """
-        licences: list[dict[str, Any]]
-        licences = self._catalogue_api.licenses.get("licences", [])
-        return licences
-
-    @property
-    def processes(self) -> processing.Processes:
-        """Available processes.
-
-        Returns
-        -------
-        processing.Processes
-        """
-        return self._retrieve_api.processes

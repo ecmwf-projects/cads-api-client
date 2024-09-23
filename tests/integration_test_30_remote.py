@@ -1,118 +1,84 @@
-import datetime
-import filecmp
+import contextlib
 import os
 import pathlib
+import uuid
+from typing import Any
 
 import pytest
+from requests import HTTPError
 
-from cads_api_client import ApiClient, catalogue, processing
+from cads_api_client import ApiClient, Remote
+
+does_not_raise = contextlib.nullcontext
 
 
 @pytest.fixture
-def cat(api_root_url: str, api_anon_key: str) -> catalogue.Catalogue:
+def remote(api_anon_client: ApiClient) -> Remote:
+    return api_anon_client.submit("test-adaptor-dummy", size=1)
+
+
+def test_remote_delete(remote: Remote) -> None:
+    result = remote.delete()
+    assert result["status"] == "dismissed"
+
+    with pytest.raises(HTTPError, match="404 Client Error"):
+        remote.status
+
+
+def test_remote_download(remote: Remote, tmp_path: pathlib.Path) -> None:
+    target = str(tmp_path / "dummy.grib")
+    result = remote.download(target=target)
+    assert result == target
+    assert os.path.getsize(result) == 1
+
+
+def test_remote_collection_id(remote: Remote) -> None:
+    assert remote.collection_id == "test-adaptor-dummy"
+
+
+def test_remote_json(remote: Remote) -> None:
+    assert isinstance(remote.json, dict)
+
+
+def test_remote_request(remote: Remote) -> None:
+    assert remote.request == {"size": 1}
+
+
+def test_remote_request_uid(remote: Remote) -> None:
+    assert uuid.UUID(remote.request_uid)
+
+
+def test_remote_status(remote: Remote) -> None:
+    assert remote.status in ("accepted", "running", "successful")
+
+
+def test_remote_failed(api_anon_client: ApiClient) -> None:
+    remote = api_anon_client.submit("test-adaptor-url", foo="bar")
+    with pytest.raises(HTTPError, match="400 Client Error: Bad Request"):
+        remote.download()
+    assert remote.status == "failed"
+
+
+@pytest.mark.parametrize(
+    "cleanup,raises",
+    [
+        (True, pytest.raises(HTTPError, match="404 Client Error")),
+        (False, does_not_raise()),
+    ],
+)
+def test_remote_cleanup(
+    api_root_url: str,
+    api_anon_key: str,
+    cleanup: bool,
+    raises: contextlib.nullcontext[Any],
+) -> None:
+    client = ApiClient(
+        url=api_root_url, key=api_anon_key, cleanup=cleanup, maximum_tries=0
+    )
+    remote = client.submit("test-adaptor-dummy")
+    request_uid = remote.request_uid
+    del remote
+
     client = ApiClient(url=api_root_url, key=api_anon_key, maximum_tries=0)
-    return client._catalogue_api
-
-
-def test_from_collection_to_process(cat: catalogue.Catalogue) -> None:
-    collection_id = "test-adaptor-dummy"
-    dataset = cat.get_collection(collection_id)
-    assert isinstance(dataset.process, processing.Process)
-
-
-def test_collection_submit(cat: catalogue.Catalogue) -> None:
-    collection_id = "test-adaptor-dummy"
-    dataset = cat.get_collection(collection_id)
-
-    res = dataset.submit()
-
-    assert isinstance(res, processing.Remote)
-
-    assert isinstance(res.request_uid, str)
-    assert isinstance(res.status, str)
-
-
-def test_collection_retrieve_with_dummy_adaptor(
-    cat: catalogue.Catalogue, tmp_path: pathlib.Path
-) -> None:
-    collection_id = "test-adaptor-dummy"
-    dataset = cat.get_collection(collection_id)
-    target = str(tmp_path / "dummy.txt")
-
-    remote = dataset.submit(_timestamp=datetime.datetime.now().isoformat())
-    res = remote.download(target)
-    assert res == target
-    assert os.path.exists(target)
-
-
-def test_collection_retrieve_with_url_cds_adaptor(
-    cat: catalogue.Catalogue, tmp_path: pathlib.Path
-) -> None:
-    collection_id = "test-adaptor-url"
-    dataset = cat.get_collection(collection_id)
-    request = {
-        "variable": "grid_point_altitude",
-        "reference_dataset": "cru",
-        "version": "2.1",
-        "format": "zip",
-        "_timestamp": datetime.datetime.now().isoformat(),
-    }
-    target1 = str(tmp_path / "wfde1.zip")
-    remote = dataset.submit(**request)
-    res = remote.download(target1)
-    assert res == target1
-    assert os.path.exists(target1)
-
-    target2 = str(tmp_path / "wfde2.zip")
-    remote = dataset.submit(**request)
-    res = remote.download(target2)
-    assert filecmp.cmp(target1, target2)
-
-
-def test_collection_retrieve_with_direct_mars_cds_adaptor(
-    cat: catalogue.Catalogue, tmp_path: pathlib.Path
-) -> None:
-    collection_id = "test-adaptor-direct-mars"
-    dataset = cat.get_collection(collection_id)
-    request = {
-        "levelist": "1",
-        "dataset": "reanalysis",
-        "time": "00:00:00",
-        "param": "155",
-        "date": "1940-01-01",
-        "expect": "any",
-        "levtype": "pl",
-        "number": "all",
-        "class": "ea",
-    }
-    target = str(tmp_path / "era5-complete.grib")
-    remote = dataset.submit(
-        _timestamp=datetime.datetime.now().isoformat(),
-        **request,
-    )
-    res = remote.download(target)
-    assert res == target
-    assert os.path.exists(target)
-
-
-def test_collection_retrieve_with_mars_cds_adaptor(
-    cat: catalogue.Catalogue, tmp_path: pathlib.Path
-) -> None:
-    collection_id = "test-adaptor-mars"
-    dataset = cat.get_collection(collection_id)
-    request = {
-        "product_type": "reanalysis",
-        "variable": "2m_temperature",
-        "year": "2016",
-        "month": "01",
-        "day": "02",
-        "time": "00:00",
-    }
-    target = str(tmp_path / "era5.grib")
-    remote = dataset.submit(
-        **request,
-        _timestamp=datetime.datetime.now().isoformat(),
-    )
-    res = remote.download(target)
-    assert res == target
-    assert os.path.exists(target)
+    with raises:
+        client.get_remote(request_uid)

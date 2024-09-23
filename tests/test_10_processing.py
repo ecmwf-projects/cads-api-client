@@ -392,7 +392,7 @@ def responses_add() -> None:
 @responses.activate
 def test_catalogue_collections(cat: catalogue.Catalogue) -> None:
     responses_add()
-    assert cat.collections.json == COLLECTIONS_JSON
+    assert cat.get_collections().json == COLLECTIONS_JSON
 
     collection = cat.get_collection(COLLECTION_ID)
     assert collection.response.json() == COLLECTION_JSON
@@ -406,8 +406,8 @@ def test_submit(cat: catalogue.Catalogue) -> None:
 
     assert collection.process.response.json() == PROCESS_JSON
 
-    job = collection.process.submit_job(variable="temperature", year="2022")
-    assert job.response.json() == JOB_SUCCESSFUL_JSON
+    remote = collection.process.submit(variable="temperature", year="2022")
+    assert remote.json == JOB_SUCCESSFUL_JSON
 
     remote = collection.submit(variable="temperature", year="2022")
     assert remote.url == JOB_SUCCESSFUL_URL

@@ -7,11 +7,6 @@ import pytest
 from cads_api_client import ApiClient
 
 
-@pytest.fixture
-def api_anon_client(api_root_url: str, api_anon_key: str) -> ApiClient:
-    return ApiClient(url=api_root_url, key=api_anon_key, maximum_tries=0)
-
-
 def test_features_url_cds_adaptor_area_selection(
     tmp_path: Path,
     api_anon_client: ApiClient,
