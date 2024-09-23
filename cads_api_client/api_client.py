@@ -226,7 +226,7 @@ class ApiClient:
         query: str | None = None,
         keywords: list[str] | None = None,
     ) -> cads_api_client.Collections:
-        """Get catalogue collections.
+        """Retrieve catalogue collections.
 
         Parameters
         ----------
@@ -258,7 +258,7 @@ class ApiClient:
         sortby: Literal["created", "-created"] | None = None,
         status: Literal["accepted", "running", "successful", "failed"] | None = None,
     ) -> cads_api_client.Jobs:
-        """Jobs submitted.
+        """Retrieve submitted jobs.
 
         Parameters
         ----------
@@ -284,7 +284,7 @@ class ApiClient:
         self,
         scope: Literal["all", "dataset", "portal"] | None = None,
     ) -> list[dict[str, Any]]:
-        """Licences.
+        """Retrieve licences.
 
         Parameters
         ----------
@@ -319,7 +319,7 @@ class ApiClient:
     def get_processes(
         self, limit: int | None = None, sortby: Literal["id", "-id"] | None = None
     ) -> cads_api_client.Processes:
-        """Get available processes.
+        """Retrieve available processes.
 
         Parameters
         ----------
