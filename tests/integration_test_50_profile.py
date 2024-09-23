@@ -1,10 +1,15 @@
+from typing import Literal
+
 import pytest
 from requests import HTTPError
 
 from cads_api_client import ApiClient, config
 
 
-def test_api_client_accept_licence() -> None:
+@pytest.mark.parametrize("scope", [None, "all", "dataset", "portal"])
+def test_api_client_accept_licence(
+    scope: Literal["all", "dataset", "portal"] | None,
+) -> None:
     try:
         # Can not use anonymous user
         config.get_config("key")
@@ -12,7 +17,7 @@ def test_api_client_accept_licence() -> None:
         pytest.skip("The API key is missing")
 
     client = ApiClient(maximum_tries=0)
-    licence = client.get_licences()[0]
+    licence = client.get_licences(scope=scope)[0]
     licence_id = licence["id"]
     licence_revision = licence["revision"]
 
@@ -22,7 +27,7 @@ def test_api_client_accept_licence() -> None:
 
     assert any(
         licence["id"] == licence_id and licence["revision"] == licence_revision
-        for licence in client.accepted_licences
+        for licence in client.get_accepted_licences(scope=scope)
     )
 
 

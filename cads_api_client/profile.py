@@ -50,10 +50,9 @@ class Profile:
         url = f"{self.url}/account/licences/{licence_id}"
         return self._get_api_response("put", url, json={"revision": revision}).json
 
-    @property
-    def accepted_licences(self) -> dict[str, Any]:
+    def accepted_licences(self, **params: Any) -> dict[str, Any]:
         url = f"{self.url}/account/licences"
-        return self._get_api_response("get", url).json
+        return self._get_api_response("get", url, params=params).json
 
     def check_authentication(self) -> dict[str, Any]:
         url = f"{self.url}/account/verification/pat"

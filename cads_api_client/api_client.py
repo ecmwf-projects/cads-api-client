@@ -205,6 +205,27 @@ class ApiClient:
         """
         return self.get_process(collection_id).estimate_costs(**request)
 
+    def get_accepted_licences(
+        self,
+        scope: Literal["all", "dataset", "portal"] | None = None,
+    ) -> list[dict[str, Any]]:
+        """Retrieve acccepted licences.
+
+        Parameters
+        ----------
+        scope: str | None
+            Licence scope. Options: ``"all", "dataset", "portal"``.
+
+        Returns
+        -------
+        list[dict[str, Any]]
+            List of dictionaries with license information.
+        """
+        params = {k: v for k, v in zip(["scope"], [scope]) if v is not None}
+        licences: list[dict[str, Any]]
+        licences = self._profile_api.accepted_licences(**params).get("licences", [])
+        return licences
+
     def get_collection(self, collection_id: str) -> cads_api_client.Collection:
         """Retrieve a catalogue collection.
 
@@ -424,16 +445,3 @@ class ApiClient:
         cads_api_client.Results
         """
         return self._retrieve_api.submit(collection_id, **request).make_results()
-
-    @property
-    def accepted_licences(self) -> list[dict[str, Any]]:
-        """Accepted licences.
-
-        Returns
-        -------
-        list[dict[str, Any]]
-            List of dictionaries with license information.
-        """
-        licences: list[dict[str, Any]]
-        licences = self._profile_api.accepted_licences.get("licences", [])
-        return licences
