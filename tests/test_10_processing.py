@@ -392,11 +392,9 @@ def responses_add() -> None:
 @responses.activate
 def test_catalogue_collections(cat: catalogue.Catalogue) -> None:
     responses_add()
+    assert cat.get_collections().json == COLLECTIONS_JSON
 
-    collections = cat.collections()
-    assert collections.response.json() == COLLECTIONS_JSON
-
-    collection = cat.collection(COLLECTION_ID)
+    collection = cat.get_collection(COLLECTION_ID)
     assert collection.response.json() == COLLECTION_JSON
 
 
@@ -404,14 +402,12 @@ def test_catalogue_collections(cat: catalogue.Catalogue) -> None:
 def test_submit(cat: catalogue.Catalogue) -> None:
     responses_add()
 
-    collection = cat.collection(COLLECTION_ID)
+    collection = cat.get_collection(COLLECTION_ID)
 
     assert collection.process.response.json() == PROCESS_JSON
 
-    job = collection.process.execute(
-        request={"variable": "temperature", "year": "2022"}
-    )
-    assert job.response.json() == JOB_SUCCESSFUL_JSON
+    remote = collection.process.submit(variable="temperature", year="2022")
+    assert remote.json == JOB_SUCCESSFUL_JSON
 
     remote = collection.submit(variable="temperature", year="2022")
     assert remote.url == JOB_SUCCESSFUL_URL
@@ -422,7 +418,7 @@ def test_submit(cat: catalogue.Catalogue) -> None:
 def test_wait_on_result(cat: catalogue.Catalogue) -> None:
     responses_add()
 
-    collection = cat.collection(COLLECTION_ID)
+    collection = cat.get_collection(COLLECTION_ID)
     remote = collection.submit(variable="temperature", year="2022")
     remote._wait_on_results()
 
@@ -431,7 +427,7 @@ def test_wait_on_result(cat: catalogue.Catalogue) -> None:
 def test_wait_on_result_failed(cat: catalogue.Catalogue) -> None:
     responses_add()
 
-    collection = cat.collection(COLLECTION_ID)
+    collection = cat.get_collection(COLLECTION_ID)
     remote = collection.submit(variable="temperature", year="0000")
     with pytest.raises(
         processing.ProcessingFailedError,
@@ -446,7 +442,7 @@ def test_remote_logs(
 ) -> None:
     responses_add()
 
-    collection = cat.collection(COLLECTION_ID)
+    collection = cat.get_collection(COLLECTION_ID)
 
     with caplog.at_level(logging.DEBUG, logger="cads_api_client.processing"):
         remote = collection.submit(variable="temperature", year="2022")

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import functools
 import warnings
-from typing import Any
+from typing import Any, Literal
 
 import attrs
 import multiurl.base
@@ -19,24 +19,23 @@ class ApiClient:
 
     Parameters
     ----------
-    url: str or None
+    url: str | None, default: None
         API URL. If None, infer from CADS_API_URL or CADS_API_RC.
-    key: str or None
+    key: str | None, default: None
         API Key. If None, infer from CADS_API_KEY or CADS_API_RC.
-    verify: bool or None
+    verify: bool, default: True
         Whether to verify the TLS certificate at the remote end.
-        If None, infer from CADS_API_VERIFY or CADS_API_RC.
-    timeout: float or tuple
+    timeout: float | tuple[float, float], default: 60
         How many seconds to wait for the server to send data, as a float, or a (connect, read) tuple.
-    progress: bool
+    progress: bool, default: True
         Whether to display the progress bar during download.
-    cleanup: bool
+    cleanup: bool, default: False
         Whether to delete requests after completion.
-    sleep_max: float
+    sleep_max: float, default: 120
         Maximum time to wait (in seconds) while checking for a status change.
-    retry_after: float
+    retry_after: float, default: 120
         Time to wait (in seconds) between retries.
-    maximum_tries: int
+    maximum_tries: int, default: 500
         Maximum number of retries.
     session: requests.Session
         Requests session.
@@ -44,7 +43,7 @@ class ApiClient:
 
     url: str | None = None
     key: str | None = None
-    verify: bool | None = None
+    verify: bool = True
     timeout: float | tuple[float, float] = 60
     progress: bool = True
     cleanup: bool = False
@@ -62,12 +61,6 @@ class ApiClient:
                 self.key = str(config.get_config("key"))
             except (KeyError, FileNotFoundError):
                 warnings.warn("The API key is missing", UserWarning)
-
-        if self.verify is None:
-            try:
-                self.verify = config.strtobool(str(config.get_config("verify")))
-            except (KeyError, FileNotFoundError):
-                self.verify = True
 
     def _get_headers(self, key_is_mandatory: bool = True) -> dict[str, str]:
         if self.key is None:
@@ -147,12 +140,12 @@ class ApiClient:
         return self._profile_api.accept_licence(licence_id, revision=revision)
 
     def apply_constraints(self, collection_id: str, **request: Any) -> dict[str, Any]:
-        """Apply constraints to a request.
+        """Apply constraints to the parameters in a request.
 
         Parameters
         ----------
         collection_id: str
-            Collection ID (e.g., ``"reanalysis-era5-pressure-levels"``).
+            Collection ID (e.g., ``"projections-cmip6"``).
         **request: Any
             Request parameters.
 
@@ -161,7 +154,7 @@ class ApiClient:
         dict[str, Any]
             Dictionary of valid values.
         """
-        return self.get_process(collection_id).apply_constraints(request)
+        return self.get_process(collection_id).apply_constraints(**request)
 
     def check_authentication(self) -> dict[str, Any]:
         """Verify authentication.
@@ -179,12 +172,12 @@ class ApiClient:
         return self._profile_api.check_authentication()
 
     def download_results(self, request_uid: str, target: str | None = None) -> str:
-        """Download the results of a job.
+        """Download the results of a request.
 
         Parameters
         ----------
         request_uid: str
-            Request UID
+            Request UID.
         target: str | None
             Target path. If None, download to the working directory.
 
@@ -196,12 +189,12 @@ class ApiClient:
         return self.get_remote(request_uid).download(target)
 
     def estimate_costs(self, collection_id: str, **request: Any) -> dict[str, Any]:
-        """Estimate costs of a request.
+        """Estimate costs of the parameters in a request.
 
         Parameters
         ----------
         collection_id: str
-            Collection ID (e.g., ``"reanalysis-era5-pressure-levels"``).
+            Collection ID (e.g., ``"projections-cmip6"``).
         **request: Any
             Request parameters.
 
@@ -210,7 +203,7 @@ class ApiClient:
         dict[str, Any]
             Dictionary of estimated costs.
         """
-        return self.get_process(collection_id).estimate_costs(request)
+        return self.get_process(collection_id).estimate_costs(**request)
 
     def get_collection(self, collection_id: str) -> cads_api_client.Collection:
         """Retrieve a catalogue collection.
@@ -218,66 +211,155 @@ class ApiClient:
         Parameters
         ----------
         collection_id: str
-            Collection ID (e.g., ``"reanalysis-era5-pressure-levels"``).
+            Collection ID (e.g., ``"projections-cmip6"``).
 
         Returns
         -------
         cads_api_client.Collection
         """
-        return self._catalogue_api.collection(collection_id)
+        return self._catalogue_api.get_collection(collection_id)
 
-    def get_job(self, request_uid: str) -> processing.StatusInfo:
-        """Retrieve a job.
+    def get_collections(
+        self,
+        limit: int | None = None,
+        sortby: Literal["id", "relevance", "title", "update"] | None = None,
+        query: str | None = None,
+        keywords: list[str] | None = None,
+    ) -> cads_api_client.Collections:
+        """Retrieve catalogue collections.
 
         Parameters
         ----------
-        request_uid: str
-            Request UID
+        limit: int | None
+            Number of processes per page.
+        sortby: str | None
+            Field to sort results by. Options: ``"id", "relevance", "title", "update"``.
+        query: str | None
+            Full-text search query.
+        keywords: list[str] | None
+            Filter by keywords.
 
         Returns
         -------
-        processing.StatusInfo
+        cads_api_client.Collections
         """
-        return self._retrieve_api.job(request_uid)
+        params = {
+            k: v
+            for k, v in zip(
+                ["limit", "sortby", "q", "kw"], [limit, sortby, query, keywords]
+            )
+            if v is not None
+        }
+        return self._catalogue_api.get_collections(**params)
 
-    def get_process(self, collection_id: str) -> processing.Process:
+    def get_jobs(
+        self,
+        limit: int | None = None,
+        sortby: Literal["created", "-created"] | None = None,
+        status: Literal["accepted", "running", "successful", "failed"] | None = None,
+    ) -> cads_api_client.Jobs:
+        """Retrieve submitted jobs.
+
+        Parameters
+        ----------
+        limit: int | None
+            Number of processes per page.
+        sortby: str | None
+            Field to sort results by. Options: ``"created", "-created"``.
+        status: str | None
+            Status of the results. Options: ``"accepted", "running", "successful", "failed"``.
+
+        Returns
+        -------
+        cads_api_client.Jobs
+        """
+        params = {
+            k: v
+            for k, v in zip(["limit", "sortby", "status"], [limit, sortby, status])
+            if v is not None
+        }
+        return self._retrieve_api.get_jobs(**params)
+
+    def get_licences(
+        self,
+        scope: Literal["all", "dataset", "portal"] | None = None,
+    ) -> list[dict[str, Any]]:
+        """Retrieve licences.
+
+        Parameters
+        ----------
+        scope: str | None
+            Licence scope. Options: ``"all", "dataset", "portal"``.
+
+        Returns
+        -------
+        list[dict[str, Any]]
+            List of dictionaries with license information.
+        """
+        params = {k: v for k, v in zip(["scope"], [scope]) if v is not None}
+        licences: list[dict[str, Any]]
+        licences = self._catalogue_api.get_licenses(**params).get("licences", [])
+        return licences
+
+    def get_process(self, collection_id: str) -> cads_api_client.Process:
         """
         Retrieve a process.
 
         Parameters
         ----------
         collection_id: str
-            Collection ID (e.g., ``"reanalysis-era5-pressure-levels"``).
+            Collection ID (e.g., ``"projections-cmip6"``).
 
         Returns
         -------
-        processing.Process
+        cads_api_client.Process
         """
-        return self._retrieve_api.process(collection_id)
+        return self._retrieve_api.get_process(collection_id)
+
+    def get_processes(
+        self, limit: int | None = None, sortby: Literal["id", "-id"] | None = None
+    ) -> cads_api_client.Processes:
+        """Retrieve available processes.
+
+        Parameters
+        ----------
+        limit: int | None
+            Number of processes per page.
+        sortby: str | None
+            Field to sort results by. Options: ``"id", "-id"``.
+
+        Returns
+        -------
+        cads_api_client.Processes
+        """
+        params = {
+            k: v for k, v in zip(["limit", "sortby"], [limit, sortby]) if v is not None
+        }
+        return self._retrieve_api.get_processes(**params)
 
     def get_remote(self, request_uid: str) -> cads_api_client.Remote:
         """
-        Retrieve the remote object of a job.
+        Retrieve the remote object of a request.
 
         Parameters
         ----------
         request_uid: str
-            Request UID
+            Request UID.
 
         Returns
         -------
         cads_api_client.Remote
         """
-        return self.get_job(request_uid).make_remote()
+        return self._retrieve_api.get_job(request_uid).make_remote()
 
     def get_results(self, request_uid: str) -> cads_api_client.Results:
         """
-        Retrieve the results of a job.
+        Retrieve the results of a request.
 
         Parameters
         ----------
         request_uid: str
-            Request UID
+            Request UID.
 
         Returns
         -------
@@ -291,12 +373,12 @@ class ApiClient:
         target: str | None = None,
         **request: Any,
     ) -> str:
-        """Submit a job and retrieve the results.
+        """Submit a request and retrieve the results.
 
         Parameters
         ----------
         collection_id: str
-            Collection ID (e.g., ``"reanalysis-era5-pressure-levels"``).
+            Collection ID (e.g., ``"projections-cmip6"``).
         target: str | None
             Target path. If None, download to the working directory.
         **request: Any
@@ -310,12 +392,12 @@ class ApiClient:
         return self.submit(collection_id, **request).download(target)
 
     def submit(self, collection_id: str, **request: Any) -> cads_api_client.Remote:
-        """Submit a job.
+        """Submit a request.
 
         Parameters
         ----------
         collection_id: str
-            Collection ID (e.g., ``"reanalysis-era5-pressure-levels"``).
+            Collection ID (e.g., ``"projections-cmip6"``).
         **request: Any
             Request parameters.
 
@@ -328,12 +410,12 @@ class ApiClient:
     def submit_and_wait_on_results(
         self, collection_id: str, **request: Any
     ) -> cads_api_client.Results:
-        """Submit a job and wait for the results to be ready.
+        """Submit a request and wait for the results to be ready.
 
         Parameters
         ----------
         collection_id: str
-            Collection ID (e.g., ``"reanalysis-era5-pressure-levels"``).
+            Collection ID (e.g., ``"projections-cmip6"``).
         **request: Any
             Request parameters.
 
@@ -355,46 +437,3 @@ class ApiClient:
         licences: list[dict[str, Any]]
         licences = self._profile_api.accepted_licences.get("licences", [])
         return licences
-
-    @property
-    def collections(self) -> catalogue.Collections:
-        """Catalogue collections.
-
-        Returns
-        -------
-        catalogue.Collections
-        """
-        return self._catalogue_api.collections()
-
-    @property
-    def jobs(self) -> processing.JobList:
-        """Submitted jobs.
-
-        Returns
-        -------
-        processing.JobList
-        """
-        return self._retrieve_api.jobs()
-
-    @property
-    def licences(self) -> list[dict[str, Any]]:
-        """Licences.
-
-        Returns
-        -------
-        list[dict[str, Any]]
-            List of dictionaries with license information.
-        """
-        licences: list[dict[str, Any]]
-        licences = self._catalogue_api.licenses.get("licences", [])
-        return licences
-
-    @property
-    def processes(self) -> processing.ProcessList:
-        """Available processes.
-
-        Returns
-        -------
-        processing.ProcessList
-        """
-        return self._retrieve_api.processes()

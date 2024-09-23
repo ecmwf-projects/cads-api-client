@@ -17,11 +17,24 @@ import attrs
 import multiurl
 import requests
 
+import cads_api_client
+
 from . import config
 
 T_ApiResponse = TypeVar("T_ApiResponse", bound="ApiResponse")
 
 logger = logging.getLogger(__name__)
+
+LEVEL_NAMES_MAPPING = {
+    "CRITICAL": 50,
+    "FATAL": 50,
+    "ERROR": 40,
+    "WARNING": 30,
+    "WARN": 30,
+    "INFO": 20,
+    "DEBUG": 10,
+    "NOTSET": 0,
+}
 
 
 class RequestKwargs(TypedDict):
@@ -74,9 +87,9 @@ def cads_raise_for_status(response: requests.Response) -> None:
 
 def get_level_and_message(message: str) -> tuple[int, str]:
     level = 20
-    for severity in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"):
+    for severity in LEVEL_NAMES_MAPPING:
         if message.startswith(severity):
-            level = logging.getLevelName(severity)
+            level = LEVEL_NAMES_MAPPING[severity]
             message = message.replace(severity, "", 1).lstrip(":").lstrip()
             break
     return level, message
@@ -146,6 +159,16 @@ class ApiResponse:
         return self
 
     @property
+    def url(self) -> str:
+        """URL.
+
+        Returns
+        -------
+        str
+        """
+        return str(self.response.request.url)
+
+    @property
     def json(self) -> dict[str, Any]:
         """Content of the response.
 
@@ -153,8 +176,7 @@ class ApiResponse:
         -------
         dict[str, Any]
         """
-        json: dict[str, Any] = self.response.json()
-        return json
+        return dict(self.response.json())
 
     def log_messages(self) -> None:
         if message := self.json.get("message"):
@@ -170,8 +192,8 @@ class ApiResponse:
             if date := dataset_message.get("date"):
                 content = f"[{date}] {content}"
             severity = dataset_message.get("severity", "notset").upper()
-            level = logging.getLevelName(severity)
-            logger.log(level if isinstance(level, int) else 20, content)
+            level = LEVEL_NAMES_MAPPING.get(severity, 20)
+            logger.log(level, content)
 
     def _get_links(self, rel: str | None = None) -> list[dict[str, str]]:
         links = []
@@ -199,7 +221,7 @@ class ApiResponse:
 
 
 @attrs.define
-class ApiResponseList(ApiResponse):
+class ApiResponsePaginated(ApiResponse):
     @property
     def next(self) -> Self | None:
         """Next page.
@@ -222,31 +244,68 @@ class ApiResponseList(ApiResponse):
 
 
 @attrs.define
-class ProcessList(ApiResponseList):
+class Processes(ApiResponsePaginated):
+    """A class to interact with available processes."""
+
+    @property
     def process_ids(self) -> list[str]:
+        """Available process IDs.
+
+        Returns
+        -------
+        list[str]
+        """
         return [proc["id"] for proc in self.json["processes"]]
 
 
 @attrs.define
 class Process(ApiResponse):
+    """A class to interact with a process."""
+
     @property
     def id(self) -> str:
+        """Process ID.
+
+        Returns
+        -------
+        str
+        """
         process_id: str = self.json["id"]
         return process_id
 
-    @property
-    def url(self) -> str:
-        return str(self.response.request.url)
+    def submit(self, **request: Any) -> cads_api_client.Remote:
+        """Submit a request.
 
-    def execute(self, request: dict[str, Any]) -> StatusInfo:
-        return StatusInfo.from_request(
+        Parameters
+        ----------
+        **request: Any
+            Request parameters.
+
+        Returns
+        -------
+        cads_api_client.Remote
+        """
+        job = Job.from_request(
             "post",
             f"{self.url}/execution",
             json={"inputs": request},
             **self._request_kwargs,
         )
+        return job.make_remote()
 
-    def apply_constraints(self, request: dict[str, Any] = {}) -> dict[str, Any]:
+    def apply_constraints(self, **request: Any) -> dict[str, Any]:
+        """Apply constraints to the parameters in a request.
+
+        Parameters
+        ----------
+        **request: Any
+            Request parameters.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary of valid values.
+        """
         response = ApiResponse.from_request(
             "post",
             f"{self.url}/constraints",
@@ -255,7 +314,19 @@ class Process(ApiResponse):
         )
         return response.json
 
-    def estimate_costs(self, request: dict[str, Any] = {}) -> dict[str, Any]:
+    def estimate_costs(self, **request: Any) -> dict[str, Any]:
+        """Estimate costs of the parameters in a request.
+
+        Parameters
+        ----------
+        **request: Any
+            Request parameters.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary of estimated costs.
+        """
         response = ApiResponse.from_request(
             "post",
             f"{self.url}/costing",
@@ -316,11 +387,37 @@ class Remote:
         return self.url.rpartition("/")[2]
 
     @property
-    def _reply(self) -> dict[str, Any]:
-        params = {"log": True}
+    def json(self) -> dict[str, Any]:
+        """Content of the response.
+
+        Returns
+        -------
+        dict[str, Any]
+        """
+        params = {"log": True, "request": True}
         if self.log_start_time:
             params["logStartTime"] = self.log_start_time
         return self._get_api_response("get", params=params).json
+
+    @property
+    def collection_id(self) -> str:
+        """Collection ID.
+
+        Returns
+        -------
+        str
+        """
+        return str(self.json["processID"])
+
+    @property
+    def request(self) -> dict[str, Any]:
+        """Request parameters.
+
+        Returns
+        -------
+        dict[str, Any]
+        """
+        return dict(self.json["metadata"]["request"]["ids"])
 
     @property
     def status(self) -> str:
@@ -330,7 +427,7 @@ class Remote:
         -------
         str
         """
-        reply = self._reply
+        reply = self.json
         self._log_metadata(reply.get("metadata", {}))
         status: str = reply["status"]
         return status
@@ -344,12 +441,10 @@ class Remote:
             if status == "successful":
                 break
             elif status == "failed":
-                results = self.make_results(wait_on_results=False)
+                results = self.make_results(wait=False)
                 raise ProcessingFailedError(error_json_to_message(results.json))
             elif status in ("accepted", "running"):
-                sleep *= 1.5
-                if sleep > self.sleep_max:
-                    sleep = self.sleep_max
+                sleep = min(sleep * 1.5, self.sleep_max)
             elif status in ("dismissed", "deleted"):
                 raise ProcessingFailedError(f"API state {status!r}")
             else:
@@ -357,11 +452,8 @@ class Remote:
             self.debug(f"results not ready, waiting for {sleep} seconds")
             time.sleep(sleep)
 
-    def build_status_info(self) -> StatusInfo:
-        return StatusInfo.from_request("get", self.url, **self._request_kwargs)
-
-    def make_results(self, wait_on_results: bool = True) -> Results:
-        if wait_on_results:
+    def make_results(self, wait: bool = True) -> Results:
+        if wait:
             self._wait_on_results()
         response = self._get_api_response("get")
         try:
@@ -371,10 +463,7 @@ class Remote:
         results = Results.from_request("get", results_url, **self._request_kwargs)
         return results
 
-    def download(
-        self,
-        target: str | None = None,
-    ) -> str:
+    def download(self, target: str | None = None) -> str:
         """Download the results.
 
         Parameters
@@ -423,7 +512,7 @@ class Remote:
     def reply(self) -> dict[str, Any]:
         self._warn()
 
-        reply = self._reply
+        reply = dict(self.json)
         reply.setdefault("state", reply["status"])
 
         if reply["state"] == "successful":
@@ -461,7 +550,7 @@ class Remote:
 
 
 @attrs.define
-class StatusInfo(ApiResponse):
+class Job(ApiResponse):
     def make_remote(self) -> Remote:
         if self.response.request.method == "POST":
             url = self._get_link_href(rel="monitor")
@@ -471,9 +560,17 @@ class StatusInfo(ApiResponse):
 
 
 @attrs.define
-class JobList(ApiResponseList):
+class Jobs(ApiResponsePaginated):
+    """A class to interact with submitted jobs."""
+
     @property
     def job_ids(self) -> list[str]:
+        """List of job IDs.
+
+        Returns
+        -------
+        list[str]
+        """
         return [job["jobID"] for job in self.json["jobs"]]
 
 
@@ -574,7 +671,7 @@ class Processing:
             self.url += f"/{config.SUPPORTED_API_VERSION}"
 
     @property
-    def request_kwargs(self) -> RequestKwargs:
+    def _request_kwargs(self) -> RequestKwargs:
         return RequestKwargs(
             headers=self.headers,
             session=self.session,
@@ -585,42 +682,21 @@ class Processing:
             cleanup=self.cleanup,
         )
 
-    def processes(self, params: dict[str, Any] = {}) -> ProcessList:
+    def get_processes(self, **params: Any) -> Processes:
         url = f"{self.url}/processes"
-        return ProcessList.from_request(
-            "get", url, params=params, **self.request_kwargs
-        )
+        return Processes.from_request("get", url, params=params, **self._request_kwargs)
 
-    def process(self, process_id: str) -> Process:
+    def get_process(self, process_id: str) -> Process:
         url = f"{self.url}/processes/{process_id}"
-        return Process.from_request("get", url, **self.request_kwargs)
+        return Process.from_request("get", url, **self._request_kwargs)
 
-    def process_execute(
-        self,
-        process_id: str,
-        inputs: dict[str, Any],
-    ) -> StatusInfo:
-        url = f"{self.url}/processes/{process_id}/execution"
-        return StatusInfo.from_request(
-            "post", url, json={"inputs": inputs}, **self.request_kwargs
-        )
-
-    def jobs(self, params: dict[str, Any] = {}) -> JobList:
+    def get_jobs(self, **params: Any) -> Jobs:
         url = f"{self.url}/jobs"
-        return JobList.from_request("get", url, params=params, **self.request_kwargs)
+        return Jobs.from_request("get", url, params=params, **self._request_kwargs)
 
-    def job(self, job_id: str) -> StatusInfo:
+    def get_job(self, job_id: str) -> Job:
         url = f"{self.url}/jobs/{job_id}"
-        return StatusInfo.from_request("get", url, **self.request_kwargs)
-
-    def job_results(self, job_id: str) -> Results:
-        url = f"{self.url}/jobs/{job_id}/results"
-        return Results.from_request("get", url, **self.request_kwargs)
+        return Job.from_request("get", url, **self._request_kwargs)
 
     def submit(self, collection_id: str, **request: Any) -> Remote:
-        status_info = self.process_execute(collection_id, request)
-        return status_info.make_remote()
-
-    def make_remote(self, job_id: str) -> Remote:
-        url = f"{self.url}/jobs/{job_id}"
-        return Remote(url, **self.request_kwargs)
+        return self.get_process(collection_id).submit(**request)

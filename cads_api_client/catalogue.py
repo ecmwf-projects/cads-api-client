@@ -8,17 +8,27 @@ import requests
 
 import cads_api_client
 
-from . import config, processing
+from . import config
+from .processing import ApiResponse, ApiResponsePaginated, RequestKwargs
 
 
 @attrs.define
-class Collections(processing.ApiResponseList):
+class Collections(ApiResponsePaginated):
+    """A class to interact with catalogue collections."""
+
+    @property
     def collection_ids(self) -> list[str]:
+        """List of collection IDs.
+
+        Return
+        ------
+        list[str]
+        """
         return [collection["id"] for collection in self.json["collections"]]
 
 
 @attrs.define
-class Collection(processing.ApiResponse):
+class Collection(ApiResponse):
     """A class to interact with a catalogue collection."""
 
     @property
@@ -61,19 +71,19 @@ class Collection(processing.ApiResponse):
         return str(self.json["id"])
 
     @property
-    def process(self) -> processing.Process:
+    def process(self) -> cads_api_client.Process:
         """
         Collection process.
 
         Returns
         -------
-        processing.Process
+        cads_api_client.Process
         """
         url = self._get_link_href(rel="retrieve")
-        return processing.Process.from_request("get", url, **self._request_kwargs)
+        return cads_api_client.Process.from_request("get", url, **self._request_kwargs)
 
     def submit(self, **request: Any) -> cads_api_client.Remote:
-        """Submit a job.
+        """Submit a request.
 
         Parameters
         ----------
@@ -84,7 +94,7 @@ class Collection(processing.ApiResponse):
         -------
         cads_api_client.Remote
         """
-        return self.process.execute(request=request).make_remote()
+        return self.process.submit(**request)
 
 
 @attrs.define(slots=False)
@@ -104,8 +114,8 @@ class Catalogue:
             self.url += f"/{config.SUPPORTED_API_VERSION}"
 
     @property
-    def request_kwargs(self) -> processing.RequestKwargs:
-        return processing.RequestKwargs(
+    def _request_kwargs(self) -> RequestKwargs:
+        return RequestKwargs(
             headers=self.headers,
             session=self.session,
             retry_options=self.retry_options,
@@ -115,19 +125,19 @@ class Catalogue:
             cleanup=self.cleanup,
         )
 
-    def collections(self, params: dict[str, Any] = {}) -> Collections:
+    def get_collections(self, **params: Any) -> Collections:
         url = f"{self.url}/datasets"
         return Collections.from_request(
-            "get", url, params=params, **self.request_kwargs
+            "get", url, params=params, **self._request_kwargs
         )
 
-    def collection(self, collection_id: str) -> Collection:
+    def get_collection(self, collection_id: str) -> Collection:
         url = f"{self.url}/collections/{collection_id}"
-        return Collection.from_request("get", url, **self.request_kwargs)
+        return Collection.from_request("get", url, **self._request_kwargs)
 
-    @property
-    def licenses(self) -> dict[str, Any]:
+    def get_licenses(self, **params: Any) -> dict[str, Any]:
         url = f"{self.url}/vocabularies/licences"
-        return processing.ApiResponse.from_request(
-            "get", url, **self.request_kwargs
-        ).json
+        response = ApiResponse.from_request(
+            "get", url, params=params, **self._request_kwargs
+        )
+        return response.json

@@ -23,7 +23,17 @@ except ImportError:  # pragma: no cover
     __version__ = "999"
 
 from .api_client import ApiClient
-from .catalogue import Collection
-from .processing import Remote, Results
+from .catalogue import Collection, Collections
+from .processing import Jobs, Process, Processes, Remote, Results
 
-__all__ = ["__version__", "ApiClient", "Remote", "Results", "Collection"]
+__all__ = [
+    "__version__",
+    "ApiClient",
+    "Collection",
+    "Collections",
+    "Jobs",
+    "Process",
+    "Processes",
+    "Remote",
+    "Results",
+]

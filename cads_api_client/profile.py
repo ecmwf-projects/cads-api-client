@@ -25,7 +25,7 @@ class Profile:
             self.url += f"/{config.SUPPORTED_API_VERSION}"
 
     @property
-    def request_kwargs(self) -> processing.RequestKwargs:
+    def _request_kwargs(self) -> processing.RequestKwargs:
         return processing.RequestKwargs(
             headers=self.headers,
             session=self.session,
@@ -36,29 +36,25 @@ class Profile:
             cleanup=self.cleanup,
         )
 
-    def get_api_response(
+    def _get_api_response(
         self, method: str, url: str, **kwargs: Any
     ) -> processing.ApiResponse:
         return processing.ApiResponse.from_request(
             method,
             url,
-            **self.request_kwargs,
+            **self._request_kwargs,
             **kwargs,
         )
 
-    def profile(self) -> dict[str, Any]:
-        url = f"{self.url}/account"
-        return self.get_api_response("get", url).json
-
     def accept_licence(self, licence_id: str, revision: int) -> dict[str, Any]:
         url = f"{self.url}/account/licences/{licence_id}"
-        return self.get_api_response("put", url, json={"revision": revision}).json
+        return self._get_api_response("put", url, json={"revision": revision}).json
 
     @property
     def accepted_licences(self) -> dict[str, Any]:
         url = f"{self.url}/account/licences"
-        return self.get_api_response("get", url).json
+        return self._get_api_response("get", url).json
 
     def check_authentication(self) -> dict[str, Any]:
         url = f"{self.url}/account/verification/pat"
-        return self.get_api_response("post", url).json
+        return self._get_api_response("post", url).json
