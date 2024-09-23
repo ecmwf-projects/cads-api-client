@@ -3,7 +3,6 @@ import filecmp
 import os
 import pathlib
 
-
 from cads_api_client import ApiClient
 
 

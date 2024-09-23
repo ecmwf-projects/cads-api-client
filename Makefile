@@ -37,7 +37,7 @@ integration-tests:
 	python -m pytest -vv --cov=. --cov-report=$(COV_REPORT) tests/integration*.py
 
 legacy-tests:
-	python -m pytest -vv --cov=. --cov-report=$(COV_REPORT) tests/integration_test_50_legacy_api_client.py
+	python -m pytest -vv --cov=. --cov-report=$(COV_REPORT) tests/integration_test_*legacy*.py
 
 doc-tests:
 	python -m pytest -vv --doctest-glob='*.md' README.md
