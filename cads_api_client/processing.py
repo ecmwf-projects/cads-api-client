@@ -512,7 +512,7 @@ class Remote:
     def reply(self) -> dict[str, Any]:
         self._warn()
 
-        reply = self.json
+        reply = dict(self.json)
         reply.setdefault("state", reply["status"])
 
         if reply["state"] == "successful":
