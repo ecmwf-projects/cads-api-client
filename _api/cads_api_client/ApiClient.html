@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>cads_api_client.ApiClient &#8212; cads_api_client 0.1.dev1+g92d63a1 documentation</title>
+    <title>cads_api_client.ApiClient &#8212; cads_api_client 0.1.dev1+g6e3ad99 documentation</title>
   
   
   
@@ -36,7 +36,7 @@
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../../_static/documentation_options.js?v=88e246ab"></script>
+    <script src="../../_static/documentation_options.js?v=301a4262"></script>
     <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_api/cads_api_client/ApiClient';</script>
@@ -119,7 +119,7 @@
   
   
   
-    <p class="title logo__title">cads_api_client 0.1.dev1+g92d63a1 documentation</p>
+    <p class="title logo__title">cads_api_client 0.1.dev1+g6e3ad99 documentation</p>
   
 </a></div>
     
@@ -446,6 +446,23 @@ document.write(`
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="cads_api_client.ApiClient.get_accepted_licences">
+<span class="sig-name descname"><span class="pre">get_accepted_licences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cads_api_client.ApiClient.get_accepted_licences" title="Link to this definition">#</a></dt>
+<dd><p>Retrieve acccepted licences.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>scope</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span></code>) – Licence scope. Options: <code class="docutils literal notranslate"><span class="pre">&quot;all&quot;,</span> <span class="pre">&quot;dataset&quot;,</span> <span class="pre">&quot;portal&quot;</span></code>.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of dictionaries with license information.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">list[dict[str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Any]]</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="cads_api_client.ApiClient.get_collection">
 <span class="sig-name descname"><span class="pre">get_collection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collection_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cads_api_client.ApiClient.get_collection" title="Link to this definition">#</a></dt>
 <dd><p>Retrieve a catalogue collection.</p>
@@ -627,20 +644,6 @@ document.write(`
 </dl>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="cads_api_client.ApiClient.accepted_licences">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">accepted_licences</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#cads_api_client.ApiClient.accepted_licences" title="Link to this definition">#</a></dt>
-<dd><p>Accepted licences.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>List of dictionaries with license information.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">list[dict[str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Any]]</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
 </dd></dl>
 
 </section>
@@ -697,6 +700,7 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.check_authentication"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.check_authentication()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.download_results"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.download_results()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.estimate_costs"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.estimate_costs()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.get_accepted_licences"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.get_accepted_licences()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.get_collection"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.get_collection()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.get_collections"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.get_collections()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.get_jobs"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.get_jobs()</span></code></a></li>
@@ -708,7 +712,6 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.retrieve"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.retrieve()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.submit"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.submit()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.submit_and_wait_on_results"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.submit_and_wait_on_results()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.accepted_licences"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.accepted_licences</span></code></a></li>
 </ul>
 </li>
 </ul>

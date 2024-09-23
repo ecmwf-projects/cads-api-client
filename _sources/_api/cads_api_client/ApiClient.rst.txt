@@ -94,6 +94,18 @@ cads_api_client.ApiClient
 
 
 
+   .. py:method:: get_accepted_licences(scope = None)
+
+      Retrieve acccepted licences.
+
+      :param scope: Licence scope. Options: ``"all", "dataset", "portal"``.
+      :type scope: :class:`str | None`
+
+      :returns: List of dictionaries with license information.
+      :rtype: :class:`list[dict[str`, :class:`Any]]`
+
+
+
    .. py:method:: get_collection(collection_id)
 
       Retrieve a catalogue collection.
@@ -235,13 +247,4 @@ cads_api_client.ApiClient
 
       :rtype: :class:`cads_api_client.Results`
 
-
-
-   .. py:property:: accepted_licences
-      :type: list[dict[str, Any]]
-
-      Accepted licences.
-
-      :returns: List of dictionaries with license information.
-      :rtype: :class:`list[dict[str`, :class:`Any]]`
 
