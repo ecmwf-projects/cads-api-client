@@ -3,10 +3,11 @@ import filecmp
 import os
 import pathlib
 
+
 from cads_api_client import ApiClient
 
 
-def test_adaptor_dummy(api_anon_client: ApiClient, tmp_path: pathlib.Path) -> None:
+def test_adaptors_dummy(api_anon_client: ApiClient, tmp_path: pathlib.Path) -> None:
     collection_id = "test-adaptor-dummy"
     target = str(tmp_path / "dummy.grib")
     remote = api_anon_client.submit(
@@ -17,7 +18,7 @@ def test_adaptor_dummy(api_anon_client: ApiClient, tmp_path: pathlib.Path) -> No
     assert os.path.exists(target)
 
 
-def test_adaptor_url(api_anon_client: ApiClient, tmp_path: pathlib.Path) -> None:
+def test_adaptors_url(api_anon_client: ApiClient, tmp_path: pathlib.Path) -> None:
     collection_id = "test-adaptor-url"
     request = {
         "variable": "grid_point_altitude",
@@ -37,7 +38,7 @@ def test_adaptor_url(api_anon_client: ApiClient, tmp_path: pathlib.Path) -> None
     assert filecmp.cmp(target1, target2)
 
 
-def test_adaptor_direct_mars(
+def test_adaptors_direct_mars(
     api_anon_client: ApiClient, tmp_path: pathlib.Path
 ) -> None:
     collection_id = "test-adaptor-direct-mars"
@@ -62,7 +63,7 @@ def test_adaptor_direct_mars(
     assert os.path.exists(target)
 
 
-def test_adaptor_mars(api_anon_client: ApiClient, tmp_path: pathlib.Path) -> None:
+def test_adaptors_mars(api_anon_client: ApiClient, tmp_path: pathlib.Path) -> None:
     collection_id = "test-adaptor-mars"
     request = {
         "product_type": "reanalysis",
