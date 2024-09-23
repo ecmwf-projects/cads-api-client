@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>cads_api_client.ApiClient &#8212; cads_api_client 0.1.dev1+gae27ca7 documentation</title>
+    <title>cads_api_client.ApiClient &#8212; cads_api_client 0.1.dev1+g92d63a1 documentation</title>
   
   
   
@@ -36,7 +36,7 @@
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../../_static/documentation_options.js?v=adfb0476"></script>
+    <script src="../../_static/documentation_options.js?v=88e246ab"></script>
     <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_api/cads_api_client/ApiClient';</script>
@@ -119,7 +119,7 @@
   
   
   
-    <p class="title logo__title">cads_api_client 0.1.dev1+gae27ca7 documentation</p>
+    <p class="title logo__title">cads_api_client 0.1.dev1+g92d63a1 documentation</p>
   
 </a></div>
     
@@ -263,6 +263,10 @@ document.write(`
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">cads_api_client.ApiClient</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Collection.html">cads_api_client.Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Collections.html">cads_api_client.Collections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Jobs.html">cads_api_client.Jobs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Process.html">cads_api_client.Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Processes.html">cads_api_client.Processes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Remote.html">cads_api_client.Remote</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Results.html">cads_api_client.Results</a></li>
 </ul>
@@ -331,16 +335,15 @@ document.write(`
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>url</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>) – API URL. If None, infer from CADS_API_URL or CADS_API_RC.</p></li>
-<li><p><strong>key</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>) – API Key. If None, infer from CADS_API_KEY or CADS_API_RC.</p></li>
-<li><p><strong>verify</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>) – Whether to verify the TLS certificate at the remote end.
-If None, infer from CADS_API_VERIFY or CADS_API_RC.</p></li>
-<li><p><strong>timeout</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>) – How many seconds to wait for the server to send data, as a float, or a (connect, read) tuple.</p></li>
-<li><p><strong>progress</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – Whether to display the progress bar during download.</p></li>
-<li><p><strong>cleanup</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – Whether to delete requests after completion.</p></li>
-<li><p><strong>sleep_max</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>) – Maximum time to wait (in seconds) while checking for a status change.</p></li>
-<li><p><strong>retry_after</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>) – Time to wait (in seconds) between retries.</p></li>
-<li><p><strong>maximum_tries</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – Maximum number of retries.</p></li>
+<li><p><strong>url</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span></code>, <em>default</em>: <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>) – API URL. If None, infer from CADS_API_URL or CADS_API_RC.</p></li>
+<li><p><strong>key</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span></code>, <em>default</em>: <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>) – API Key. If None, infer from CADS_API_KEY or CADS_API_RC.</p></li>
+<li><p><strong>verify</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <em>default</em>: <code class="xref py py-obj docutils literal notranslate"><span class="pre">True</span></code>) – Whether to verify the TLS certificate at the remote end.</p></li>
+<li><p><strong>timeout</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span> <span class="pre">|</span> <span class="pre">tuple[float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float]</span></code>, <em>default</em>: <code class="docutils literal notranslate"><span class="pre">60</span></code>) – How many seconds to wait for the server to send data, as a float, or a (connect, read) tuple.</p></li>
+<li><p><strong>progress</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <em>default</em>: <code class="xref py py-obj docutils literal notranslate"><span class="pre">True</span></code>) – Whether to display the progress bar during download.</p></li>
+<li><p><strong>cleanup</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <em>default</em>: <code class="xref py py-obj docutils literal notranslate"><span class="pre">False</span></code>) – Whether to delete requests after completion.</p></li>
+<li><p><strong>sleep_max</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <em>default</em>: <code class="docutils literal notranslate"><span class="pre">120</span></code>) – Maximum time to wait (in seconds) while checking for a status change.</p></li>
+<li><p><strong>retry_after</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <em>default</em>: <code class="docutils literal notranslate"><span class="pre">120</span></code>) – Time to wait (in seconds) between retries.</p></li>
+<li><p><strong>maximum_tries</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <em>default</em>: <code class="docutils literal notranslate"><span class="pre">500</span></code>) – Maximum number of retries.</p></li>
 <li><p><strong>session</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">requests.Session</span></code>) – Requests session.</p></li>
 </ul>
 </dd>
@@ -368,11 +371,11 @@ If None, infer from CADS_API_VERIFY or CADS_API_RC.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cads_api_client.ApiClient.apply_constraints">
 <span class="sig-name descname"><span class="pre">apply_constraints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collection_id</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cads_api_client.ApiClient.apply_constraints" title="Link to this definition">#</a></dt>
-<dd><p>Apply constraints to a request.</p>
+<dd><p>Apply constraints to the parameters in a request.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>collection_id</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Collection ID (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;reanalysis-era5-pressure-levels&quot;</span></code>).</p></li>
+<li><p><strong>collection_id</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Collection ID (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;projections-cmip6&quot;</span></code>).</p></li>
 <li><p><strong>**request</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Any</span></code>) – Request parameters.</p></li>
 </ul>
 </dd>
@@ -405,11 +408,11 @@ If None, infer from CADS_API_VERIFY or CADS_API_RC.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cads_api_client.ApiClient.download_results">
 <span class="sig-name descname"><span class="pre">download_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request_uid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cads_api_client.ApiClient.download_results" title="Link to this definition">#</a></dt>
-<dd><p>Download the results of a job.</p>
+<dd><p>Download the results of a request.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>request_uid</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Request UID</p></li>
+<li><p><strong>request_uid</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Request UID.</p></li>
 <li><p><strong>target</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span></code>) – Target path. If None, download to the working directory.</p></li>
 </ul>
 </dd>
@@ -425,11 +428,11 @@ If None, infer from CADS_API_VERIFY or CADS_API_RC.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cads_api_client.ApiClient.estimate_costs">
 <span class="sig-name descname"><span class="pre">estimate_costs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collection_id</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cads_api_client.ApiClient.estimate_costs" title="Link to this definition">#</a></dt>
-<dd><p>Estimate costs of a request.</p>
+<dd><p>Estimate costs of the parameters in a request.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>collection_id</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Collection ID (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;reanalysis-era5-pressure-levels&quot;</span></code>).</p></li>
+<li><p><strong>collection_id</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Collection ID (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;projections-cmip6&quot;</span></code>).</p></li>
 <li><p><strong>**request</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Any</span></code>) – Request parameters.</p></li>
 </ul>
 </dd>
@@ -448,7 +451,7 @@ If None, infer from CADS_API_VERIFY or CADS_API_RC.</p></li>
 <dd><p>Retrieve a catalogue collection.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>collection_id</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Collection ID (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;reanalysis-era5-pressure-levels&quot;</span></code>).</p>
+<dd class="field-odd"><p><strong>collection_id</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Collection ID (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;projections-cmip6&quot;</span></code>).</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference internal" href="Collection.html#cads_api_client.Collection" title="cads_api_client.Collection"><code class="xref py py-class docutils literal notranslate"><span class="pre">cads_api_client.Collection</span></code></a></p>
@@ -457,15 +460,55 @@ If None, infer from CADS_API_VERIFY or CADS_API_RC.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cads_api_client.ApiClient.get_job">
-<span class="sig-name descname"><span class="pre">get_job</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request_uid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cads_api_client.ApiClient.get_job" title="Link to this definition">#</a></dt>
-<dd><p>Retrieve a job.</p>
+<dt class="sig sig-object py" id="cads_api_client.ApiClient.get_collections">
+<span class="sig-name descname"><span class="pre">get_collections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sortby</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keywords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cads_api_client.ApiClient.get_collections" title="Link to this definition">#</a></dt>
+<dd><p>Retrieve catalogue collections.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>request_uid</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Request UID</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>limit</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span> <span class="pre">|</span> <span class="pre">None</span></code>) – Number of processes per page.</p></li>
+<li><p><strong>sortby</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span></code>) – Field to sort results by. Options: <code class="docutils literal notranslate"><span class="pre">&quot;id&quot;,</span> <span class="pre">&quot;relevance&quot;,</span> <span class="pre">&quot;title&quot;,</span> <span class="pre">&quot;update&quot;</span></code>.</p></li>
+<li><p><strong>query</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span></code>) – Full-text search query.</p></li>
+<li><p><strong>keywords</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">list[str]</span> <span class="pre">|</span> <span class="pre">None</span></code>) – Filter by keywords.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">processing.StatusInfo</span></code></p>
+<dd class="field-even"><p><a class="reference internal" href="Collections.html#cads_api_client.Collections" title="cads_api_client.Collections"><code class="xref py py-class docutils literal notranslate"><span class="pre">cads_api_client.Collections</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cads_api_client.ApiClient.get_jobs">
+<span class="sig-name descname"><span class="pre">get_jobs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sortby</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cads_api_client.ApiClient.get_jobs" title="Link to this definition">#</a></dt>
+<dd><p>Retrieve submitted jobs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>limit</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span> <span class="pre">|</span> <span class="pre">None</span></code>) – Number of processes per page.</p></li>
+<li><p><strong>sortby</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span></code>) – Field to sort results by. Options: <code class="docutils literal notranslate"><span class="pre">&quot;created&quot;,</span> <span class="pre">&quot;-created&quot;</span></code>.</p></li>
+<li><p><strong>status</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span></code>) – Status of the results. Options: <code class="docutils literal notranslate"><span class="pre">&quot;accepted&quot;,</span> <span class="pre">&quot;running&quot;,</span> <span class="pre">&quot;successful&quot;,</span> <span class="pre">&quot;failed&quot;</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="Jobs.html#cads_api_client.Jobs" title="cads_api_client.Jobs"><code class="xref py py-class docutils literal notranslate"><span class="pre">cads_api_client.Jobs</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cads_api_client.ApiClient.get_licences">
+<span class="sig-name descname"><span class="pre">get_licences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cads_api_client.ApiClient.get_licences" title="Link to this definition">#</a></dt>
+<dd><p>Retrieve licences.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>scope</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span></code>) – Licence scope. Options: <code class="docutils literal notranslate"><span class="pre">&quot;all&quot;,</span> <span class="pre">&quot;dataset&quot;,</span> <span class="pre">&quot;portal&quot;</span></code>.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of dictionaries with license information.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">list[dict[str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Any]]</span></code></p>
 </dd>
 </dl>
 </dd></dl>
@@ -476,10 +519,27 @@ If None, infer from CADS_API_VERIFY or CADS_API_RC.</p></li>
 <dd><p>Retrieve a process.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>collection_id</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Collection ID (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;reanalysis-era5-pressure-levels&quot;</span></code>).</p>
+<dd class="field-odd"><p><strong>collection_id</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Collection ID (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;projections-cmip6&quot;</span></code>).</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">processing.Process</span></code></p>
+<dd class="field-even"><p><a class="reference internal" href="Process.html#cads_api_client.Process" title="cads_api_client.Process"><code class="xref py py-class docutils literal notranslate"><span class="pre">cads_api_client.Process</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cads_api_client.ApiClient.get_processes">
+<span class="sig-name descname"><span class="pre">get_processes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sortby</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cads_api_client.ApiClient.get_processes" title="Link to this definition">#</a></dt>
+<dd><p>Retrieve available processes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>limit</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span> <span class="pre">|</span> <span class="pre">None</span></code>) – Number of processes per page.</p></li>
+<li><p><strong>sortby</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span></code>) – Field to sort results by. Options: <code class="docutils literal notranslate"><span class="pre">&quot;id&quot;,</span> <span class="pre">&quot;-id&quot;</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="Processes.html#cads_api_client.Processes" title="cads_api_client.Processes"><code class="xref py py-class docutils literal notranslate"><span class="pre">cads_api_client.Processes</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -487,10 +547,10 @@ If None, infer from CADS_API_VERIFY or CADS_API_RC.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cads_api_client.ApiClient.get_remote">
 <span class="sig-name descname"><span class="pre">get_remote</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request_uid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cads_api_client.ApiClient.get_remote" title="Link to this definition">#</a></dt>
-<dd><p>Retrieve the remote object of a job.</p>
+<dd><p>Retrieve the remote object of a request.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>request_uid</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Request UID</p>
+<dd class="field-odd"><p><strong>request_uid</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Request UID.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference internal" href="Remote.html#cads_api_client.Remote" title="cads_api_client.Remote"><code class="xref py py-class docutils literal notranslate"><span class="pre">cads_api_client.Remote</span></code></a></p>
@@ -501,10 +561,10 @@ If None, infer from CADS_API_VERIFY or CADS_API_RC.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cads_api_client.ApiClient.get_results">
 <span class="sig-name descname"><span class="pre">get_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request_uid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cads_api_client.ApiClient.get_results" title="Link to this definition">#</a></dt>
-<dd><p>Retrieve the results of a job.</p>
+<dd><p>Retrieve the results of a request.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>request_uid</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Request UID</p>
+<dd class="field-odd"><p><strong>request_uid</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Request UID.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference internal" href="Results.html#cads_api_client.Results" title="cads_api_client.Results"><code class="xref py py-class docutils literal notranslate"><span class="pre">cads_api_client.Results</span></code></a></p>
@@ -515,11 +575,11 @@ If None, infer from CADS_API_VERIFY or CADS_API_RC.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cads_api_client.ApiClient.retrieve">
 <span class="sig-name descname"><span class="pre">retrieve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collection_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cads_api_client.ApiClient.retrieve" title="Link to this definition">#</a></dt>
-<dd><p>Submit a job and retrieve the results.</p>
+<dd><p>Submit a request and retrieve the results.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>collection_id</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Collection ID (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;reanalysis-era5-pressure-levels&quot;</span></code>).</p></li>
+<li><p><strong>collection_id</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Collection ID (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;projections-cmip6&quot;</span></code>).</p></li>
 <li><p><strong>target</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span></code>) – Target path. If None, download to the working directory.</p></li>
 <li><p><strong>**request</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Any</span></code>) – Request parameters.</p></li>
 </ul>
@@ -536,11 +596,11 @@ If None, infer from CADS_API_VERIFY or CADS_API_RC.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cads_api_client.ApiClient.submit">
 <span class="sig-name descname"><span class="pre">submit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collection_id</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cads_api_client.ApiClient.submit" title="Link to this definition">#</a></dt>
-<dd><p>Submit a job.</p>
+<dd><p>Submit a request.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>collection_id</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Collection ID (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;reanalysis-era5-pressure-levels&quot;</span></code>).</p></li>
+<li><p><strong>collection_id</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Collection ID (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;projections-cmip6&quot;</span></code>).</p></li>
 <li><p><strong>**request</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Any</span></code>) – Request parameters.</p></li>
 </ul>
 </dd>
@@ -553,11 +613,11 @@ If None, infer from CADS_API_VERIFY or CADS_API_RC.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cads_api_client.ApiClient.submit_and_wait_on_results">
 <span class="sig-name descname"><span class="pre">submit_and_wait_on_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collection_id</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cads_api_client.ApiClient.submit_and_wait_on_results" title="Link to this definition">#</a></dt>
-<dd><p>Submit a job and wait for the results to be ready.</p>
+<dd><p>Submit a request and wait for the results to be ready.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>collection_id</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Collection ID (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;reanalysis-era5-pressure-levels&quot;</span></code>).</p></li>
+<li><p><strong>collection_id</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Collection ID (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;projections-cmip6&quot;</span></code>).</p></li>
 <li><p><strong>**request</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Any</span></code>) – Request parameters.</p></li>
 </ul>
 </dd>
@@ -577,53 +637,6 @@ If None, infer from CADS_API_VERIFY or CADS_API_RC.</p></li>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">list[dict[str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Any]]</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="cads_api_client.ApiClient.collections">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">collections</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">cads_api_client.catalogue.Collections</span></em><a class="headerlink" href="#cads_api_client.ApiClient.collections" title="Link to this definition">#</a></dt>
-<dd><p>Catalogue collections.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">catalogue.Collections</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="cads_api_client.ApiClient.jobs">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">jobs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">cads_api_client.processing.JobList</span></em><a class="headerlink" href="#cads_api_client.ApiClient.jobs" title="Link to this definition">#</a></dt>
-<dd><p>Submitted jobs.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">processing.JobList</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="cads_api_client.ApiClient.licences">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">licences</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#cads_api_client.ApiClient.licences" title="Link to this definition">#</a></dt>
-<dd><p>Licences.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>List of dictionaries with license information.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">list[dict[str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Any]]</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="cads_api_client.ApiClient.processes">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">processes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">cads_api_client.processing.ProcessList</span></em><a class="headerlink" href="#cads_api_client.ApiClient.processes" title="Link to this definition">#</a></dt>
-<dd><p>Available processes.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">processing.ProcessList</span></code></p>
 </dd>
 </dl>
 </dd></dl>
@@ -685,18 +698,17 @@ If None, infer from CADS_API_VERIFY or CADS_API_RC.</p></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.download_results"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.download_results()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.estimate_costs"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.estimate_costs()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.get_collection"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.get_collection()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.get_job"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.get_job()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.get_collections"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.get_collections()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.get_jobs"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.get_jobs()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.get_licences"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.get_licences()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.get_process"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.get_process()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.get_processes"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.get_processes()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.get_remote"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.get_remote()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.get_results"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.get_results()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.retrieve"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.retrieve()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.submit"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.submit()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.submit_and_wait_on_results"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.submit_and_wait_on_results()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.accepted_licences"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.accepted_licences</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.collections"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.collections</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.jobs"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.jobs</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.licences"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.licences</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.processes"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.processes</span></code></a></li>
 </ul>
 </li>
 </ul>

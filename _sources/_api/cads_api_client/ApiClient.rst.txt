@@ -6,24 +6,23 @@ cads_api_client.ApiClient
    A client to interact with the CADS API.
 
    :param url: API URL. If None, infer from CADS_API_URL or CADS_API_RC.
-   :type url: :class:`str` or :obj:`None`
+   :type url: :class:`str | None`, *default*: :obj:`None`
    :param key: API Key. If None, infer from CADS_API_KEY or CADS_API_RC.
-   :type key: :class:`str` or :obj:`None`
+   :type key: :class:`str | None`, *default*: :obj:`None`
    :param verify: Whether to verify the TLS certificate at the remote end.
-                  If None, infer from CADS_API_VERIFY or CADS_API_RC.
-   :type verify: :class:`bool` or :obj:`None`
+   :type verify: :class:`bool`, *default*: :obj:`True`
    :param timeout: How many seconds to wait for the server to send data, as a float, or a (connect, read) tuple.
-   :type timeout: :class:`float` or :class:`tuple`
+   :type timeout: :class:`float | tuple[float`, :class:`float]`, *default*: ``60``
    :param progress: Whether to display the progress bar during download.
-   :type progress: :class:`bool`
+   :type progress: :class:`bool`, *default*: :obj:`True`
    :param cleanup: Whether to delete requests after completion.
-   :type cleanup: :class:`bool`
+   :type cleanup: :class:`bool`, *default*: :obj:`False`
    :param sleep_max: Maximum time to wait (in seconds) while checking for a status change.
-   :type sleep_max: :class:`float`
+   :type sleep_max: :class:`float`, *default*: ``120``
    :param retry_after: Time to wait (in seconds) between retries.
-   :type retry_after: :class:`float`
+   :type retry_after: :class:`float`, *default*: ``120``
    :param maximum_tries: Maximum number of retries.
-   :type maximum_tries: :class:`int`
+   :type maximum_tries: :class:`int`, *default*: ``500``
    :param session: Requests session.
    :type session: :class:`requests.Session`
 
@@ -44,9 +43,9 @@ cads_api_client.ApiClient
 
    .. py:method:: apply_constraints(collection_id, **request)
 
-      Apply constraints to a request.
+      Apply constraints to the parameters in a request.
 
-      :param collection_id: Collection ID (e.g., ``"reanalysis-era5-pressure-levels"``).
+      :param collection_id: Collection ID (e.g., ``"projections-cmip6"``).
       :type collection_id: :class:`str`
       :param \*\*request: Request parameters.
       :type \*\*request: :class:`Any`
@@ -69,9 +68,9 @@ cads_api_client.ApiClient
 
    .. py:method:: download_results(request_uid, target = None)
 
-      Download the results of a job.
+      Download the results of a request.
 
-      :param request_uid: Request UID
+      :param request_uid: Request UID.
       :type request_uid: :class:`str`
       :param target: Target path. If None, download to the working directory.
       :type target: :class:`str | None`
@@ -83,9 +82,9 @@ cads_api_client.ApiClient
 
    .. py:method:: estimate_costs(collection_id, **request)
 
-      Estimate costs of a request.
+      Estimate costs of the parameters in a request.
 
-      :param collection_id: Collection ID (e.g., ``"reanalysis-era5-pressure-levels"``).
+      :param collection_id: Collection ID (e.g., ``"projections-cmip6"``).
       :type collection_id: :class:`str`
       :param \*\*request: Request parameters.
       :type \*\*request: :class:`Any`
@@ -99,21 +98,54 @@ cads_api_client.ApiClient
 
       Retrieve a catalogue collection.
 
-      :param collection_id: Collection ID (e.g., ``"reanalysis-era5-pressure-levels"``).
+      :param collection_id: Collection ID (e.g., ``"projections-cmip6"``).
       :type collection_id: :class:`str`
 
       :rtype: :class:`cads_api_client.Collection`
 
 
 
-   .. py:method:: get_job(request_uid)
+   .. py:method:: get_collections(limit = None, sortby = None, query = None, keywords = None)
 
-      Retrieve a job.
+      Retrieve catalogue collections.
 
-      :param request_uid: Request UID
-      :type request_uid: :class:`str`
+      :param limit: Number of processes per page.
+      :type limit: :class:`int | None`
+      :param sortby: Field to sort results by. Options: ``"id", "relevance", "title", "update"``.
+      :type sortby: :class:`str | None`
+      :param query: Full-text search query.
+      :type query: :class:`str | None`
+      :param keywords: Filter by keywords.
+      :type keywords: :class:`list[str] | None`
 
-      :rtype: :class:`processing.StatusInfo`
+      :rtype: :class:`cads_api_client.Collections`
+
+
+
+   .. py:method:: get_jobs(limit = None, sortby = None, status = None)
+
+      Retrieve submitted jobs.
+
+      :param limit: Number of processes per page.
+      :type limit: :class:`int | None`
+      :param sortby: Field to sort results by. Options: ``"created", "-created"``.
+      :type sortby: :class:`str | None`
+      :param status: Status of the results. Options: ``"accepted", "running", "successful", "failed"``.
+      :type status: :class:`str | None`
+
+      :rtype: :class:`cads_api_client.Jobs`
+
+
+
+   .. py:method:: get_licences(scope = None)
+
+      Retrieve licences.
+
+      :param scope: Licence scope. Options: ``"all", "dataset", "portal"``.
+      :type scope: :class:`str | None`
+
+      :returns: List of dictionaries with license information.
+      :rtype: :class:`list[dict[str`, :class:`Any]]`
 
 
 
@@ -121,18 +153,31 @@ cads_api_client.ApiClient
 
       Retrieve a process.
 
-      :param collection_id: Collection ID (e.g., ``"reanalysis-era5-pressure-levels"``).
+      :param collection_id: Collection ID (e.g., ``"projections-cmip6"``).
       :type collection_id: :class:`str`
 
-      :rtype: :class:`processing.Process`
+      :rtype: :class:`cads_api_client.Process`
+
+
+
+   .. py:method:: get_processes(limit = None, sortby = None)
+
+      Retrieve available processes.
+
+      :param limit: Number of processes per page.
+      :type limit: :class:`int | None`
+      :param sortby: Field to sort results by. Options: ``"id", "-id"``.
+      :type sortby: :class:`str | None`
+
+      :rtype: :class:`cads_api_client.Processes`
 
 
 
    .. py:method:: get_remote(request_uid)
 
-      Retrieve the remote object of a job.
+      Retrieve the remote object of a request.
 
-      :param request_uid: Request UID
+      :param request_uid: Request UID.
       :type request_uid: :class:`str`
 
       :rtype: :class:`cads_api_client.Remote`
@@ -141,9 +186,9 @@ cads_api_client.ApiClient
 
    .. py:method:: get_results(request_uid)
 
-      Retrieve the results of a job.
+      Retrieve the results of a request.
 
-      :param request_uid: Request UID
+      :param request_uid: Request UID.
       :type request_uid: :class:`str`
 
       :rtype: :class:`cads_api_client.Results`
@@ -152,9 +197,9 @@ cads_api_client.ApiClient
 
    .. py:method:: retrieve(collection_id, target = None, **request)
 
-      Submit a job and retrieve the results.
+      Submit a request and retrieve the results.
 
-      :param collection_id: Collection ID (e.g., ``"reanalysis-era5-pressure-levels"``).
+      :param collection_id: Collection ID (e.g., ``"projections-cmip6"``).
       :type collection_id: :class:`str`
       :param target: Target path. If None, download to the working directory.
       :type target: :class:`str | None`
@@ -168,9 +213,9 @@ cads_api_client.ApiClient
 
    .. py:method:: submit(collection_id, **request)
 
-      Submit a job.
+      Submit a request.
 
-      :param collection_id: Collection ID (e.g., ``"reanalysis-era5-pressure-levels"``).
+      :param collection_id: Collection ID (e.g., ``"projections-cmip6"``).
       :type collection_id: :class:`str`
       :param \*\*request: Request parameters.
       :type \*\*request: :class:`Any`
@@ -181,9 +226,9 @@ cads_api_client.ApiClient
 
    .. py:method:: submit_and_wait_on_results(collection_id, **request)
 
-      Submit a job and wait for the results to be ready.
+      Submit a request and wait for the results to be ready.
 
-      :param collection_id: Collection ID (e.g., ``"reanalysis-era5-pressure-levels"``).
+      :param collection_id: Collection ID (e.g., ``"projections-cmip6"``).
       :type collection_id: :class:`str`
       :param \*\*request: Request parameters.
       :type \*\*request: :class:`Any`
@@ -199,37 +244,4 @@ cads_api_client.ApiClient
 
       :returns: List of dictionaries with license information.
       :rtype: :class:`list[dict[str`, :class:`Any]]`
-
-
-   .. py:property:: collections
-      :type: cads_api_client.catalogue.Collections
-
-      Catalogue collections.
-
-      :rtype: :class:`catalogue.Collections`
-
-
-   .. py:property:: jobs
-      :type: cads_api_client.processing.JobList
-
-      Submitted jobs.
-
-      :rtype: :class:`processing.JobList`
-
-
-   .. py:property:: licences
-      :type: list[dict[str, Any]]
-
-      Licences.
-
-      :returns: List of dictionaries with license information.
-      :rtype: :class:`list[dict[str`, :class:`Any]]`
-
-
-   .. py:property:: processes
-      :type: cads_api_client.processing.ProcessList
-
-      Available processes.
-
-      :rtype: :class:`processing.ProcessList`
 

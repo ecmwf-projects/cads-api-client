@@ -11,7 +11,7 @@ cads_api_client.Collection
 
    .. py:method:: submit(**request)
 
-      Submit a job.
+      Submit a request.
 
       :param \*\*request: Request parameters.
       :type \*\*request: :class:`Any`
@@ -53,9 +53,17 @@ cads_api_client.Collection
 
 
    .. py:property:: process
-      :type: cads_api_client.processing.Process
+      :type: cads_api_client.Process
 
       Collection process.
 
-      :rtype: :class:`processing.Process`
+      :rtype: :class:`cads_api_client.Process`
+
+
+   .. py:property:: url
+      :type: str
+
+      URL.
+
+      :rtype: :class:`str`
 

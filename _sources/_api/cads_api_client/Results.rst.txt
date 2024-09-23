@@ -36,3 +36,11 @@ cads_api_client.Results
 
       :rtype: :class:`dict[str`, :class:`Any]`
 
+
+   .. py:property:: url
+      :type: str
+
+      URL.
+
+      :rtype: :class:`str`
+

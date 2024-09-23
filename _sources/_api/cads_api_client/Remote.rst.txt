@@ -27,6 +27,30 @@ cads_api_client.Remote
 
 
 
+   .. py:property:: collection_id
+      :type: str
+
+      Collection ID.
+
+      :rtype: :class:`str`
+
+
+   .. py:property:: json
+      :type: dict[str, Any]
+
+      Content of the response.
+
+      :rtype: :class:`dict[str`, :class:`Any]`
+
+
+   .. py:property:: request
+      :type: dict[str, Any]
+
+      Request parameters.
+
+      :rtype: :class:`dict[str`, :class:`Any]`
+
+
    .. py:property:: request_uid
       :type: str
 

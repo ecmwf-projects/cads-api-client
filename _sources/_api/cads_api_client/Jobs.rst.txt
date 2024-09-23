@@ -1,0 +1,50 @@
+cads_api_client.Jobs
+====================
+
+.. py:class:: cads_api_client.Jobs
+
+   Bases: :py:obj:`ApiResponsePaginated`
+
+
+   A class to interact with submitted jobs.
+
+
+   .. py:property:: job_ids
+      :type: list[str]
+
+      List of job IDs.
+
+      :rtype: :class:`list[str]`
+
+
+   .. py:property:: json
+      :type: dict[str, Any]
+
+      Content of the response.
+
+      :rtype: :class:`dict[str`, :class:`Any]`
+
+
+   .. py:property:: next
+      :type: Self | None
+
+      Next page.
+
+      :rtype: :class:`Self | None`
+
+
+   .. py:property:: prev
+      :type: Self | None
+
+      Previous page.
+
+      :rtype: :class:`Self | None`
+
+
+   .. py:property:: url
+      :type: str
+
+      URL.
+
+      :rtype: :class:`str`
+
