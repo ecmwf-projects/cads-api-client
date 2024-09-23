@@ -17,25 +17,25 @@ from . import catalogue, config, processing, profile
 class ApiClient:
     """A client to interact with the CADS API.
 
-    Attributes
+    Parameters
     ----------
-    url: str | None
+    url: str | None, default: None
         API URL. If None, infer from CADS_API_URL or CADS_API_RC.
-    key: str | None
+    key: str | None, default: None
         API Key. If None, infer from CADS_API_KEY or CADS_API_RC.
-    verify: bool
+    verify: bool, default: True
         Whether to verify the TLS certificate at the remote end.
-    timeout: float | tuple[float, float]
+    timeout: float | tuple[float, float], default: 60
         How many seconds to wait for the server to send data, as a float, or a (connect, read) tuple.
-    progress: bool
+    progress: bool, default: True
         Whether to display the progress bar during download.
-    cleanup: bool
+    cleanup: bool, default: False
         Whether to delete requests after completion.
-    sleep_max: float
+    sleep_max: float, default: 120
         Maximum time to wait (in seconds) while checking for a status change.
-    retry_after: float
+    retry_after: float, default: 120
         Time to wait (in seconds) between retries.
-    maximum_tries: int
+    maximum_tries: int, default: 500
         Maximum number of retries.
     session: requests.Session
         Requests session.
@@ -140,12 +140,12 @@ class ApiClient:
         return self._profile_api.accept_licence(licence_id, revision=revision)
 
     def apply_constraints(self, collection_id: str, **request: Any) -> dict[str, Any]:
-        """Apply constraints to a request.
+        """Apply constraints to the parameters in a request.
 
         Parameters
         ----------
         collection_id: str
-            Collection ID (e.g., ``"reanalysis-era5-pressure-levels"``).
+            Collection ID (e.g., ``"projections-cmip6"``).
         **request: Any
             Request parameters.
 
@@ -172,12 +172,12 @@ class ApiClient:
         return self._profile_api.check_authentication()
 
     def download_results(self, request_uid: str, target: str | None = None) -> str:
-        """Download the results of a job.
+        """Download the results of a request.
 
         Parameters
         ----------
         request_uid: str
-            Request UID
+            Request UID.
         target: str | None
             Target path. If None, download to the working directory.
 
@@ -189,12 +189,12 @@ class ApiClient:
         return self.get_remote(request_uid).download(target)
 
     def estimate_costs(self, collection_id: str, **request: Any) -> dict[str, Any]:
-        """Estimate costs of a request.
+        """Estimate costs of the parameters in a request.
 
         Parameters
         ----------
         collection_id: str
-            Collection ID (e.g., ``"reanalysis-era5-pressure-levels"``).
+            Collection ID (e.g., ``"projections-cmip6"``).
         **request: Any
             Request parameters.
 
@@ -211,7 +211,7 @@ class ApiClient:
         Parameters
         ----------
         collection_id: str
-            Collection ID (e.g., ``"reanalysis-era5-pressure-levels"``).
+            Collection ID (e.g., ``"projections-cmip6"``).
 
         Returns
         -------
@@ -232,12 +232,12 @@ class ApiClient:
         ----------
         limit: int | None
             Number of processes per page.
-        sortby: Literal["id", "relevance", "title", "update"] | None
-            Field to sort results by.
+        sortby: str | None
+            Field to sort results by. Options: ``"id", "relevance", "title", "update"``.
         query: str | None
-            Full-text search query
+            Full-text search query.
         keywords: list[str] | None
-            Filter by keywords
+            Filter by keywords.
 
         Returns
         -------
@@ -264,10 +264,10 @@ class ApiClient:
         ----------
         limit: int | None
             Number of processes per page.
-        sortby: Literal["created", "-created"] | None
-            Field to sort results by.
-        status: Literal["accepted", "running", "successful", "failed"] | None
-            Status of the results.
+        sortby: str | None
+            Field to sort results by. Options: ``"created", "-created"``.
+        status: str | None
+            Status of the results. Options: ``"accepted", "running", "successful", "failed"``.
 
         Returns
         -------
@@ -288,8 +288,8 @@ class ApiClient:
 
         Parameters
         ----------
-        scope: Literal["all", "dataset", "portal"] | None
-            Licence scope.
+        scope: str | None
+            Licence scope. Options: ``"all", "dataset", "portal"``.
 
         Returns
         -------
@@ -308,7 +308,7 @@ class ApiClient:
         Parameters
         ----------
         collection_id: str
-            Collection ID (e.g., ``"reanalysis-era5-pressure-levels"``).
+            Collection ID (e.g., ``"projections-cmip6"``).
 
         Returns
         -------
@@ -325,8 +325,8 @@ class ApiClient:
         ----------
         limit: int | None
             Number of processes per page.
-        sortby: Literal["id", "-id"] | None
-            Field to sort results by.
+        sortby: str | None
+            Field to sort results by. Options: ``"id", "-id"``.
 
         Returns
         -------
@@ -344,7 +344,7 @@ class ApiClient:
         Parameters
         ----------
         request_uid: str
-            Request UID
+            Request UID.
 
         Returns
         -------
@@ -359,7 +359,7 @@ class ApiClient:
         Parameters
         ----------
         request_uid: str
-            Request UID
+            Request UID.
 
         Returns
         -------
@@ -378,7 +378,7 @@ class ApiClient:
         Parameters
         ----------
         collection_id: str
-            Collection ID (e.g., ``"reanalysis-era5-pressure-levels"``).
+            Collection ID (e.g., ``"projections-cmip6"``).
         target: str | None
             Target path. If None, download to the working directory.
         **request: Any
@@ -397,7 +397,7 @@ class ApiClient:
         Parameters
         ----------
         collection_id: str
-            Collection ID (e.g., ``"reanalysis-era5-pressure-levels"``).
+            Collection ID (e.g., ``"projections-cmip6"``).
         **request: Any
             Request parameters.
 
@@ -415,7 +415,7 @@ class ApiClient:
         Parameters
         ----------
         collection_id: str
-            Collection ID (e.g., ``"reanalysis-era5-pressure-levels"``).
+            Collection ID (e.g., ``"projections-cmip6"``).
         **request: Any
             Request parameters.
 

@@ -294,7 +294,7 @@ class Process(ApiResponse):
         return job.make_remote()
 
     def apply_constraints(self, **request: Any) -> dict[str, Any]:
-        """Apply constraints to a request.
+        """Apply constraints to the parameters in a request.
 
         Parameters
         ----------
@@ -315,7 +315,7 @@ class Process(ApiResponse):
         return response.json
 
     def estimate_costs(self, **request: Any) -> dict[str, Any]:
-        """Estimate costs of a request.
+        """Estimate costs of the parameters in a request.
 
         Parameters
         ----------
