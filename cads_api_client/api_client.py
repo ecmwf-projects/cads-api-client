@@ -25,7 +25,7 @@ class ApiClient:
         API Key. If None, infer from CADS_API_KEY or CADS_API_RC.
     verify: bool, default: True
         Whether to verify the TLS certificate at the remote end.
-    timeout: float | tuple[float, float], default: 60
+    timeout: float | tuple[float,float], default: 60
         How many seconds to wait for the server to send data, as a float, or a (connect, read) tuple.
     progress: bool, default: True
         Whether to display the progress bar during download.
@@ -207,14 +207,14 @@ class ApiClient:
 
     def get_accepted_licences(
         self,
-        scope: Literal["all", "dataset", "portal"] | None = None,
+        scope: Literal[None, "all", "dataset", "portal"] = None,
     ) -> list[dict[str, Any]]:
         """Retrieve acccepted licences.
 
         Parameters
         ----------
-        scope: str | None
-            Licence scope. Options: ``"all", "dataset", "portal"``.
+        scope: {None, 'all', 'dataset', 'portal'}
+            Licence scope.
 
         Returns
         -------
@@ -243,7 +243,7 @@ class ApiClient:
     def get_collections(
         self,
         limit: int | None = None,
-        sortby: Literal["id", "relevance", "title", "update"] | None = None,
+        sortby: Literal[None, "id", "relevance", "title", "update"] = None,
         query: str | None = None,
         keywords: list[str] | None = None,
     ) -> cads_api_client.Collections:
@@ -253,8 +253,8 @@ class ApiClient:
         ----------
         limit: int | None
             Number of processes per page.
-        sortby: str | None
-            Field to sort results by. Options: ``"id", "relevance", "title", "update"``.
+        sortby: {None, 'id', 'relevance', 'title', 'update'}
+            Field to sort results by.
         query: str | None
             Full-text search query.
         keywords: list[str] | None
@@ -276,8 +276,8 @@ class ApiClient:
     def get_jobs(
         self,
         limit: int | None = None,
-        sortby: Literal["created", "-created"] | None = None,
-        status: Literal["accepted", "running", "successful", "failed"] | None = None,
+        sortby: Literal[None, "created", "-created"] = None,
+        status: Literal[None, "accepted", "running", "successful", "failed"] = None,
     ) -> cads_api_client.Jobs:
         """Retrieve submitted jobs.
 
@@ -285,10 +285,10 @@ class ApiClient:
         ----------
         limit: int | None
             Number of processes per page.
-        sortby: str | None
-            Field to sort results by. Options: ``"created", "-created"``.
-        status: str | None
-            Status of the results. Options: ``"accepted", "running", "successful", "failed"``.
+        sortby: {None, 'created', '-created'}
+            Field to sort results by.
+        status: {None, 'accepted', 'running', 'successful', 'failed'}
+            Status of the results.
 
         Returns
         -------
@@ -303,14 +303,14 @@ class ApiClient:
 
     def get_licences(
         self,
-        scope: Literal["all", "dataset", "portal"] | None = None,
+        scope: Literal[None, "all", "dataset", "portal"] = None,
     ) -> list[dict[str, Any]]:
         """Retrieve licences.
 
         Parameters
         ----------
-        scope: str | None
-            Licence scope. Options: ``"all", "dataset", "portal"``.
+        scope: {None, 'all', 'dataset', 'portal'}
+            Licence scope.
 
         Returns
         -------
@@ -338,7 +338,9 @@ class ApiClient:
         return self._retrieve_api.get_process(collection_id)
 
     def get_processes(
-        self, limit: int | None = None, sortby: Literal["id", "-id"] | None = None
+        self,
+        limit: int | None = None,
+        sortby: Literal[None, "id", "-id"] = None,
     ) -> cads_api_client.Processes:
         """Retrieve available processes.
 
@@ -346,8 +348,8 @@ class ApiClient:
         ----------
         limit: int | None
             Number of processes per page.
-        sortby: str | None
-            Field to sort results by. Options: ``"id", "-id"``.
+        sortby: {None, 'id', '-id'}
+            Field to sort results by.
 
         Returns
         -------
