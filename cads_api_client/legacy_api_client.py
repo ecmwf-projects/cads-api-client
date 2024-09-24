@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import functools
 import logging
+import typing
 import warnings
 from types import TracebackType
 from typing import Any, Callable, TypeVar, cast, overload
@@ -208,8 +209,22 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
     def status(self, context=None):  # type: ignore
         self.raise_not_implemented_error()
 
-    def download(self, results, targets=None):  # type: ignore
-        self.raise_not_implemented_error()
+    @typing.no_type_check
+    def _download(self, results, targets=None):
+        if isinstance(results, (processing.Results, processing.Remote)):
+            if targets:
+                path = targets.pop(0)
+            else:
+                path = None
+            return results.download(path)
+
+        if isinstance(results, (list, tuple)):
+            return [self._download(x, targets) for x in results]
+
+        if isinstance(results, dict):
+            self.raise_not_implemented_error()
+
+        return results
 
     def remote(self, url):  # type: ignore
         self.raise_not_implemented_error()
