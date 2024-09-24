@@ -238,6 +238,5 @@ def test_legacy_api_client_download(
     results = (remote, remote.make_results())
     target1 = str(tmp_path / "remote.grib")
     target2 = str(tmp_path / "results.grib")
-    targets = [target1, target2]
-    assert client.download(results, list(targets)) == targets
+    assert client.download(results, [target1, target2]) == [target1, target2]
     assert os.path.getsize(target1) == os.path.getsize(target2) == 1
