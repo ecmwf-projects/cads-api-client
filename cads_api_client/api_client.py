@@ -62,6 +62,11 @@ class ApiClient:
             except (KeyError, FileNotFoundError):
                 warnings.warn("The API key is missing", UserWarning)
 
+        try:
+            self._catalogue_api.messages.log_messages()
+        except Exception as exc:
+            warnings.warn(str(exc), UserWarning)
+
     def _get_headers(self, key_is_mandatory: bool = True) -> dict[str, str]:
         if self.key is None:
             if key_is_mandatory:
