@@ -19,13 +19,13 @@ class ApiClient:
 
     Parameters
     ----------
-    url: str | None, default: None
+    url: str or None, default: None
         API URL. If None, infer from CADS_API_URL or CADS_API_RC.
-    key: str | None, default: None
+    key: str or None, default: None
         API Key. If None, infer from CADS_API_KEY or CADS_API_RC.
     verify: bool, default: True
         Whether to verify the TLS certificate at the remote end.
-    timeout: float | tuple[float,float], default: 60
+    timeout: float or tuple[float,float], default: 60
         How many seconds to wait for the server to send data, as a float, or a (connect, read) tuple.
     progress: bool, default: True
         Whether to display the progress bar during download.
@@ -134,7 +134,7 @@ class ApiClient:
 
         Returns
         -------
-        dict[str, Any]
+        dict[str,Any]
             Content of the response.
         """
         return self._profile_api.accept_licence(licence_id, revision=revision)
@@ -151,7 +151,7 @@ class ApiClient:
 
         Returns
         -------
-        dict[str, Any]
+        dict[str,Any]
             Dictionary of valid values.
         """
         return self.get_process(collection_id).apply_constraints(**request)
@@ -161,7 +161,7 @@ class ApiClient:
 
         Returns
         -------
-        dict[str, Any]
+        dict[str,Any]
             Content of the response.
 
         Raises
@@ -178,7 +178,7 @@ class ApiClient:
         ----------
         request_uid: str
             Request UID.
-        target: str | None
+        target: str or None
             Target path. If None, download to the working directory.
 
         Returns
@@ -200,7 +200,7 @@ class ApiClient:
 
         Returns
         -------
-        dict[str, Any]
+        dict[str,Any]
             Dictionary of estimated costs.
         """
         return self.get_process(collection_id).estimate_costs(**request)
@@ -218,7 +218,7 @@ class ApiClient:
 
         Returns
         -------
-        list[dict[str, Any]]
+        list[dict[str,Any]]
             List of dictionaries with license information.
         """
         params = {k: v for k, v in zip(["scope"], [scope]) if v is not None}
@@ -255,9 +255,9 @@ class ApiClient:
             Number of processes per page.
         sortby: {None, 'id', 'relevance', 'title', 'update'}
             Field to sort results by.
-        query: str | None
+        query: str or None
             Full-text search query.
-        keywords: list[str] | None
+        keywords: list[str] or None
             Filter by keywords.
 
         Returns
@@ -283,7 +283,7 @@ class ApiClient:
 
         Parameters
         ----------
-        limit: int | None
+        limit: int or None
             Number of processes per page.
         sortby: {None, 'created', '-created'}
             Field to sort results by.
@@ -314,7 +314,7 @@ class ApiClient:
 
         Returns
         -------
-        list[dict[str, Any]]
+        list[dict[str,Any]]
             List of dictionaries with license information.
         """
         params = {k: v for k, v in zip(["scope"], [scope]) if v is not None}
@@ -346,7 +346,7 @@ class ApiClient:
 
         Parameters
         ----------
-        limit: int | None
+        limit: int or None
             Number of processes per page.
         sortby: {None, 'id', '-id'}
             Field to sort results by.
@@ -402,7 +402,7 @@ class ApiClient:
         ----------
         collection_id: str
             Collection ID (e.g., ``"projections-cmip6"``).
-        target: str | None
+        target: str or None
             Target path. If None, download to the working directory.
         **request: Any
             Request parameters.

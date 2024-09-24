@@ -174,7 +174,7 @@ class ApiResponse:
 
         Returns
         -------
-        dict[str, Any]
+        dict[str,Any]
         """
         return dict(self.response.json())
 
@@ -228,7 +228,7 @@ class ApiResponsePaginated(ApiResponse):
 
         Returns
         -------
-        Self | None
+        Self or None
         """
         return self._from_rel_href(rel="next")
 
@@ -238,7 +238,7 @@ class ApiResponsePaginated(ApiResponse):
 
         Returns
         -------
-        Self | None
+        Self or None
         """
         return self._from_rel_href(rel="prev")
 
@@ -303,7 +303,7 @@ class Process(ApiResponse):
 
         Returns
         -------
-        dict[str, Any]
+        dict[str,Any]
             Dictionary of valid values.
         """
         response = ApiResponse.from_request(
@@ -324,7 +324,7 @@ class Process(ApiResponse):
 
         Returns
         -------
-        dict[str, Any]
+        dict[str,Any]
             Dictionary of estimated costs.
         """
         response = ApiResponse.from_request(
@@ -392,7 +392,7 @@ class Remote:
 
         Returns
         -------
-        dict[str, Any]
+        dict[str,Any]
         """
         params = {"log": True, "request": True}
         if self.log_start_time:
@@ -415,7 +415,7 @@ class Remote:
 
         Returns
         -------
-        dict[str, Any]
+        dict[str,Any]
         """
         return dict(self.json["metadata"]["request"]["ids"])
 
@@ -468,7 +468,7 @@ class Remote:
 
         Parameters
         ----------
-        target: str | None
+        target: str or None
             Target path. If None, download to the working directory.
 
         Returns
@@ -484,7 +484,7 @@ class Remote:
 
         Returns
         -------
-        dict[str, Any]
+        dict[str,Any]
             Content of the response.
         """
         response = self._get_api_response("delete")
@@ -590,7 +590,7 @@ class Results(ApiResponse):
 
         Returns
         -------
-        dict[str, Any]
+        dict[str,Any]
         """
         return dict(self.json["asset"]["value"])
 
@@ -602,7 +602,7 @@ class Results(ApiResponse):
 
         Parameters
         ----------
-        target: str | None
+        target: str or None
             Target path. If None, download to the working directory.
 
         Returns
