@@ -214,9 +214,30 @@ def test_legacy_api_client_logging(
     client.info("Info message")
     client.warning("Warning message")
     client.error("Error message")
-    print(caplog.record_tuples)
     assert caplog.record_tuples == [
         ("cads_api_client.legacy_api_client", 20, "Info message"),
         ("cads_api_client.legacy_api_client", 30, "Warning message"),
         ("cads_api_client.legacy_api_client", 40, "Error message"),
     ]
+
+
+def test_legacy_api_client_download(
+    tmp_path: pathlib.Path,
+    api_root_url: str,
+    api_anon_key: str,
+) -> None:
+    client = legacy_api_client.LegacyApiClient(
+        url=api_root_url,
+        key=api_anon_key,
+        retry_max=0,
+        wait_until_complete=False,
+    )
+    remote = client.retrieve("test-adaptor-dummy", {"size": 1})
+    assert isinstance(remote, processing.Remote)
+
+    results = (remote, remote.make_results())
+    target1 = str(tmp_path / "remote.grib")
+    target2 = str(tmp_path / "results.grib")
+    targets = [target1, target2]
+    assert client.download(results, list(targets)) == targets
+    assert os.path.getsize(target1) == os.path.getsize(target2) == 1
