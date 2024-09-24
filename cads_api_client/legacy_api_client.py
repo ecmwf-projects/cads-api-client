@@ -198,7 +198,7 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
     def workflow(self, code, *args, **kwargs):  # type: ignore
         self.raise_not_implemented_error()
 
-    def status(self, context: Any = None) -> dict[str, Any]:
+    def status(self, context: Any = None) -> dict[str, list[str]]:
         status = collections.defaultdict(list)
         for message in self.client._catalogue_api.messages.json.get("messages", []):
             status[message["severity"]].append(message["content"])
