@@ -23,7 +23,7 @@ from . import config
 
 T_ApiResponse = TypeVar("T_ApiResponse", bound="ApiResponse")
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 LEVEL_NAMES_MAPPING = {
     "CRITICAL": 50,
@@ -138,11 +138,11 @@ class ApiResponse:
         robust_request = multiurl.robust(session.request, **retry_options)
 
         inputs = kwargs.get("json", {}).get("inputs", {})
-        logger.debug(f"{method.upper()} {url} {inputs or ''}".strip())
+        LOGGER.debug(f"{method.upper()} {url} {inputs or ''}".strip())
         response = robust_request(
             method, url, headers=headers, **request_options, **kwargs
         )
-        logger.debug(f"REPLY {response.text}")
+        LOGGER.debug(f"REPLY {response.text}")
 
         cads_raise_for_status(response)
 
@@ -223,7 +223,7 @@ class ApiResponse:
         return out
 
     def log(self, *args: Any, **kwargs: Any) -> None:
-        logger.log(*args, **kwargs)
+        LOGGER.log(*args, **kwargs)
 
     def info(self, *args: Any, **kwargs: Any) -> None:
         self.log(logging.INFO, *args, **kwargs)
@@ -548,7 +548,7 @@ class Remote:
         return reply
 
     def log(self, *args: Any, **kwargs: Any) -> None:
-        logger.log(*args, **kwargs)
+        LOGGER.log(*args, **kwargs)
 
     def info(self, *args: Any, **kwargs: Any) -> None:
         self.log(logging.INFO, *args, **kwargs)
