@@ -246,7 +246,6 @@ def test_legacy_api_client_download(
     targets = [target1, target2, target3]
     assert client.download(results_tuple, targets) == [target1, target2, target3]
     assert all(os.path.getsize(target) == 1 for target in targets)
-    os.path.getsize(target1) == os.path.getsize(target2) == 1
 
 
 def test_legacy_api_client_status(legacy_client: LegacyApiClient) -> None:
