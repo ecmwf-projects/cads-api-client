@@ -16,32 +16,30 @@ Draft Python API:
 >>> client = cads_api_client.ApiClient()
 >>> assert client.check_authentication()
 
->>> collection = client.get_collection("reanalysis-era5-pressure-levels")
+>>> collection_id = "reanalysis-era5-pressure-levels"
+>>> collection = client.get_collection(collection_id)
 >>> collection.end_datetime
 datetime.datetime(...)
 
+>>> request = {
+...     "product_type": "reanalysis",
+...     "variable": "temperature",
+...     "year": "2022",
+...     "month": "01",
+...     "day": "01",
+...     "level": "1000",
+...     "time": "00:00",
+... }
 >>> client.retrieve(
 ...     collection_id="reanalysis-era5-pressure-levels",
-...     product_type="reanalysis",
-...     variable="temperature",
-...     year="2022",
-...     month="01",
-...     day="01",
-...     level="1000",
-...     time="00:00",
+...     **request,
 ...     target="tmp1-era5.grib",
 ... )  # blocks
 'tmp1-era5.grib'
 
 >>> remote = client.submit(
 ...     collection_id="reanalysis-era5-pressure-levels",
-...     variable="temperature",
-...     product_type="reanalysis",
-...     year="2021",
-...     month="01",
-...     day="02",
-...     time="00:00",
-...     level="1000",
+...     **request,
 ... )  # doesn't block
 >>> remote.request_uid
 '...'
