@@ -14,7 +14,7 @@ cads_api_client.Processes
 
       Content of the response.
 
-      :rtype: :class:`dict[str`, :class:`Any]`
+      :rtype: :class:`dict[str,Any]`
 
 
    .. py:property:: next
@@ -22,7 +22,7 @@ cads_api_client.Processes
 
       Next page.
 
-      :rtype: :class:`Self | None`
+      :rtype: :class:`Self` or :obj:`None`
 
 
    .. py:property:: prev
@@ -30,7 +30,7 @@ cads_api_client.Processes
 
       Previous page.
 
-      :rtype: :class:`Self | None`
+      :rtype: :class:`Self` or :obj:`None`
 
 
    .. py:property:: process_ids

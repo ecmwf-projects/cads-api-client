@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>cads_api_client.ApiClient &#8212; cads_api_client 1.4.0 documentation</title>
+    <title>cads_api_client.ApiClient &#8212; cads_api_client 1.4.1 documentation</title>
   
   
   
@@ -36,7 +36,7 @@
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../../_static/documentation_options.js?v=9172181d"></script>
+    <script src="../../_static/documentation_options.js?v=350a9c04"></script>
     <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_api/cads_api_client/ApiClient';</script>
@@ -119,7 +119,7 @@
   
   
   
-    <p class="title logo__title">cads_api_client 1.4.0 documentation</p>
+    <p class="title logo__title">cads_api_client 1.4.1 documentation</p>
   
 </a></div>
     
@@ -335,10 +335,10 @@ document.write(`
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>url</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span></code>, <em>default</em>: <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>) – API URL. If None, infer from CADS_API_URL or CADS_API_RC.</p></li>
-<li><p><strong>key</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span></code>, <em>default</em>: <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>) – API Key. If None, infer from CADS_API_KEY or CADS_API_RC.</p></li>
+<li><p><strong>url</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>, <em>default</em>: <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>) – API URL. If None, infer from CADS_API_URL or CADS_API_RC.</p></li>
+<li><p><strong>key</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>, <em>default</em>: <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>) – API Key. If None, infer from CADS_API_KEY or CADS_API_RC.</p></li>
 <li><p><strong>verify</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <em>default</em>: <code class="xref py py-obj docutils literal notranslate"><span class="pre">True</span></code>) – Whether to verify the TLS certificate at the remote end.</p></li>
-<li><p><strong>timeout</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span> <span class="pre">|</span> <span class="pre">tuple[float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float]</span></code>, <em>default</em>: <code class="docutils literal notranslate"><span class="pre">60</span></code>) – How many seconds to wait for the server to send data, as a float, or a (connect, read) tuple.</p></li>
+<li><p><strong>timeout</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple[float,float]</span></code>, <em>default</em>: <code class="docutils literal notranslate"><span class="pre">60</span></code>) – How many seconds to wait for the server to send data, as a float, or a (connect, read) tuple.</p></li>
 <li><p><strong>progress</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <em>default</em>: <code class="xref py py-obj docutils literal notranslate"><span class="pre">True</span></code>) – Whether to display the progress bar during download.</p></li>
 <li><p><strong>cleanup</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <em>default</em>: <code class="xref py py-obj docutils literal notranslate"><span class="pre">False</span></code>) – Whether to delete requests after completion.</p></li>
 <li><p><strong>sleep_max</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <em>default</em>: <code class="docutils literal notranslate"><span class="pre">120</span></code>) – Maximum time to wait (in seconds) while checking for a status change.</p></li>
@@ -363,7 +363,7 @@ document.write(`
 <dd class="field-even"><p>Content of the response.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">dict[str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Any]</span></code></p>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">dict[str,Any]</span></code></p>
 </dd>
 </dl>
 </dd></dl>
@@ -383,7 +383,7 @@ document.write(`
 <dd class="field-even"><p>Dictionary of valid values.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">dict[str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Any]</span></code></p>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">dict[str,Any]</span></code></p>
 </dd>
 </dl>
 </dd></dl>
@@ -397,7 +397,7 @@ document.write(`
 <dd class="field-odd"><p>Content of the response.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">dict[str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Any]</span></code></p>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">dict[str,Any]</span></code></p>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>requests.HTTPError</strong> – If the authentication fails.</p>
@@ -413,7 +413,7 @@ document.write(`
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>request_uid</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Request UID.</p></li>
-<li><p><strong>target</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span></code>) – Target path. If None, download to the working directory.</p></li>
+<li><p><strong>target</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>) – Target path. If None, download to the working directory.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -440,7 +440,7 @@ document.write(`
 <dd class="field-even"><p>Dictionary of estimated costs.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">dict[str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Any]</span></code></p>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">dict[str,Any]</span></code></p>
 </dd>
 </dl>
 </dd></dl>
@@ -451,13 +451,13 @@ document.write(`
 <dd><p>Retrieve acccepted licences.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>scope</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span></code>) – Licence scope. Options: <code class="docutils literal notranslate"><span class="pre">&quot;all&quot;,</span> <span class="pre">&quot;dataset&quot;,</span> <span class="pre">&quot;portal&quot;</span></code>.</p>
+<dd class="field-odd"><p><strong>scope</strong> (<code class="docutils literal notranslate"><span class="pre">{None,</span> <span class="pre">'all',</span> <span class="pre">'dataset',</span> <span class="pre">'portal'}</span></code>) – Licence scope.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>List of dictionaries with license information.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">list[dict[str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Any]]</span></code></p>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">list[dict[str,Any]]</span></code></p>
 </dd>
 </dl>
 </dd></dl>
@@ -484,9 +484,9 @@ document.write(`
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>limit</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span> <span class="pre">|</span> <span class="pre">None</span></code>) – Number of processes per page.</p></li>
-<li><p><strong>sortby</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span></code>) – Field to sort results by. Options: <code class="docutils literal notranslate"><span class="pre">&quot;id&quot;,</span> <span class="pre">&quot;relevance&quot;,</span> <span class="pre">&quot;title&quot;,</span> <span class="pre">&quot;update&quot;</span></code>.</p></li>
-<li><p><strong>query</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span></code>) – Full-text search query.</p></li>
-<li><p><strong>keywords</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">list[str]</span> <span class="pre">|</span> <span class="pre">None</span></code>) – Filter by keywords.</p></li>
+<li><p><strong>sortby</strong> (<code class="docutils literal notranslate"><span class="pre">{None,</span> <span class="pre">'id',</span> <span class="pre">'relevance',</span> <span class="pre">'title',</span> <span class="pre">'update'}</span></code>) – Field to sort results by.</p></li>
+<li><p><strong>query</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>) – Full-text search query.</p></li>
+<li><p><strong>keywords</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">list[str]</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>) – Filter by keywords.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -502,9 +502,9 @@ document.write(`
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>limit</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span> <span class="pre">|</span> <span class="pre">None</span></code>) – Number of processes per page.</p></li>
-<li><p><strong>sortby</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span></code>) – Field to sort results by. Options: <code class="docutils literal notranslate"><span class="pre">&quot;created&quot;,</span> <span class="pre">&quot;-created&quot;</span></code>.</p></li>
-<li><p><strong>status</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span></code>) – Status of the results. Options: <code class="docutils literal notranslate"><span class="pre">&quot;accepted&quot;,</span> <span class="pre">&quot;running&quot;,</span> <span class="pre">&quot;successful&quot;,</span> <span class="pre">&quot;failed&quot;</span></code>.</p></li>
+<li><p><strong>limit</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>) – Number of processes per page.</p></li>
+<li><p><strong>sortby</strong> (<code class="docutils literal notranslate"><span class="pre">{None,</span> <span class="pre">'created',</span> <span class="pre">'-created'}</span></code>) – Field to sort results by.</p></li>
+<li><p><strong>status</strong> (<code class="docutils literal notranslate"><span class="pre">{None,</span> <span class="pre">'accepted',</span> <span class="pre">'running',</span> <span class="pre">'successful',</span> <span class="pre">'failed'}</span></code>) – Status of the results.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -519,13 +519,13 @@ document.write(`
 <dd><p>Retrieve licences.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>scope</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span></code>) – Licence scope. Options: <code class="docutils literal notranslate"><span class="pre">&quot;all&quot;,</span> <span class="pre">&quot;dataset&quot;,</span> <span class="pre">&quot;portal&quot;</span></code>.</p>
+<dd class="field-odd"><p><strong>scope</strong> (<code class="docutils literal notranslate"><span class="pre">{None,</span> <span class="pre">'all',</span> <span class="pre">'dataset',</span> <span class="pre">'portal'}</span></code>) – Licence scope.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>List of dictionaries with license information.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">list[dict[str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Any]]</span></code></p>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">list[dict[str,Any]]</span></code></p>
 </dd>
 </dl>
 </dd></dl>
@@ -551,8 +551,8 @@ document.write(`
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>limit</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span> <span class="pre">|</span> <span class="pre">None</span></code>) – Number of processes per page.</p></li>
-<li><p><strong>sortby</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span></code>) – Field to sort results by. Options: <code class="docutils literal notranslate"><span class="pre">&quot;id&quot;,</span> <span class="pre">&quot;-id&quot;</span></code>.</p></li>
+<li><p><strong>limit</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>) – Number of processes per page.</p></li>
+<li><p><strong>sortby</strong> (<code class="docutils literal notranslate"><span class="pre">{None,</span> <span class="pre">'id',</span> <span class="pre">'-id'}</span></code>) – Field to sort results by.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -597,7 +597,7 @@ document.write(`
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>collection_id</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Collection ID (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;projections-cmip6&quot;</span></code>).</p></li>
-<li><p><strong>target</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span></code>) – Target path. If None, download to the working directory.</p></li>
+<li><p><strong>target</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>) – Target path. If None, download to the working directory.</p></li>
 <li><p><strong>**request</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Any</span></code>) – Request parameters.</p></li>
 </ul>
 </dd>

@@ -49,7 +49,7 @@ cads_api_client.Collection
 
       Content of the response.
 
-      :rtype: :class:`dict[str`, :class:`Any]`
+      :rtype: :class:`dict[str,Any]`
 
 
    .. py:property:: process

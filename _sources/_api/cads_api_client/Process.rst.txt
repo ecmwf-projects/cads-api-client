@@ -17,7 +17,7 @@ cads_api_client.Process
       :type \*\*request: :class:`Any`
 
       :returns: Dictionary of valid values.
-      :rtype: :class:`dict[str`, :class:`Any]`
+      :rtype: :class:`dict[str,Any]`
 
 
 
@@ -29,7 +29,7 @@ cads_api_client.Process
       :type \*\*request: :class:`Any`
 
       :returns: Dictionary of estimated costs.
-      :rtype: :class:`dict[str`, :class:`Any]`
+      :rtype: :class:`dict[str,Any]`
 
 
 
@@ -57,7 +57,7 @@ cads_api_client.Process
 
       Content of the response.
 
-      :rtype: :class:`dict[str`, :class:`Any]`
+      :rtype: :class:`dict[str,Any]`
 
 
    .. py:property:: url

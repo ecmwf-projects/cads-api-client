@@ -22,7 +22,7 @@ cads_api_client.Collections
 
       Content of the response.
 
-      :rtype: :class:`dict[str`, :class:`Any]`
+      :rtype: :class:`dict[str,Any]`
 
 
    .. py:property:: next
@@ -30,7 +30,7 @@ cads_api_client.Collections
 
       Next page.
 
-      :rtype: :class:`Self | None`
+      :rtype: :class:`Self` or :obj:`None`
 
 
    .. py:property:: prev
@@ -38,7 +38,7 @@ cads_api_client.Collections
 
       Previous page.
 
-      :rtype: :class:`Self | None`
+      :rtype: :class:`Self` or :obj:`None`
 
 
    .. py:property:: url

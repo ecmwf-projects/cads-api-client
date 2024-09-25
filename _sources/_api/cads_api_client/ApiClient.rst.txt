@@ -6,13 +6,13 @@ cads_api_client.ApiClient
    A client to interact with the CADS API.
 
    :param url: API URL. If None, infer from CADS_API_URL or CADS_API_RC.
-   :type url: :class:`str | None`, *default*: :obj:`None`
+   :type url: :class:`str` or :obj:`None`, *default*: :obj:`None`
    :param key: API Key. If None, infer from CADS_API_KEY or CADS_API_RC.
-   :type key: :class:`str | None`, *default*: :obj:`None`
+   :type key: :class:`str` or :obj:`None`, *default*: :obj:`None`
    :param verify: Whether to verify the TLS certificate at the remote end.
    :type verify: :class:`bool`, *default*: :obj:`True`
    :param timeout: How many seconds to wait for the server to send data, as a float, or a (connect, read) tuple.
-   :type timeout: :class:`float | tuple[float`, :class:`float]`, *default*: ``60``
+   :type timeout: :class:`float` or :class:`tuple[float,float]`, *default*: ``60``
    :param progress: Whether to display the progress bar during download.
    :type progress: :class:`bool`, *default*: :obj:`True`
    :param cleanup: Whether to delete requests after completion.
@@ -37,7 +37,7 @@ cads_api_client.ApiClient
       :type revision: :class:`int`
 
       :returns: Content of the response.
-      :rtype: :class:`dict[str`, :class:`Any]`
+      :rtype: :class:`dict[str,Any]`
 
 
 
@@ -51,7 +51,7 @@ cads_api_client.ApiClient
       :type \*\*request: :class:`Any`
 
       :returns: Dictionary of valid values.
-      :rtype: :class:`dict[str`, :class:`Any]`
+      :rtype: :class:`dict[str,Any]`
 
 
 
@@ -60,7 +60,7 @@ cads_api_client.ApiClient
       Verify authentication.
 
       :returns: Content of the response.
-      :rtype: :class:`dict[str`, :class:`Any]`
+      :rtype: :class:`dict[str,Any]`
 
       :raises requests.HTTPError: If the authentication fails.
 
@@ -73,7 +73,7 @@ cads_api_client.ApiClient
       :param request_uid: Request UID.
       :type request_uid: :class:`str`
       :param target: Target path. If None, download to the working directory.
-      :type target: :class:`str | None`
+      :type target: :class:`str` or :obj:`None`
 
       :returns: Path to the retrieved file.
       :rtype: :class:`str`
@@ -90,7 +90,7 @@ cads_api_client.ApiClient
       :type \*\*request: :class:`Any`
 
       :returns: Dictionary of estimated costs.
-      :rtype: :class:`dict[str`, :class:`Any]`
+      :rtype: :class:`dict[str,Any]`
 
 
 
@@ -98,11 +98,11 @@ cads_api_client.ApiClient
 
       Retrieve acccepted licences.
 
-      :param scope: Licence scope. Options: ``"all", "dataset", "portal"``.
-      :type scope: :class:`str | None`
+      :param scope: Licence scope.
+      :type scope: ``{None, 'all', 'dataset', 'portal'}``
 
       :returns: List of dictionaries with license information.
-      :rtype: :class:`list[dict[str`, :class:`Any]]`
+      :rtype: :class:`list[dict[str,Any]]`
 
 
 
@@ -123,12 +123,12 @@ cads_api_client.ApiClient
 
       :param limit: Number of processes per page.
       :type limit: :class:`int | None`
-      :param sortby: Field to sort results by. Options: ``"id", "relevance", "title", "update"``.
-      :type sortby: :class:`str | None`
+      :param sortby: Field to sort results by.
+      :type sortby: ``{None, 'id', 'relevance', 'title', 'update'}``
       :param query: Full-text search query.
-      :type query: :class:`str | None`
+      :type query: :class:`str` or :obj:`None`
       :param keywords: Filter by keywords.
-      :type keywords: :class:`list[str] | None`
+      :type keywords: :class:`list[str]` or :obj:`None`
 
       :rtype: :class:`cads_api_client.Collections`
 
@@ -139,11 +139,11 @@ cads_api_client.ApiClient
       Retrieve submitted jobs.
 
       :param limit: Number of processes per page.
-      :type limit: :class:`int | None`
-      :param sortby: Field to sort results by. Options: ``"created", "-created"``.
-      :type sortby: :class:`str | None`
-      :param status: Status of the results. Options: ``"accepted", "running", "successful", "failed"``.
-      :type status: :class:`str | None`
+      :type limit: :class:`int` or :obj:`None`
+      :param sortby: Field to sort results by.
+      :type sortby: ``{None, 'created', '-created'}``
+      :param status: Status of the results.
+      :type status: ``{None, 'accepted', 'running', 'successful', 'failed'}``
 
       :rtype: :class:`cads_api_client.Jobs`
 
@@ -153,11 +153,11 @@ cads_api_client.ApiClient
 
       Retrieve licences.
 
-      :param scope: Licence scope. Options: ``"all", "dataset", "portal"``.
-      :type scope: :class:`str | None`
+      :param scope: Licence scope.
+      :type scope: ``{None, 'all', 'dataset', 'portal'}``
 
       :returns: List of dictionaries with license information.
-      :rtype: :class:`list[dict[str`, :class:`Any]]`
+      :rtype: :class:`list[dict[str,Any]]`
 
 
 
@@ -177,9 +177,9 @@ cads_api_client.ApiClient
       Retrieve available processes.
 
       :param limit: Number of processes per page.
-      :type limit: :class:`int | None`
-      :param sortby: Field to sort results by. Options: ``"id", "-id"``.
-      :type sortby: :class:`str | None`
+      :type limit: :class:`int` or :obj:`None`
+      :param sortby: Field to sort results by.
+      :type sortby: ``{None, 'id', '-id'}``
 
       :rtype: :class:`cads_api_client.Processes`
 
@@ -214,7 +214,7 @@ cads_api_client.ApiClient
       :param collection_id: Collection ID (e.g., ``"projections-cmip6"``).
       :type collection_id: :class:`str`
       :param target: Target path. If None, download to the working directory.
-      :type target: :class:`str | None`
+      :type target: :class:`str` or :obj:`None`
       :param \*\*request: Request parameters.
       :type \*\*request: :class:`Any`
 
