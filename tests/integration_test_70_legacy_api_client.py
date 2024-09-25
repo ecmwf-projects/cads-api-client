@@ -226,7 +226,7 @@ def test_legacy_api_client_download(
     client = LegacyApiClient(
         url=api_root_url,
         key=api_anon_key,
-        retry_max=0,
+        retry_max=1,
         wait_until_complete=False,
     )
     remote = client.retrieve("test-adaptor-dummy", {"size": 1})
@@ -234,11 +234,19 @@ def test_legacy_api_client_download(
     target = client.download(remote)
     assert os.path.getsize(target) == 1
 
-    results = (remote, remote.make_results())
+    results = remote.make_results()
+    results_dict = {
+        "location": results.location,
+        "contentLength": results.content_length,
+    }
+    results_tuple = (remote, remote.make_results(), results_dict)
     target1 = "remote.grib"
     target2 = "results.grib"
-    assert client.download(results, [target1, target2]) == [target1, target2]
-    assert os.path.getsize(target1) == os.path.getsize(target2) == 1
+    target3 = "dict.grib"
+    targets = [target1, target2, target3]
+    assert client.download(results_tuple, targets) == [target1, target2, target3]
+    assert all(os.path.getsize(target) == 1 for target in targets)
+    os.path.getsize(target1) == os.path.getsize(target2) == 1
 
 
 def test_legacy_api_client_status(legacy_client: LegacyApiClient) -> None:
