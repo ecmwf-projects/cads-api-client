@@ -30,17 +30,10 @@ datetime.datetime(...)
 ...     "level": "1000",
 ...     "time": "00:00",
 ... }
->>> client.retrieve(
-...     collection_id="reanalysis-era5-pressure-levels",
-...     **request,
-...     target="tmp1-era5.grib",
-... )  # blocks
+>>> client.retrieve(collection_id, **request, target="tmp1-era5.grib")  # blocks
 'tmp1-era5.grib'
 
->>> remote = client.submit(
-...     collection_id="reanalysis-era5-pressure-levels",
-...     **request,
-... )  # doesn't block
+>>> remote = client.submit(collection_id, **request)  # doesn't block
 >>> remote.request_uid
 '...'
 >>> remote.status
