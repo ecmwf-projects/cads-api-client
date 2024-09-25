@@ -8,10 +8,17 @@ from typing import Any
 
 import pytest
 import requests
+from urllib3.exceptions import InsecureRequestWarning
 
-from cads_api_client import legacy_api_client, processing
+from cads_api_client import processing
+from cads_api_client.legacy_api_client import LegacyApiClient
 
 does_not_raise = contextlib.nullcontext
+
+
+@pytest.fixture
+def legacy_client(api_root_url: str, api_anon_key: str) -> LegacyApiClient:
+    return LegacyApiClient(url=api_root_url, key=api_anon_key, retry_max=0)
 
 
 def legacy_update(remote: processing.Remote) -> None:
@@ -48,17 +55,12 @@ def legacy_update(remote: processing.Remote) -> None:
 
 
 def test_legacy_api_client_retrieve(
-    tmp_path: pathlib.Path,
-    api_root_url: str,
-    api_anon_key: str,
+    tmp_path: pathlib.Path, legacy_client: LegacyApiClient
 ) -> None:
-    client = legacy_api_client.LegacyApiClient(
-        url=api_root_url, key=api_anon_key, retry_max=0
-    )
     collection_id = "test-adaptor-dummy"
     request = {"size": 1}
     target = str(tmp_path / "dummy.grib")
-    actual_target = client.retrieve(collection_id, request, target)
+    actual_target = legacy_client.retrieve(collection_id, request, target)
     assert target == actual_target
     assert os.path.getsize(target) == 1
 
@@ -66,17 +68,13 @@ def test_legacy_api_client_retrieve(
 def test_legacy_api_client_result(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: pathlib.Path,
-    api_root_url: str,
-    api_anon_key: str,
+    legacy_client: LegacyApiClient,
 ) -> None:
     monkeypatch.chdir(tmp_path)
 
-    client = legacy_api_client.LegacyApiClient(
-        url=api_root_url, key=api_anon_key, retry_max=0
-    )
     collection_id = "test-adaptor-dummy"
     request = {"size": 1}
-    result = client.retrieve(collection_id, request)
+    result = legacy_client.retrieve(collection_id, request)
 
     target = result.download()
     assert os.path.basename(target) == os.path.basename(result.location)
@@ -100,7 +98,7 @@ def test_legacy_api_client_quiet(
     api_anon_key: str,
     quiet: bool,
 ) -> None:
-    client = legacy_api_client.LegacyApiClient(
+    client = LegacyApiClient(
         url=api_root_url, key=api_anon_key, quiet=quiet, retry_max=0
     )
     client.retrieve("test-adaptor-dummy", {})
@@ -115,9 +113,7 @@ def test_legacy_api_client_debug(
     api_anon_key: str,
     debug: bool,
 ) -> None:
-    legacy_api_client.LegacyApiClient(
-        url=api_root_url, key=api_anon_key, debug=debug, retry_max=0
-    )
+    LegacyApiClient(url=api_root_url, key=api_anon_key, debug=debug, retry_max=0)
     records = [record for record in caplog.records if record.levelname == "DEBUG"]
     assert records if debug else not records
 
@@ -133,7 +129,7 @@ def test_legacy_api_client_wait_until_complete(
     wait_until_complete: bool,
     expected_type: type,
 ) -> None:
-    client = legacy_api_client.LegacyApiClient(
+    client = LegacyApiClient(
         url=api_root_url,
         key=api_anon_key,
         wait_until_complete=wait_until_complete,
@@ -164,7 +160,7 @@ def test_legacy_api_client_update(
     collection_id: str,
     raises: contextlib.nullcontext[Any],
 ) -> None:
-    client = legacy_api_client.LegacyApiClient(
+    client = LegacyApiClient(
         url=api_root_url, key=api_anon_key, wait_until_complete=False, retry_max=0
     )
     remote = client.retrieve(collection_id, {})
@@ -175,18 +171,19 @@ def test_legacy_api_client_update(
 
 def test_legacy_api_client_kwargs(api_root_url: str, api_anon_key: str) -> None:
     session = requests.Session()
-    client = legacy_api_client.LegacyApiClient(
-        url=api_root_url,
-        key=api_anon_key,
-        verify=0,
-        timeout=1,
-        progress=False,
-        delete=True,
-        retry_max=2,
-        sleep_max=3,
-        wait_until_complete=False,
-        session=session,
-    )
+    with pytest.warns(InsecureRequestWarning):
+        client = LegacyApiClient(
+            url=api_root_url,
+            key=api_anon_key,
+            verify=0,
+            timeout=1,
+            progress=False,
+            delete=True,
+            retry_max=2,
+            sleep_max=3,
+            wait_until_complete=False,
+            session=session,
+        )
     assert client.client.url == api_root_url
     assert client.client.key == api_anon_key
     assert client.client.verify is False
@@ -195,6 +192,7 @@ def test_legacy_api_client_kwargs(api_root_url: str, api_anon_key: str) -> None:
     assert client.client.cleanup is True
     assert client.client.maximum_tries == 2
     assert client.client.sleep_max == 3
+    assert client.client.session is session
 
 
 def test_legacy_api_client_error(
@@ -202,18 +200,15 @@ def test_legacy_api_client_error(
     api_anon_key: str,
 ) -> None:
     with pytest.raises(ValueError, match="Wrong parameters: {'foo'}"):
-        legacy_api_client.LegacyApiClient(url=api_root_url, key=api_anon_key, foo="bar")
+        LegacyApiClient(url=api_root_url, key=api_anon_key, foo="bar")
 
 
 def test_legacy_api_client_logging(
-    caplog: pytest.LogCaptureFixture,
-    api_root_url: str,
-    api_anon_key: str,
+    caplog: pytest.LogCaptureFixture, legacy_client: LegacyApiClient
 ) -> None:
-    client = legacy_api_client.LegacyApiClient(url=api_root_url, key=api_anon_key)
-    client.info("Info message")
-    client.warning("Warning message")
-    client.error("Error message")
+    legacy_client.info("Info message")
+    legacy_client.warning("Warning message")
+    legacy_client.error("Error message")
     assert caplog.record_tuples == [
         ("cads_api_client.legacy_api_client", 20, "Info message"),
         ("cads_api_client.legacy_api_client", 30, "Warning message"),
@@ -226,7 +221,7 @@ def test_legacy_api_client_download(
     api_root_url: str,
     api_anon_key: str,
 ) -> None:
-    client = legacy_api_client.LegacyApiClient(
+    client = LegacyApiClient(
         url=api_root_url,
         key=api_anon_key,
         retry_max=0,
@@ -240,3 +235,22 @@ def test_legacy_api_client_download(
     target2 = str(tmp_path / "results.grib")
     assert client.download(results, [target1, target2]) == [target1, target2]
     assert os.path.getsize(target1) == os.path.getsize(target2) == 1
+
+
+def test_legacy_api_client_status(legacy_client: LegacyApiClient) -> None:
+    status = legacy_client.status()
+    assert set(status) <= {
+        "critical",
+        "fatal",
+        "error",
+        "warning",
+        "warn",
+        "info",
+        "debug",
+        "notset",
+    }
+    assert all(
+        isinstance(value, list) and isinstance(string, str)
+        for value in status.values()
+        for string in value
+    )

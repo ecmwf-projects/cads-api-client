@@ -60,18 +60,9 @@ def test_api_client_submit_and_wait_on_results(api_anon_client: ApiClient) -> No
     assert isinstance(results, Results)
 
 
-def test_api_client_verify(
-    api_root_url: str,
-    api_anon_key: str,
-    tmp_path: pathlib.Path,
-) -> None:
-    insecure_client = ApiClient(
-        url=api_root_url, key=api_anon_key, verify=False, maximum_tries=0
-    )
+def test_api_client_verify(api_root_url: str, api_anon_key: str) -> None:
     with pytest.warns(InsecureRequestWarning):
-        insecure_client.retrieve(
-            "test-adaptor-dummy", target=str(tmp_path / "test.grib")
-        )
+        ApiClient(url=api_root_url, key=api_anon_key, verify=False, maximum_tries=0)
 
 
 def test_api_client_timeout(
@@ -79,6 +70,7 @@ def test_api_client_timeout(
     api_anon_key: str,
     tmp_path: pathlib.Path,
 ) -> None:
-    client = ApiClient(url=api_root_url, key=api_anon_key, timeout=0)
+    with pytest.warns(UserWarning, match="timeout"):
+        client = ApiClient(url=api_root_url, key=api_anon_key, timeout=0)
     with pytest.raises(ValueError, match="timeout"):
         client.retrieve("test-adaptor-dummy", target=str(tmp_path / "test.grib"))

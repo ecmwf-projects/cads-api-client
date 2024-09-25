@@ -141,3 +141,10 @@ class Catalogue:
             "get", url, params=params, **self._request_kwargs
         )
         return response.json
+
+    @property
+    def messages(self) -> ApiResponse:
+        url = f"{self.url}/messages"
+        return ApiResponse.from_request(
+            "get", url, log_messages=False, **self._request_kwargs
+        )

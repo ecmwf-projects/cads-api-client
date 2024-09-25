@@ -130,6 +130,7 @@ class ApiResponse:
         download_options: dict[str, Any],
         sleep_max: float,
         cleanup: bool,
+        log_messages: bool = True,
         **kwargs: Any,
     ) -> T_ApiResponse:
         if session is None:
@@ -155,7 +156,8 @@ class ApiResponse:
             sleep_max=sleep_max,
             cleanup=cleanup,
         )
-        self.log_messages()
+        if log_messages:
+            self.log_messages()
         return self
 
     @property
@@ -179,21 +181,22 @@ class ApiResponse:
         return dict(self.response.json())
 
     def log_messages(self) -> None:
-        if message := self.json.get("message"):
-            level, message = get_level_and_message(message)
-            logger.log(level, message)
+        if message_str := self.json.get("message"):
+            level, message_str = get_level_and_message(message_str)
+            self.log(level, message_str)
 
+        messages = self.json.get("messages", [])
         dataset_messages = (
             self.json.get("metadata", {}).get("datasetMetadata", {}).get("messages", [])
         )
-        for dataset_message in dataset_messages:
-            if not (content := dataset_message.get("content")):
+        for message_dict in messages + dataset_messages:
+            if not (content := message_dict.get("content")):
                 continue
-            if date := dataset_message.get("date"):
+            if date := message_dict.get("date"):
                 content = f"[{date}] {content}"
-            severity = dataset_message.get("severity", "notset").upper()
+            severity = message_dict.get("severity", "notset").upper()
             level = LEVEL_NAMES_MAPPING.get(severity, 20)
-            logger.log(level, content)
+            self.log(level, content)
 
     def _get_links(self, rel: str | None = None) -> list[dict[str, str]]:
         links = []
@@ -218,6 +221,21 @@ class ApiResponse:
         else:
             out = None
         return out
+
+    def log(self, *args: Any, **kwargs: Any) -> None:
+        logger.log(*args, **kwargs)
+
+    def info(self, *args: Any, **kwargs: Any) -> None:
+        self.log(logging.INFO, *args, **kwargs)
+
+    def warning(self, *args: Any, **kwargs: Any) -> None:
+        self.log(logging.WARNING, *args, **kwargs)
+
+    def error(self, *args: Any, **kwargs: Any) -> None:
+        self.log(logging.ERROR, *args, **kwargs)
+
+    def debug(self, *args: Any, **kwargs: Any) -> None:
+        self.log(logging.DEBUG, *args, **kwargs)
 
 
 @attrs.define
@@ -369,7 +387,7 @@ class Remote:
         logs = metadata.get("log", [])
         for self.log_start_time, message in sorted(logs):
             level, message = get_level_and_message(message)
-            logger.log(level, message)
+            self.log(level, message)
 
     def _get_api_response(self, method: str, **kwargs: Any) -> ApiResponse:
         return ApiResponse.from_request(
@@ -529,17 +547,20 @@ class Remote:
         reply.setdefault("request_id", self.request_uid)
         return reply
 
+    def log(self, *args: Any, **kwargs: Any) -> None:
+        logger.log(*args, **kwargs)
+
     def info(self, *args: Any, **kwargs: Any) -> None:
-        logger.info(*args, **kwargs)
+        self.log(logging.INFO, *args, **kwargs)
 
     def warning(self, *args: Any, **kwargs: Any) -> None:
-        logger.warning(*args, **kwargs)
+        self.log(logging.WARNING, *args, **kwargs)
 
     def error(self, *args: Any, **kwargs: Any) -> None:
-        logger.error(*args, **kwargs)
+        self.log(logging.ERROR, *args, **kwargs)
 
     def debug(self, *args: Any, **kwargs: Any) -> None:
-        logger.debug(*args, **kwargs)
+        self.log(logging.DEBUG, *args, **kwargs)
 
     def __del__(self) -> None:
         if self.cleanup:
@@ -640,18 +661,6 @@ class Results(ApiResponse):
     @property
     def content_type(self) -> str:
         return str(self.asset["type"])
-
-    def info(self, *args: Any, **kwargs: Any) -> None:
-        logger.info(*args, **kwargs)
-
-    def warning(self, *args: Any, **kwargs: Any) -> None:
-        logger.warning(*args, **kwargs)
-
-    def error(self, *args: Any, **kwargs: Any) -> None:
-        logger.error(*args, **kwargs)
-
-    def debug(self, *args: Any, **kwargs: Any) -> None:
-        logger.debug(*args, **kwargs)
 
 
 @attrs.define(slots=False)

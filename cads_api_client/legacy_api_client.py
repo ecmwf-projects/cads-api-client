@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import collections
 import functools
 import logging
 import typing
@@ -100,7 +101,7 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
                 UserWarning,
             )
 
-        self.client = api_client.ApiClient(
+        self.client = self.logging_decorator(api_client.ApiClient)(
             url=self.url,
             key=self.key,
             verify=self.verify,
@@ -169,36 +170,27 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
 
         # Decorate legacy methods
         submitted.download = self.logging_decorator(submitted.download)  # type: ignore[method-assign]
-        submitted.info = self.logging_decorator(submitted.info)  # type: ignore[method-assign]
-        submitted.warning = self.logging_decorator(submitted.warning)  # type: ignore[method-assign]
-        submitted.error = self.logging_decorator(submitted.error)  # type: ignore[method-assign]
-        submitted.debug = self.logging_decorator(submitted.debug)  # type: ignore[method-assign]
+        submitted.log = self.logging_decorator(submitted.log)  # type: ignore[method-assign]
 
         return submitted if target is None else submitted.download(target)
 
-    def info(self, *args: Any, **kwargs: Any) -> None:
+    def log(self, *args: Any, **kwargs: Any) -> None:
         with LoggingContext(
             logger=LOGGER, quiet=self.quiet, debug=self._debug
         ) as logger:
-            logger.info(*args, **kwargs)
+            logger.log(*args, **kwargs)
+
+    def info(self, *args: Any, **kwargs: Any) -> None:
+        self.log(logging.INFO, *args, **kwargs)
 
     def warning(self, *args: Any, **kwargs: Any) -> None:
-        with LoggingContext(
-            logger=LOGGER, quiet=self.quiet, debug=self._debug
-        ) as logger:
-            logger.warning(*args, **kwargs)
+        self.log(logging.WARNING, *args, **kwargs)
 
     def error(self, *args: Any, **kwargs: Any) -> None:
-        with LoggingContext(
-            logger=LOGGER, quiet=self.quiet, debug=self._debug
-        ) as logger:
-            logger.error(*args, **kwargs)
+        self.log(logging.ERROR, *args, **kwargs)
 
     def debug(self, *args: Any, **kwargs: Any) -> None:
-        with LoggingContext(
-            logger=LOGGER, quiet=self.quiet, debug=self._debug
-        ) as logger:
-            logger.debug(*args, **kwargs)
+        self.log(logging.DEBUG, *args, **kwargs)
 
     def service(self, name, *args, **kwargs):  # type: ignore
         self.raise_not_implemented_error()
@@ -206,8 +198,11 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
     def workflow(self, code, *args, **kwargs):  # type: ignore
         self.raise_not_implemented_error()
 
-    def status(self, context=None):  # type: ignore
-        self.raise_not_implemented_error()
+    def status(self, context: Any = None) -> dict[str, list[str]]:
+        status = collections.defaultdict(list)
+        for message in self.client._catalogue_api.messages.json.get("messages", []):
+            status[message["severity"]].append(message["content"])
+        return dict(status)
 
     @typing.no_type_check
     def _download(self, results, targets=None):
