@@ -174,23 +174,23 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
 
         return submitted if target is None else submitted.download(target)
 
-    def _log(self, *args: Any, **kwargs: Any) -> None:
+    def log(self, *args: Any, **kwargs: Any) -> None:
         with LoggingContext(
             logger=LOGGER, quiet=self.quiet, debug=self._debug
         ) as logger:
             logger.log(*args, **kwargs)
 
     def info(self, *args: Any, **kwargs: Any) -> None:
-        self._log(logging.INFO, *args, **kwargs)
+        self.log(logging.INFO, *args, **kwargs)
 
     def warning(self, *args: Any, **kwargs: Any) -> None:
-        self._log(logging.WARNING, *args, **kwargs)
+        self.log(logging.WARNING, *args, **kwargs)
 
     def error(self, *args: Any, **kwargs: Any) -> None:
-        self._log(logging.ERROR, *args, **kwargs)
+        self.log(logging.ERROR, *args, **kwargs)
 
     def debug(self, *args: Any, **kwargs: Any) -> None:
-        self._log(logging.DEBUG, *args, **kwargs)
+        self.log(logging.DEBUG, *args, **kwargs)
 
     def service(self, name, *args, **kwargs):  # type: ignore
         self.raise_not_implemented_error()
