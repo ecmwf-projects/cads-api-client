@@ -220,7 +220,24 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
             return [self._download(x, targets) for x in results]
 
         if isinstance(results, dict):
-            self.raise_not_implemented_error()
+            if "location" in results and "contentLength" in results:
+                reply = dict(
+                    location=results["location"],
+                    content_length=results["contentLength"],
+                    content_type=results.get("contentType"),
+                )
+
+                if targets:
+                    path = targets.pop(0)
+                else:
+                    path = None
+
+                return cdsapi.api.Result(self, reply).download(path)
+
+            r = {}
+            for v in results.values():
+                r[v] = self._download(v, targets)
+            return r
 
         return results
 
