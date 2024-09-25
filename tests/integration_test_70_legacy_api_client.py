@@ -18,7 +18,7 @@ does_not_raise = contextlib.nullcontext
 
 @pytest.fixture
 def legacy_client(api_root_url: str, api_anon_key: str) -> LegacyApiClient:
-    return LegacyApiClient(url=api_root_url, key=api_anon_key, retry_max=0)
+    return LegacyApiClient(url=api_root_url, key=api_anon_key, retry_max=1)
 
 
 def legacy_update(remote: processing.Remote) -> None:
@@ -218,9 +218,11 @@ def test_legacy_api_client_logging(
 
 def test_legacy_api_client_download(
     tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
     api_root_url: str,
     api_anon_key: str,
 ) -> None:
+    monkeypatch.chdir(tmp_path)
     client = LegacyApiClient(
         url=api_root_url,
         key=api_anon_key,
@@ -229,10 +231,12 @@ def test_legacy_api_client_download(
     )
     remote = client.retrieve("test-adaptor-dummy", {"size": 1})
     assert isinstance(remote, processing.Remote)
+    target = client.download(remote)
+    assert os.path.getsize(target) == 1
 
     results = (remote, remote.make_results())
-    target1 = str(tmp_path / "remote.grib")
-    target2 = str(tmp_path / "results.grib")
+    target1 = "remote.grib"
+    target2 = "results.grib"
     assert client.download(results, [target1, target2]) == [target1, target2]
     assert os.path.getsize(target1) == os.path.getsize(target2) == 1
 
@@ -254,3 +258,14 @@ def test_legacy_api_client_status(legacy_client: LegacyApiClient) -> None:
         for value in status.values()
         for string in value
     )
+
+
+def test_legacy_api_client_remote(
+    legacy_client: LegacyApiClient, tmp_path: pathlib.Path
+) -> None:
+    results = legacy_client.retrieve("test-adaptor-dummy", {"size": 1})
+    remote = legacy_client.remote(results.location)
+    target = str(tmp_path / "dummy.grib")
+    actual_target = remote.download(target)
+    assert target == actual_target
+    assert os.path.getsize(target) == 1

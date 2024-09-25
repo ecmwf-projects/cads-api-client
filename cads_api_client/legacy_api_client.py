@@ -9,10 +9,13 @@ from types import TracebackType
 from typing import Any, Callable, TypeVar, cast, overload
 
 import cdsapi.api
+import multiurl
 import requests
 
 from . import __version__ as cads_api_client_version
-from . import api_client, processing
+from . import processing
+from .api_client import ApiClient
+from .processing import Remote, Results
 
 LEGACY_KWARGS = [
     "full_stack",
@@ -101,7 +104,7 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
                 UserWarning,
             )
 
-        self.client = self.logging_decorator(api_client.ApiClient)(
+        self.client = self.logging_decorator(ApiClient)(
             url=self.url,
             key=self.key,
             verify=self.verify,
@@ -139,7 +142,7 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             with LoggingContext(
-                logger=processing.logger, quiet=self.quiet, debug=self._debug
+                logger=processing.LOGGER, quiet=self.quiet, debug=self._debug
             ):
                 return func(*args, **kwargs)
 
@@ -151,12 +154,12 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
     @overload
     def retrieve(
         self, name: str, request: dict[str, Any], target: None = ...
-    ) -> processing.Results: ...
+    ) -> Results: ...
 
     def retrieve(
         self, name: str, request: dict[str, Any], target: str | None = None
-    ) -> str | processing.Remote | processing.Results:
-        submitted: processing.Remote | processing.Results
+    ) -> str | Remote | Results:
+        submitted: Remote | Results
         if self.wait_until_complete:
             submitted = self.logging_decorator(self.client.submit_and_wait_on_results)(
                 collection_id=name,
@@ -206,7 +209,7 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
 
     @typing.no_type_check
     def _download(self, results, targets=None):
-        if isinstance(results, (processing.Results, processing.Remote)):
+        if hasattr(results, "download"):
             if targets:
                 path = targets.pop(0)
             else:
@@ -221,8 +224,22 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
 
         return results
 
-    def remote(self, url):  # type: ignore
-        self.raise_not_implemented_error()
+    @typing.no_type_check
+    def download(self, results, targets=None):
+        if targets:
+            # Make a copy
+            targets = [t for t in targets]
+        return self._download(results, targets)
 
-    def robust(self, call):  # type: ignore
-        self.raise_not_implemented_error()
+    def remote(self, url: str) -> cdsapi.api.Result:
+        r = requests.head(url)
+        reply = dict(
+            location=url,
+            content_length=r.headers["Content-Length"],
+            content_type=r.headers["Content-Type"],
+        )
+        return cdsapi.api.Result(self, reply)
+
+    def robust(self, call: F) -> F:
+        robust: F = multiurl.robust(call, **self.client._retry_options)
+        return robust
