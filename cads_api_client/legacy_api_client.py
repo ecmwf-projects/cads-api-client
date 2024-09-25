@@ -209,7 +209,7 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
 
     @typing.no_type_check
     def _download(self, results, targets=None):
-        if hasattr(results, "download"):
+        if isinstance(results, (cdsapi.api.Result, Remote, Results)):
             if targets:
                 path = targets.pop(0)
             else:
