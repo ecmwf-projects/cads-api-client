@@ -14,7 +14,8 @@ Draft Python API:
 
 >>> import cads_api_client
 >>> client = cads_api_client.ApiClient()
->>> assert client.check_authentication()
+>>> client.check_authentication()
+{...}
 
 >>> collection_id = "reanalysis-era5-pressure-levels"
 >>> collection = client.get_collection(collection_id)
