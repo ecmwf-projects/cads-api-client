@@ -648,18 +648,35 @@ class Results(ApiResponse):
         self._check_size(target)
         return target
 
-    # cdsapi backward compatibility methods
     @property
     def location(self) -> str:
+        """File location.
+
+        Returns
+        -------
+        str
+        """
         result_href = self.asset["href"]
         return urllib.parse.urljoin(self.response.url, result_href)
 
     @property
     def content_length(self) -> int:
+        """File size in Bytes.
+
+        Returns
+        -------
+        int
+        """
         return int(self.asset["file:size"])
 
     @property
     def content_type(self) -> str:
+        """File MIME type.
+
+        Returns
+        -------
+        int
+        """
         return str(self.asset["type"])
 
 
