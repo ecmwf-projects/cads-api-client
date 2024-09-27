@@ -29,12 +29,36 @@ cads_api_client.Results
       :rtype: :class:`dict[str,Any]`
 
 
+   .. py:property:: content_length
+      :type: int
+
+      File size in Bytes.
+
+      :rtype: :class:`int`
+
+
+   .. py:property:: content_type
+      :type: str
+
+      File MIME type.
+
+      :rtype: :class:`int`
+
+
    .. py:property:: json
       :type: dict[str, Any]
 
       Content of the response.
 
       :rtype: :class:`dict[str,Any]`
+
+
+   .. py:property:: location
+      :type: str
+
+      File location.
+
+      :rtype: :class:`str`
 
 
    .. py:property:: url

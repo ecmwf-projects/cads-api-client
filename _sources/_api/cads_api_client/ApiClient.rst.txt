@@ -96,7 +96,7 @@ cads_api_client.ApiClient
 
    .. py:method:: get_accepted_licences(scope = None)
 
-      Retrieve acccepted licences.
+      Retrieve accepted licences.
 
       :param scope: Licence scope.
       :type scope: ``{None, 'all', 'dataset', 'portal'}``

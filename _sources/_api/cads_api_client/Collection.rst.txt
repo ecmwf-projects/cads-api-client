@@ -20,6 +20,14 @@ cads_api_client.Collection
 
 
 
+   .. py:property:: bbox
+      :type: tuple[float, float, float, float]
+
+      Bounding box of the collection (W, S, E, N).
+
+      :rtype: :class:`tuple[float,float,float,float]`
+
+
    .. py:property:: begin_datetime
       :type: datetime.datetime
 
