@@ -2,7 +2,14 @@
 
 CADS API Python client
 
+Documentation: https://ecmwf-projects.github.io/cads-api-client/
+
 The `ApiClient` requires the `url` to the API root and a valid API `key`. You can also set the `CADS_API_URL` and `CADS_API_KEY` environment variables, or use a configuration file. The configuration file must be located at `~/.cads-api-client.json`, or at the path specified by the `CADS_API_RC` environment variable.
+
+```
+$ cat $HOME/.cads-api-client.json
+{"url": "https://cds.climate.copernicus.eu/api", "key": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"}
+```
 
 It is possible (though not recommended) to use the API key of one of the test users, `00112233-4455-6677-c899-aabbccddeeff`. This key is used for anonymous tests and is designed to be the least performant option for accessing the system.
 
