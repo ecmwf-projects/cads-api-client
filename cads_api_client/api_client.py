@@ -214,7 +214,7 @@ class ApiClient:
         self,
         scope: Literal[None, "all", "dataset", "portal"] = None,
     ) -> list[dict[str, Any]]:
-        """Retrieve acccepted licences.
+        """Retrieve accepted licences.
 
         Parameters
         ----------
