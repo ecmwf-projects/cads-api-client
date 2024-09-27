@@ -56,6 +56,10 @@ def test_catalogue_collection_end_datetime(collection: Collection) -> None:
     assert collection.end_datetime.isoformat() == "2023-05-09T00:00:00+00:00"
 
 
+def test_catalogue_collection_bbox(collection: Collection) -> None:
+    assert collection.bbox == (0, -89, 360, 89)
+
+
 def test_catalogue_collection_id(collection: Collection) -> None:
     assert collection.id == "test-adaptor-mars"
 

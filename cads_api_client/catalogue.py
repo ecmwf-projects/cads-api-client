@@ -61,6 +61,16 @@ class Collection(ApiResponse):
         )
 
     @property
+    def bbox(self) -> tuple[float, float, float, float]:
+        """Bounding box of the collection (W, S, E, N).
+
+        Returns
+        -------
+        tuple[float,float,float,float]
+        """
+        return tuple(self.json["extent"]["spatial"]["bbox"][0])
+
+    @property
     def id(self) -> str:
         """Collection ID.
 
