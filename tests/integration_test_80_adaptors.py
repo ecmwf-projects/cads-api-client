@@ -4,6 +4,9 @@ import os
 import pathlib
 import zipfile
 
+import pytest
+from requests import HTTPError
+
 from cads_api_client import ApiClient
 
 
@@ -68,6 +71,13 @@ def test_adaptors_url(api_anon_client: ApiClient, tmp_path: pathlib.Path) -> Non
     remote = api_anon_client.submit(collection_id, **request)
     assert remote.download(target2) == target2
     assert filecmp.cmp(target1, target2)
+
+
+def test_adaptors_url_constraints(
+    api_anon_client: ApiClient, tmp_path: pathlib.Path
+) -> None:
+    with pytest.raises(HTTPError, match="400 Client Error: Bad Request"):
+        api_anon_client.submit("test-adaptor-url", foo="bar")
 
 
 def test_adaptors_direct_mars(

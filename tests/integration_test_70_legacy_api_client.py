@@ -173,7 +173,7 @@ def test_legacy_api_client_update(
         legacy_update(remote)
 
 
-@pytest.mark.filterwarnings("ignore:InsecureRequestWarning")
+@pytest.mark.filterwarnings("ignore:Unverified HTTPS")
 def test_legacy_api_client_kwargs(api_root_url: str, api_anon_key: str) -> None:
     session = requests.Session()
     client = LegacyApiClient(
