@@ -61,6 +61,8 @@ def test_api_client_submit_and_wait_on_results(api_anon_client: ApiClient) -> No
 
 
 def test_api_client_verify(api_root_url: str, api_anon_key: str) -> None:
+    if not api_root_url.startswith("https"):
+        pytest.skip(f"{api_root_url=} does not use https protocol")
     with pytest.warns(InsecureRequestWarning):
         ApiClient(url=api_root_url, key=api_anon_key, verify=False, maximum_tries=0)
 

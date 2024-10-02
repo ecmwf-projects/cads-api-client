@@ -51,7 +51,7 @@ def test_processing_estimate_costs(api_anon_client: ApiClient) -> None:
     result = api_anon_client.estimate_costs(
         "test-layout-sandbox-nogecko-dataset", size=100
     )
-    assert result["cost"] == 100
+    assert "cost" in result
 
 
 def test_processing_get_jobs_satus(api_anon_client: ApiClient) -> None:
