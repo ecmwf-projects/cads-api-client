@@ -54,10 +54,10 @@ def test_processing_estimate_costs(api_anon_client: ApiClient) -> None:
     assert "cost" in result
 
 
-def test_processing_get_jobs_satus(api_anon_client: ApiClient) -> None:
-    remote = api_anon_client.submit("test-adaptor-url", foo="bar")
+def test_processing_get_jobs_status(api_anon_client: ApiClient) -> None:
+    remote = api_anon_client.submit("test-adaptor-dummy", format="foo")
     request_uid = remote.request_uid
-    with pytest.raises(HTTPError):
+    with pytest.raises(HTTPError, match="400 Client Error: Bad Request"):
         remote.make_results()
     assert request_uid in api_anon_client.get_jobs(status="failed").job_ids
     assert request_uid not in api_anon_client.get_jobs(status="successful").job_ids

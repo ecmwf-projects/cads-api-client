@@ -42,10 +42,10 @@ def test_catalogue_collections_keywords(api_anon_client: ApiClient) -> None:
 
 
 def test_catalogue_collection_submit(collection: Collection) -> None:
-    remote = collection.submit()
+    remote = collection.submit(date="1990-01-01")
     assert isinstance(remote, Remote)
     assert remote.collection_id == "test-adaptor-mars"
-    assert remote.request == {}
+    assert remote.request == {"date": "1990-01-01"}
 
 
 def test_catalogue_collection_begin_datetime(collection: Collection) -> None:

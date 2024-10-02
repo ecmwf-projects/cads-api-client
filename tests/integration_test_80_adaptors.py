@@ -2,6 +2,7 @@ import datetime
 import filecmp
 import os
 import pathlib
+import zipfile
 
 from cads_api_client import ApiClient
 
@@ -15,6 +16,38 @@ def test_adaptors_dummy(api_anon_client: ApiClient, tmp_path: pathlib.Path) -> N
     )
     assert remote.download(target) == target
     assert os.path.exists(target)
+
+
+def test_adaptors_dummy_cached(
+    api_anon_client: ApiClient, tmp_path: pathlib.Path
+) -> None:
+    collection_id = "test-adaptor-dummy"
+    target_grib = str(tmp_path / "dummy.grib")
+    request = {"size": 1, "_timestamp": datetime.datetime.now().isoformat()}
+    results = api_anon_client.submit_and_wait_on_results(collection_id, **request)
+    assert results.content_type == "application/x-grib"
+    assert results.download(target_grib) == target_grib
+    assert os.path.getsize(target_grib) == 1
+    expected_bytes = open(target_grib, "rb").read()
+
+    target_netcdf = str(tmp_path / "dummy.nc")
+    results = api_anon_client.submit_and_wait_on_results(
+        collection_id, format="netcdf", **request
+    )
+    assert results.content_type == "application/netcdf"
+    assert results.download(target_netcdf) == target_netcdf
+    assert os.path.getsize(target_netcdf) == 1
+    assert expected_bytes == open(target_netcdf, "rb").read()
+
+    target_zip = str(tmp_path / "dummy.zip")
+    results = api_anon_client.submit_and_wait_on_results(
+        collection_id, format="zip", **request
+    )
+    assert results.content_type == "application/zip"
+    assert results.download(target_zip) == target_zip
+    with zipfile.ZipFile(target_zip, "r") as zip_fp:
+        with zip_fp.open("dummy_0.grib", "r") as zip_grib_fs:
+            assert expected_bytes == zip_grib_fs.read()
 
 
 def test_adaptors_url(api_anon_client: ApiClient, tmp_path: pathlib.Path) -> None:
