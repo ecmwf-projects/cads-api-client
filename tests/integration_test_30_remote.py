@@ -41,7 +41,11 @@ def test_remote_json(remote: Remote) -> None:
 
 
 def test_remote_request(remote: Remote) -> None:
-    assert remote.request == {"size": 1}
+    assert remote.request == {
+        "elapsed": 0.0,
+        "format": "grib",
+        "size": 1,
+    }
 
 
 def test_remote_request_uid(remote: Remote) -> None:
@@ -53,7 +57,7 @@ def test_remote_status(remote: Remote) -> None:
 
 
 def test_remote_failed(api_anon_client: ApiClient) -> None:
-    remote = api_anon_client.submit("test-adaptor-url", foo="bar")
+    remote = api_anon_client.submit("test-adaptor-dummy", format="foo")
     with pytest.raises(HTTPError, match="400 Client Error: Bad Request"):
         remote.download()
     assert remote.status == "failed"

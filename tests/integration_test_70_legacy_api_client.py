@@ -8,7 +8,6 @@ from typing import Any
 
 import pytest
 import requests
-from urllib3.exceptions import InsecureRequestWarning
 
 from cads_api_client import processing
 from cads_api_client.legacy_api_client import LegacyApiClient
@@ -148,42 +147,47 @@ def test_legacy_api_client_wait_until_complete(
 
 
 @pytest.mark.parametrize(
-    "collection_id,raises",
+    "collection_id,format,raises",
     [
-        ("test-adaptor-dummy", does_not_raise()),
-        ("test-adaptor-mars", pytest.raises(Exception, match="400 Client Error")),
+        ("test-adaptor-dummy", "grib", does_not_raise()),
+        (
+            "test-adaptor-dummy",
+            "foo",
+            pytest.raises(Exception, match="400 Client Error"),
+        ),
     ],
 )
 def test_legacy_api_client_update(
     api_root_url: str,
     api_anon_key: str,
     collection_id: str,
+    format: str,
     raises: contextlib.nullcontext[Any],
 ) -> None:
     client = LegacyApiClient(
         url=api_root_url, key=api_anon_key, wait_until_complete=False, retry_max=0
     )
-    remote = client.retrieve(collection_id, {})
+    remote = client.retrieve(collection_id, {"format": format})
     assert isinstance(remote, processing.Remote)
     with raises:
         legacy_update(remote)
 
 
+@pytest.mark.filterwarnings("ignore:Unverified HTTPS")
 def test_legacy_api_client_kwargs(api_root_url: str, api_anon_key: str) -> None:
     session = requests.Session()
-    with pytest.warns(InsecureRequestWarning):
-        client = LegacyApiClient(
-            url=api_root_url,
-            key=api_anon_key,
-            verify=0,
-            timeout=1,
-            progress=False,
-            delete=True,
-            retry_max=2,
-            sleep_max=3,
-            wait_until_complete=False,
-            session=session,
-        )
+    client = LegacyApiClient(
+        url=api_root_url,
+        key=api_anon_key,
+        verify=0,
+        timeout=1,
+        progress=False,
+        delete=True,
+        retry_max=2,
+        sleep_max=3,
+        wait_until_complete=False,
+        session=session,
+    )
     assert client.client.url == api_root_url
     assert client.client.key == api_anon_key
     assert client.client.verify is False
