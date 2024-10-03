@@ -48,10 +48,13 @@ def test_processing_apply_constraints(api_anon_client: ApiClient) -> None:
 
 
 def test_processing_estimate_costs(api_anon_client: ApiClient) -> None:
-    result = api_anon_client.estimate_costs(
-        "test-layout-sandbox-nogecko-dataset", size=100
-    )
-    assert "cost" in result
+    result = api_anon_client.estimate_costs("test-adaptor-url", variable=["foo", "bar"])
+    assert result == {
+        "id": "size",
+        "cost": 2.0,
+        "limit": 1000.0,
+        "cost_bar_steps": None,
+    }
 
 
 def test_processing_get_jobs_status(api_anon_client: ApiClient) -> None:
