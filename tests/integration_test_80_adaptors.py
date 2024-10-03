@@ -58,7 +58,7 @@ def test_adaptors_url(api_anon_client: ApiClient, tmp_path: pathlib.Path) -> Non
     request = {
         "variable": "grid_point_altitude",
         "reference_dataset": "cru",
-        "version": "2.1",
+        "version": "2_1",
         "format": "zip",
         "_timestamp": datetime.datetime.now().isoformat(),
     }

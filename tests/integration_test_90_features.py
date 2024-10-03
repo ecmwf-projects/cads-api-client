@@ -15,7 +15,7 @@ def test_features_url_cds_adaptor_area_selection(
     request: dict[str, Any] = {
         "variable": "grid_point_altitude",
         "reference_dataset": "cru",
-        "version": "2.1",
+        "version": "2_1",
     }
 
     result_bigger = api_anon_client.retrieve(
