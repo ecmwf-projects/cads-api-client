@@ -17,10 +17,11 @@ Draft Python API:
 
 ```python
 >>> import logging
->>> logging.basicConfig(level="INFO")
+>>> import os
 
->>> import cads_api_client
->>> client = cads_api_client.ApiClient()
+>>> from cads_api_client import ApiClient
+>>> logging.basicConfig(level="INFO")
+>>> client = ApiClient(url=os.getenv("CADS_API_URL"), key=os.getenv("CADS_API_KEY"))
 >>> client.check_authentication()
 {...}
 
