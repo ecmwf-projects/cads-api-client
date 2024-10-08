@@ -17,21 +17,6 @@ from . import processing
 from .api_client import ApiClient
 from .processing import Remote, Results
 
-LEGACY_KWARGS = [
-    "full_stack",
-    "delete",
-    "retry_max",
-    "sleep_max",
-    "wait_until_complete",
-    "info_callback",
-    "warning_callback",
-    "error_callback",
-    "debug_callback",
-    "metadata",
-    "forget",
-    "session",
-]
-
 LOGGER = logging.getLogger(__name__)
 F = TypeVar("F", bound=Callable[..., Any])
 
@@ -68,6 +53,15 @@ class LoggingContext:
             self.logger.removeHandler(handler)
 
 
+def _deprecated_warning(**kwargs: Any) -> None:
+    if kwargs := {k: v for k, v in kwargs.items() if v is not None}:
+        warnings.warn(
+            f"The following parameters are deprecated: {kwargs}."
+            " Set them to None to silence this warning.",
+            UserWarning,
+        )
+
+
 class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
     def __init__(
         self,
@@ -78,12 +72,20 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
         verify: bool | int | None = None,
         timeout: int = 60,
         progress: bool = True,
-        *args: Any,
-        **kwargs: Any,
+        full_stack: None = None,
+        delete: bool = False,
+        retry_max: int = 500,
+        sleep_max: float = 120,
+        wait_until_complete: bool = True,
+        info_callback: Callable[..., None] | None = None,
+        warning_callback: Callable[..., None] | None = None,
+        error_callback: Callable[..., None] | None = None,
+        debug_callback: Callable[..., None] | None = None,
+        metadata: None = None,
+        forget: None = None,
+        session: requests.Session | None = None,
     ) -> None:
-        kwargs.update(zip(LEGACY_KWARGS, args))
-        if wrong_kwargs := set(kwargs) - set(LEGACY_KWARGS):
-            raise ValueError(f"Wrong parameters: {wrong_kwargs}.")
+        _deprecated_warning(full_stack=full_stack, metadata=metadata, forget=forget)
 
         self.url, self.key, verify = cdsapi.api.get_url_key_verify(url, key, verify)
         self.verify = bool(verify)
@@ -91,18 +93,15 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
         self._debug = debug
         self.timeout = timeout
         self.progress = progress
-
-        self.sleep_max = kwargs.pop("sleep_max", 120)
-        self.wait_until_complete = kwargs.pop("wait_until_complete", True)
-        self.delete = kwargs.pop("delete", False)
-        self.retry_max = kwargs.pop("retry_max", 500)
-        self.session = kwargs.pop("session", requests.Session())
-        if kwargs:
-            warnings.warn(
-                "This is a beta version."
-                f" The following parameters have not been implemented yet: {kwargs}.",
-                UserWarning,
-            )
+        self.delete = delete
+        self.retry_max = retry_max
+        self.sleep_max = sleep_max
+        self.wait_until_complete = wait_until_complete
+        self.info_callback = info_callback
+        self.warning_callback = warning_callback
+        self.error_callback = error_callback
+        self.debug_callback = debug_callback
+        self.session = requests.Session() if session is None else session
 
         self.client = self.logging_decorator(ApiClient)(
             url=self.url,
@@ -173,15 +172,24 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
 
         # Decorate legacy methods
         submitted.download = self.logging_decorator(submitted.download)  # type: ignore[method-assign]
-        submitted.log = self.logging_decorator(submitted.log)  # type: ignore[method-assign]
+        submitted.log = self.log  # type: ignore[method-assign]
 
         return submitted if target is None else submitted.download(target)
 
-    def log(self, *args: Any, **kwargs: Any) -> None:
+    def log(self, level: int, *args: Any, **kwargs: Any) -> None:
         with LoggingContext(
             logger=LOGGER, quiet=self.quiet, debug=self._debug
         ) as logger:
-            logger.log(*args, **kwargs)
+            if level == logging.INFO and self.info_callback is not None:
+                self.info_callback(*args, **kwargs)
+            elif level == logging.WARNING and self.warning_callback is not None:
+                self.warning_callback(*args, **kwargs)
+            elif level == logging.ERROR and self.error_callback is not None:
+                self.error_callback(*args, **kwargs)
+            elif level == logging.DEBUG and self.debug_callback is not None:
+                self.debug_callback(*args, **kwargs)
+            else:
+                logger.log(level, *args, **kwargs)
 
     def info(self, *args: Any, **kwargs: Any) -> None:
         self.log(logging.INFO, *args, **kwargs)
