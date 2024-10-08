@@ -105,13 +105,13 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
             url=self.url,
             key=self.key,
             verify=self.verify,
-            sleep_max=self.sleep_max,
-            session=self.session,
-            cleanup=self.delete,
-            maximum_tries=self.retry_max,
-            retry_after=self.sleep_max,
             timeout=self.timeout,
             progress=self.progress,
+            cleanup=self.delete,
+            sleep_max=self.sleep_max,
+            retry_after=self.sleep_max,
+            maximum_tries=self.retry_max,
+            session=self.session,
             log_callback=self.log,
         )
         self.debug(
