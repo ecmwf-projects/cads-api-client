@@ -35,6 +35,22 @@ cads_api_client.Remote
       :rtype: :class:`str`
 
 
+   .. py:property:: creation_datetime
+      :type: datetime.datetime
+
+      Creation datetime of the job.
+
+      :rtype: :class:`datetime.datetime`
+
+
+   .. py:property:: end_datetime
+      :type: datetime.datetime | None
+
+      End datetime of the job. If None, job has not finished.
+
+      :rtype: :class:`datetime.datetime` or :obj:`None`
+
+
    .. py:property:: json
       :type: dict[str, Any]
 
@@ -57,6 +73,14 @@ cads_api_client.Remote
       Request UID.
 
       :rtype: :class:`str`
+
+
+   .. py:property:: start_datetime
+      :type: datetime.datetime | None
+
+      Start datetime of the job. If None, job has not started.
+
+      :rtype: :class:`datetime.datetime` or :obj:`None`
 
 
    .. py:property:: status

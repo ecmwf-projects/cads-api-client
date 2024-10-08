@@ -29,19 +29,19 @@ cads_api_client.Collection
 
 
    .. py:property:: begin_datetime
-      :type: datetime.datetime
+      :type: datetime.datetime | None
 
       Begin datetime of the collection.
 
-      :rtype: :class:`datetime.datetime`
+      :rtype: :class:`datetime.datetime` or :obj:`None`
 
 
    .. py:property:: end_datetime
-      :type: datetime.datetime
+      :type: datetime.datetime | None
 
       End datetime of the collection.
 
-      :rtype: :class:`datetime.datetime`
+      :rtype: :class:`datetime.datetime` or :obj:`None`
 
 
    .. py:property:: id

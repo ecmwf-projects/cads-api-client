@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>cads_api_client.Remote &#8212; cads_api_client 1.4.4 documentation</title>
+    <title>cads_api_client.Remote &#8212; cads_api_client 1.4.5 documentation</title>
   
   
   
@@ -36,7 +36,7 @@
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../../_static/documentation_options.js?v=6d0302ba"></script>
+    <script src="../../_static/documentation_options.js?v=c97b86a3"></script>
     <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_api/cads_api_client/Remote';</script>
@@ -119,7 +119,7 @@
   
   
   
-    <p class="title logo__title">cads_api_client 1.4.4 documentation</p>
+    <p class="title logo__title">cads_api_client 1.4.5 documentation</p>
   
 </a></div>
     
@@ -375,6 +375,28 @@ document.write(`
 </dd></dl>
 
 <dl class="py property">
+<dt class="sig sig-object py" id="cads_api_client.Remote.creation_datetime">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">creation_datetime</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">datetime.datetime</span></em><a class="headerlink" href="#cads_api_client.Remote.creation_datetime" title="Link to this definition">#</a></dt>
+<dd><p>Creation datetime of the job.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime.datetime</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="cads_api_client.Remote.end_datetime">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">end_datetime</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">datetime.datetime</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#cads_api_client.Remote.end_datetime" title="Link to this definition">#</a></dt>
+<dd><p>End datetime of the job. If None, job has not finished.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime.datetime</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
 <dt class="sig sig-object py" id="cads_api_client.Remote.json">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">json</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#cads_api_client.Remote.json" title="Link to this definition">#</a></dt>
 <dd><p>Content of the response.</p>
@@ -403,6 +425,17 @@ document.write(`
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="cads_api_client.Remote.start_datetime">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">start_datetime</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">datetime.datetime</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#cads_api_client.Remote.start_datetime" title="Link to this definition">#</a></dt>
+<dd><p>Start datetime of the job. If None, job has not started.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime.datetime</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
 </dd>
 </dl>
 </dd></dl>
@@ -472,9 +505,12 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.Remote.delete"><code class="docutils literal notranslate"><span class="pre">cads_api_client.Remote.delete()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.Remote.download"><code class="docutils literal notranslate"><span class="pre">cads_api_client.Remote.download()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.Remote.collection_id"><code class="docutils literal notranslate"><span class="pre">cads_api_client.Remote.collection_id</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.Remote.creation_datetime"><code class="docutils literal notranslate"><span class="pre">cads_api_client.Remote.creation_datetime</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.Remote.end_datetime"><code class="docutils literal notranslate"><span class="pre">cads_api_client.Remote.end_datetime</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.Remote.json"><code class="docutils literal notranslate"><span class="pre">cads_api_client.Remote.json</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.Remote.request"><code class="docutils literal notranslate"><span class="pre">cads_api_client.Remote.request</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.Remote.request_uid"><code class="docutils literal notranslate"><span class="pre">cads_api_client.Remote.request_uid</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.Remote.start_datetime"><code class="docutils literal notranslate"><span class="pre">cads_api_client.Remote.start_datetime</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.Remote.status"><code class="docutils literal notranslate"><span class="pre">cads_api_client.Remote.status</span></code></a></li>
 </ul>
 </li>
