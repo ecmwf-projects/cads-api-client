@@ -461,23 +461,23 @@ class Remote:
         return datetime.datetime.fromisoformat(self.json["created"])
 
     @property
-    def begin_datetime(self) -> datetime.datetime | None:
-        """Begin datetime of the job.
+    def start_datetime(self) -> datetime.datetime | None:
+        """Start datetime of the job. If None, job has not started.
 
         Returns
         -------
-        datetime.datetime
+        datetime.datetime or None
         """
         value = self.json.get("started")
         return value if value is None else datetime.datetime.fromisoformat(value)
 
     @property
     def end_datetime(self) -> datetime.datetime | None:
-        """End datetime of the job.
+        """End datetime of the job. If None, job has not finished.
 
         Returns
         -------
-        datetime.datetime
+        datetime.datetime or None
         """
         value = self.json.get("finished")
         return value if value is None else datetime.datetime.fromisoformat(value)

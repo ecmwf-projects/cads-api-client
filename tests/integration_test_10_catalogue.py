@@ -49,10 +49,12 @@ def test_catalogue_collection_submit(collection: Collection) -> None:
 
 
 def test_catalogue_collection_begin_datetime(collection: Collection) -> None:
+    assert collection.begin_datetime is not None
     assert collection.begin_datetime.isoformat() == "1959-01-01T00:00:00+00:00"
 
 
 def test_catalogue_collection_end_datetime(collection: Collection) -> None:
+    assert collection.end_datetime is not None
     assert collection.end_datetime.isoformat() == "2023-05-09T00:00:00+00:00"
 
 

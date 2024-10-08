@@ -380,8 +380,8 @@ def test_submit(cat: catalogue.Catalogue) -> None:
     assert remote.status == "successful"
 
     assert remote.creation_datetime.isoformat() == "2022-09-02T17:30:48.201213"
-    assert remote.begin_datetime is not None
-    assert remote.begin_datetime.isoformat() == "2022-09-02T17:32:43.890617"
+    assert remote.start_datetime is not None
+    assert remote.start_datetime.isoformat() == "2022-09-02T17:32:43.890617"
     assert remote.end_datetime is not None
     assert remote.end_datetime.isoformat() == "2022-09-02T17:32:54.308120"
 
@@ -408,8 +408,8 @@ def test_wait_on_result_failed(cat: catalogue.Catalogue) -> None:
         remote._wait_on_results()
 
     assert remote.creation_datetime.isoformat() == "2022-09-02T17:30:48.201213"
-    assert remote.begin_datetime is not None
-    assert remote.begin_datetime.isoformat() == "2022-09-02T17:32:43.890617"
+    assert remote.start_datetime is not None
+    assert remote.start_datetime.isoformat() == "2022-09-02T17:32:43.890617"
     assert remote.end_datetime is not None
     assert remote.end_datetime.isoformat() == "2022-09-02T17:32:54.308120"
 
