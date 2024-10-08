@@ -9,7 +9,6 @@ from responses.matchers import json_params_matcher
 from cads_api_client import catalogue, processing
 
 COLLECTION_ID = "reanalysis-era5-pressure-levels"
-JOB_RUNNING_ID = "9bfc1362-2832-48e1-a235-359267420bb1"
 JOB_SUCCESSFUL_ID = "9bfc1362-2832-48e1-a235-359267420bb2"
 JOB_FAILED_ID = "9bfc1362-2832-48e1-a235-359267420bb3"
 
@@ -21,13 +20,9 @@ COLLECTION_URL = (
 PROCESS_URL = f"http://localhost:8080/api/retrieve/v1/processes/{COLLECTION_ID}"
 EXECUTE_URL = f"{PROCESS_URL}/execution"
 
-JOB_RUNNING_URL = f"http://localhost:8080/api/retrieve/v1/jobs/{JOB_RUNNING_ID}"
 JOB_SUCCESSFUL_URL = f"http://localhost:8080/api/retrieve/v1/jobs/{JOB_SUCCESSFUL_ID}"
 JOB_FAILED_URL = f"http://localhost:8080/api/retrieve/v1/jobs/{JOB_FAILED_ID}"
 
-RESULT_RUNNING_URL = (
-    f"http://localhost:8080/api/retrieve/v1/jobs/{JOB_RUNNING_ID}/results"
-)
 RESULT_SUCCESSFUL_URL = (
     f"http://localhost:8080/api/retrieve/v1/jobs/{JOB_SUCCESSFUL_ID}/results"
 )
@@ -178,28 +173,6 @@ PROCESS_JSON = {
     },
 }
 
-JOB_RUNNING_JSON = {
-    "processID": f"{COLLECTION_ID}",
-    "type": "process",
-    "jobID": f"{JOB_RUNNING_ID}",
-    "status": "running",
-    "created": "2022-09-02T17:30:48.201213",
-    "updated": "2022-09-02T17:30:48.201217",
-    "links": [
-        {
-            "href": f"{COLLECTION_URL}/execution",
-            "rel": "self",
-            "type": "application/json",
-        },
-        {
-            "href": f"{JOB_RUNNING_URL}",
-            "rel": "monitor",
-            "type": "application/json",
-            "title": "job status info",
-        },
-    ],
-}
-
 
 JOB_SUCCESSFUL_JSON = {
     "processID": f"{COLLECTION_ID}",
@@ -278,13 +251,6 @@ RESULT_SUCCESSFUL_JSON = {
     }
 }
 
-
-RESULT_RUNNING_JSON = {
-    "type": "http://www.opengis.net/def/exceptions/ogcapi-processes-1/1.0/result-not-ready",
-    "title": "job results not ready",
-    "detail": "job 8b7a1f3d-04b1-425d-96f1-f0634d02ee7f results are not yet ready",
-    "instance": "http://127.0.0.1:8080/api/retrieve/v1/jobs/8b7a1f3d-04b1-425d-96f1-f0634d02ee7f/results",
-}
 
 RESULT_FAILED_JSON = {
     "type": "job results failed",
@@ -413,6 +379,12 @@ def test_submit(cat: catalogue.Catalogue) -> None:
     assert remote.url == JOB_SUCCESSFUL_URL
     assert remote.status == "successful"
 
+    assert remote.creation_datetime.isoformat() == "2022-09-02T17:30:48.201213"
+    assert remote.start_datetime is not None
+    assert remote.start_datetime.isoformat() == "2022-09-02T17:32:43.890617"
+    assert remote.end_datetime is not None
+    assert remote.end_datetime.isoformat() == "2022-09-02T17:32:54.308120"
+
 
 @responses.activate
 def test_wait_on_result(cat: catalogue.Catalogue) -> None:
@@ -434,6 +406,12 @@ def test_wait_on_result_failed(cat: catalogue.Catalogue) -> None:
         match="job failed\nThis is a traceback",
     ):
         remote._wait_on_results()
+
+    assert remote.creation_datetime.isoformat() == "2022-09-02T17:30:48.201213"
+    assert remote.start_datetime is not None
+    assert remote.start_datetime.isoformat() == "2022-09-02T17:32:43.890617"
+    assert remote.end_datetime is not None
+    assert remote.end_datetime.isoformat() == "2022-09-02T17:32:54.308120"
 
 
 @responses.activate

@@ -32,33 +32,28 @@ class Collection(ApiResponse):
     """A class to interact with a catalogue collection."""
 
     @property
-    def _temporal_interval(self) -> tuple[str, str]:
-        begin, end = map(str, self.json["extent"]["temporal"]["interval"][0])
-        return (begin, end)
-
-    @property
-    def begin_datetime(self) -> datetime.datetime:
+    def begin_datetime(self) -> datetime.datetime | None:
         """Begin datetime of the collection.
 
         Returns
         -------
-        datetime.datetime
+        datetime.datetime or None
         """
-        return datetime.datetime.fromisoformat(
-            self._temporal_interval[0].replace("Z", "+00:00")
-        )
+        if (value := self.json["extent"]["temporal"]["interval"][0][0]) is None:
+            return value
+        return datetime.datetime.fromisoformat(value.replace("Z", "+00:00"))
 
     @property
-    def end_datetime(self) -> datetime.datetime:
+    def end_datetime(self) -> datetime.datetime | None:
         """End datetime of the collection.
 
         Returns
         -------
-        datetime.datetime
+        datetime.datetime or None
         """
-        return datetime.datetime.fromisoformat(
-            self._temporal_interval[1].replace("Z", "+00:00")
-        )
+        if (value := self.json["extent"]["temporal"]["interval"][0][1]) is None:
+            return value
+        return datetime.datetime.fromisoformat(value.replace("Z", "+00:00"))
 
     @property
     def bbox(self) -> tuple[float, float, float, float]:
