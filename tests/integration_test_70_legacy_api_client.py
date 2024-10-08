@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import logging
 import os
 import pathlib
 import time
@@ -200,16 +201,31 @@ def test_legacy_api_client_kwargs(api_root_url: str, api_anon_key: str) -> None:
 
 
 def test_legacy_api_client_logging(
-    caplog: pytest.LogCaptureFixture, legacy_client: LegacyApiClient
+    caplog: pytest.LogCaptureFixture,
+    api_root_url: str,
+    api_anon_key: str,
 ) -> None:
-    legacy_client.info("Info message")
-    legacy_client.warning("Warning message")
-    legacy_client.error("Error message")
-    assert caplog.record_tuples == [
-        ("cads_api_client.legacy_api_client", 20, "Info message"),
-        ("cads_api_client.legacy_api_client", 30, "Warning message"),
-        ("cads_api_client.legacy_api_client", 40, "Error message"),
-    ]
+    logger = logging.getLogger("foo")
+    client = LegacyApiClient(
+        url=api_root_url,
+        key=api_anon_key,
+        info_callback=logger.info,
+        warning_callback=logger.warning,
+        error_callback=logger.error,
+        debug_callback=logger.debug,
+    )
+    caplog.clear()
+    with caplog.at_level(logging.DEBUG):
+        client.debug("Debug message")
+        client.info("Info message")
+        client.warning("Warning message")
+        client.error("Error message")
+        assert caplog.record_tuples == [
+            ("foo", 10, "Debug message"),
+            ("foo", 20, "Info message"),
+            ("foo", 30, "Warning message"),
+            ("foo", 40, "Error message"),
+        ]
 
 
 def test_legacy_api_client_download(

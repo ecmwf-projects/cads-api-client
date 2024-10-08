@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import datetime
-from typing import Any
+from typing import Any, Callable
 
 import attrs
 import requests
@@ -112,6 +112,7 @@ class Catalogue:
     download_options: dict[str, Any]
     sleep_max: float
     cleanup: bool
+    log_callback: Callable[..., None] | None
     force_exact_url: bool = False
 
     def __attrs_post_init__(self) -> None:
@@ -128,6 +129,7 @@ class Catalogue:
             download_options=self.download_options,
             sleep_max=self.sleep_max,
             cleanup=self.cleanup,
+            log_callback=self.log_callback,
         )
 
     def get_collections(self, **params: Any) -> Collections:

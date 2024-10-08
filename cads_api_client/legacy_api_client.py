@@ -1,19 +1,17 @@
 from __future__ import annotations
 
 import collections
-import functools
 import logging
 import typing
 import warnings
 from types import TracebackType
-from typing import Any, Callable, TypeVar, cast, overload
+from typing import Any, Callable, TypeVar, overload
 
 import cdsapi.api
 import multiurl
 import requests
 
 from . import __version__ as cads_api_client_version
-from . import processing
 from .api_client import ApiClient
 from .processing import Remote, Results
 
@@ -103,7 +101,7 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
         self.debug_callback = debug_callback
         self.session = requests.Session() if session is None else session
 
-        self.client = self.logging_decorator(ApiClient)(
+        self.client = ApiClient(
             url=self.url,
             key=self.key,
             verify=self.verify,
@@ -114,6 +112,7 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
             retry_after=self.sleep_max,
             timeout=self.timeout,
             progress=self.progress,
+            log_callback=self.log,
         )
         self.debug(
             "CDSAPI %s",
@@ -137,16 +136,6 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
             "This is a beta version. This functionality has not been implemented yet."
         )
 
-    def logging_decorator(self, func: F) -> F:
-        @functools.wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
-            with LoggingContext(
-                logger=processing.LOGGER, quiet=self.quiet, debug=self._debug
-            ):
-                return func(*args, **kwargs)
-
-        return cast(F, wrapper)
-
     @overload
     def retrieve(self, name: str, request: dict[str, Any], target: str) -> str: ...
 
@@ -160,19 +149,15 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
     ) -> str | Remote | Results:
         submitted: Remote | Results
         if self.wait_until_complete:
-            submitted = self.logging_decorator(self.client.submit_and_wait_on_results)(
+            submitted = self.client.submit_and_wait_on_results(
                 collection_id=name,
                 **request,
             )
         else:
-            submitted = self.logging_decorator(self.client.submit)(
+            submitted = self.client.submit(
                 collection_id=name,
                 **request,
             )
-
-        # Decorate legacy methods
-        submitted.download = self.logging_decorator(submitted.download)  # type: ignore[method-assign]
-        submitted.log = self.log  # type: ignore[method-assign]
 
         return submitted if target is None else submitted.download(target)
 

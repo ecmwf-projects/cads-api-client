@@ -7,7 +7,7 @@ import os
 import time
 import urllib.parse
 import warnings
-from typing import Any, Type, TypedDict, TypeVar
+from typing import Any, Callable, Type, TypedDict, TypeVar
 
 try:
     from typing import Self
@@ -46,6 +46,7 @@ class RequestKwargs(TypedDict):
     download_options: dict[str, Any]
     sleep_max: float
     cleanup: bool
+    log_callback: Callable[..., None] | None
 
 
 class ProcessingFailedError(RuntimeError):
@@ -96,6 +97,13 @@ def get_level_and_message(message: str) -> tuple[int, str]:
     return level, message
 
 
+def log(*args: Any, callback: Callable[..., None] | None = None, **kwargs: Any) -> None:
+    if callback is None:
+        LOGGER.log(*args, **kwargs)
+    else:
+        callback(*args, **kwargs)
+
+
 @attrs.define(slots=False)
 class ApiResponse:
     response: requests.Response
@@ -106,6 +114,7 @@ class ApiResponse:
     download_options: dict[str, Any]
     sleep_max: float
     cleanup: bool
+    log_callback: Callable[..., None] | None
 
     @property
     def _request_kwargs(self) -> RequestKwargs:
@@ -117,6 +126,7 @@ class ApiResponse:
             download_options=self.download_options,
             sleep_max=self.sleep_max,
             cleanup=self.cleanup,
+            log_callback=self.log_callback,
         )
 
     @classmethod
@@ -131,6 +141,7 @@ class ApiResponse:
         download_options: dict[str, Any],
         sleep_max: float,
         cleanup: bool,
+        log_callback: Callable[..., None] | None,
         log_messages: bool = True,
         **kwargs: Any,
     ) -> T_ApiResponse:
@@ -139,11 +150,15 @@ class ApiResponse:
         robust_request = multiurl.robust(session.request, **retry_options)
 
         inputs = kwargs.get("json", {}).get("inputs", {})
-        LOGGER.debug(f"{method.upper()} {url} {inputs or ''}".strip())
+        log(
+            logging.DEBUG,
+            f"{method.upper()} {url} {inputs or ''}".strip(),
+            callback=log_callback,
+        )
         response = robust_request(
             method, url, headers=headers, **request_options, **kwargs
         )
-        LOGGER.debug(f"REPLY {response.text}")
+        log(logging.DEBUG, f"REPLY {response.text}", callback=log_callback)
 
         cads_raise_for_status(response)
 
@@ -156,6 +171,7 @@ class ApiResponse:
             download_options=download_options,
             sleep_max=sleep_max,
             cleanup=cleanup,
+            log_callback=log_callback,
         )
         if log_messages:
             self.log_messages()
@@ -223,8 +239,8 @@ class ApiResponse:
             out = None
         return out
 
-    def log(self, level: int, *args: Any, **kwargs: Any) -> None:
-        LOGGER.log(level, *args, **kwargs)
+    def log(self, *args: Any, **kwargs: Any) -> None:
+        log(*args, callback=self.log_callback, **kwargs)
 
     def info(self, *args: Any, **kwargs: Any) -> None:
         self.log(logging.INFO, *args, **kwargs)
@@ -367,6 +383,7 @@ class Remote:
     download_options: dict[str, Any]
     sleep_max: float
     cleanup: bool
+    log_callback: Callable[..., None] | None
 
     def __attrs_post_init__(self) -> None:
         self.log_start_time = None
@@ -382,6 +399,7 @@ class Remote:
             download_options=self.download_options,
             sleep_max=self.sleep_max,
             cleanup=self.cleanup,
+            log_callback=self.log_callback,
         )
 
     def _log_metadata(self, metadata: dict[str, Any]) -> None:
@@ -579,8 +597,8 @@ class Remote:
         reply.setdefault("request_id", self.request_uid)
         return reply
 
-    def log(self, level: int, *args: Any, **kwargs: Any) -> None:
-        LOGGER.log(level, *args, **kwargs)
+    def log(self, *args: Any, **kwargs: Any) -> None:
+        log(*args, callback=self.log_callback, **kwargs)
 
     def info(self, *args: Any, **kwargs: Any) -> None:
         self.log(logging.INFO, *args, **kwargs)
@@ -722,6 +740,7 @@ class Processing:
     download_options: dict[str, Any]
     sleep_max: float
     cleanup: bool
+    log_callback: Callable[..., None] | None
     force_exact_url: bool = False
 
     def __attrs_post_init__(self) -> None:
@@ -738,6 +757,7 @@ class Processing:
             download_options=self.download_options,
             sleep_max=self.sleep_max,
             cleanup=self.cleanup,
+            log_callback=self.log_callback,
         )
 
     def get_processes(self, **params: Any) -> Processes:

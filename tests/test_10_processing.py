@@ -273,6 +273,7 @@ def cat() -> catalogue.Catalogue:
         download_options={},
         sleep_max=120,
         cleanup=False,
+        log_callback=None,
     )
 
 
