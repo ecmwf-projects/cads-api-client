@@ -223,8 +223,8 @@ class ApiResponse:
             out = None
         return out
 
-    def log(self, *args: Any, **kwargs: Any) -> None:
-        LOGGER.log(*args, **kwargs)
+    def log(self, level: int, *args: Any, **kwargs: Any) -> None:
+        LOGGER.log(level, *args, **kwargs)
 
     def info(self, *args: Any, **kwargs: Any) -> None:
         self.log(logging.INFO, *args, **kwargs)
@@ -579,8 +579,8 @@ class Remote:
         reply.setdefault("request_id", self.request_uid)
         return reply
 
-    def log(self, *args: Any, **kwargs: Any) -> None:
-        LOGGER.log(*args, **kwargs)
+    def log(self, level: int, *args: Any, **kwargs: Any) -> None:
+        LOGGER.log(level, *args, **kwargs)
 
     def info(self, *args: Any, **kwargs: Any) -> None:
         self.log(logging.INFO, *args, **kwargs)

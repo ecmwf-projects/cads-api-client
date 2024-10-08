@@ -199,14 +199,6 @@ def test_legacy_api_client_kwargs(api_root_url: str, api_anon_key: str) -> None:
     assert client.client.session is session
 
 
-def test_legacy_api_client_error(
-    api_root_url: str,
-    api_anon_key: str,
-) -> None:
-    with pytest.raises(ValueError, match="Wrong parameters: {'foo'}"):
-        LegacyApiClient(url=api_root_url, key=api_anon_key, foo="bar")
-
-
 def test_legacy_api_client_logging(
     caplog: pytest.LogCaptureFixture, legacy_client: LegacyApiClient
 ) -> None:
@@ -280,3 +272,20 @@ def test_legacy_api_client_remote(
     actual_target = remote.download(target)
     assert target == actual_target
     assert os.path.getsize(target) == 1
+
+
+def test_legacy_api_client_warning(
+    api_root_url: str,
+    api_anon_key: str,
+) -> None:
+    with pytest.warns(
+        UserWarning,
+        match="deprecated: {'full_stack': 'a', 'metadata': 'b', 'forget': 'c'}",
+    ):
+        LegacyApiClient(
+            url=api_root_url,
+            key=api_anon_key,
+            full_stack="a",  # type: ignore[arg-type]
+            metadata="b",  # type: ignore[arg-type]
+            forget="c",  # type: ignore[arg-type]
+        )
