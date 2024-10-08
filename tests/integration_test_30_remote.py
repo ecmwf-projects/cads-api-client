@@ -90,7 +90,11 @@ def test_remote_cleanup(
 
 
 def test_remote_datetimes(api_anon_client: ApiClient) -> None:
-    remote = api_anon_client.submit("test-adaptor-dummy", elapsed=1)
+    remote = api_anon_client.submit(
+        "test-adaptor-dummy",
+        elapsed=1,
+        _timestamp=datetime.datetime.now().isoformat(),
+    )
     assert isinstance(remote.creation_datetime, datetime.datetime)
     assert remote.end_datetime is None
 
