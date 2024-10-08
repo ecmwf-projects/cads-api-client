@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 import functools
 import logging
 import os
@@ -447,8 +448,39 @@ class Remote:
         """
         reply = self.json
         self._log_metadata(reply.get("metadata", {}))
-        status: str = reply["status"]
-        return status
+        return str(reply["status"])
+
+    @property
+    def creation_datetime(self) -> datetime.datetime:
+        """Creation datetime of the job.
+
+        Returns
+        -------
+        datetime.datetime
+        """
+        return datetime.datetime.fromisoformat(self.json["created"])
+
+    @property
+    def begin_datetime(self) -> datetime.datetime | None:
+        """Begin datetime of the job.
+
+        Returns
+        -------
+        datetime.datetime
+        """
+        value = self.json.get("started")
+        return value if value is None else datetime.datetime.fromisoformat(value)
+
+    @property
+    def end_datetime(self) -> datetime.datetime | None:
+        """End datetime of the job.
+
+        Returns
+        -------
+        datetime.datetime
+        """
+        value = self.json.get("finished")
+        return value if value is None else datetime.datetime.fromisoformat(value)
 
     def _wait_on_results(self) -> None:
         sleep = 1.0

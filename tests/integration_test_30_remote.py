@@ -1,4 +1,5 @@
 import contextlib
+import datetime
 import os
 import pathlib
 import uuid
@@ -86,3 +87,13 @@ def test_remote_cleanup(
     client = ApiClient(url=api_root_url, key=api_anon_key, maximum_tries=0)
     with raises:
         client.get_remote(request_uid)
+
+
+def test_remote_datetimes(api_anon_client: ApiClient) -> None:
+    remote = api_anon_client.submit("test-adaptor-dummy", elapsed=1)
+    assert isinstance(remote.creation_datetime, datetime.datetime)
+    assert remote.end_datetime is None
+
+    remote.make_results()
+    remote.begin_datetime is not None
+    remote.end_datetime is not None
