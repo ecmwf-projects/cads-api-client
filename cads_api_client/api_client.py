@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import functools
 import warnings
-from typing import Any, Literal
+from typing import Any, Callable, Literal
 
 import attrs
 import multiurl.base
@@ -51,6 +51,7 @@ class ApiClient:
     retry_after: float = 120
     maximum_tries: int = 500
     session: requests.Session = attrs.field(factory=requests.Session)
+    _log_callback: Callable[..., None] | None = None
 
     def __attrs_post_init__(self) -> None:
         if self.url is None:
@@ -108,6 +109,7 @@ class ApiClient:
             download_options=self._download_options,
             sleep_max=self.sleep_max,
             cleanup=self.cleanup,
+            log_callback=self._log_callback,
         )
 
     @functools.cached_property
