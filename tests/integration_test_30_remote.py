@@ -95,5 +95,6 @@ def test_remote_datetimes(api_anon_client: ApiClient) -> None:
     assert remote.end_datetime is None
 
     remote.make_results()
-    remote.start_datetime is not None
-    remote.end_datetime is not None
+    assert remote.start_datetime is not None
+    assert remote.end_datetime is not None
+    assert remote.creation_datetime < remote.start_datetime < remote.end_datetime
