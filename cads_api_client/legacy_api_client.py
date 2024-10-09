@@ -51,15 +51,6 @@ class LoggingContext:
             self.logger.removeHandler(handler)
 
 
-def _deprecated_warning(**kwargs: Any) -> None:
-    if kwargs := {k: v for k, v in kwargs.items() if v is not None}:
-        warnings.warn(
-            f"The following parameters are deprecated: {kwargs}."
-            " Set them to None to silence this warning.",
-            UserWarning,
-        )
-
-
 class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
     def __init__(
         self,
@@ -83,7 +74,9 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
         forget: None = None,
         session: requests.Session | None = None,
     ) -> None:
-        _deprecated_warning(full_stack=full_stack, metadata=metadata, forget=forget)
+        self.issue_deprecated_kwargs_warning(
+            full_stack=full_stack, metadata=metadata, forget=forget
+        )
 
         self.url, self.key, verify = cdsapi.api.get_url_key_verify(url, key, verify)
         self.verify = bool(verify)
@@ -129,6 +122,15 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
                 "cads_api_client_version": cads_api_client_version,
             },
         )
+
+    @classmethod
+    def issue_deprecated_kwargs_warning(self, **kwargs: Any) -> None:
+        if kwargs := {k: v for k, v in kwargs.items() if v is not None}:
+            warnings.warn(
+                f"The following parameters are deprecated: {kwargs}."
+                " Set them to None to silence this warning.",
+                UserWarning,
+            )
 
     @classmethod
     def raise_not_implemented_error(self) -> None:
