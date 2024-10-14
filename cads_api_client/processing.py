@@ -698,8 +698,8 @@ class Results(ApiResponse):
             parts = urllib.parse.urlparse(url)
             target = parts.path.strip("/").split("/")[-1]
 
-        with open(target, "wb"):  # Clear existing file
-            pass
+        if os.path.exists(target):
+            os.remove(target)
 
         robust_download = multiurl.robust(self._download, **self.retry_options)
         robust_download(url, target)
