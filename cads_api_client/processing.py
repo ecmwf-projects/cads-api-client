@@ -665,6 +665,18 @@ class Results(ApiResponse):
         """
         return dict(self.json["asset"]["value"])
 
+    def _download(self, url: str, target: str) -> requests.Response:
+        download_options = {"stream": True, "resume_transfers": True}
+        download_options.update(self.download_options)
+        multiurl.download(
+            url,
+            target=target,
+            **self.retry_options,
+            **self.request_options,
+            **download_options,
+        )
+        return requests.Response()  # mutliurl robust needs a response
+
     def download(
         self,
         target: str | None = None,
@@ -686,15 +698,11 @@ class Results(ApiResponse):
             parts = urllib.parse.urlparse(url)
             target = parts.path.strip("/").split("/")[-1]
 
-        download_options = {"stream": True}
-        download_options.update(self.download_options)
-        multiurl.download(
-            url,
-            target=target,
-            **self.retry_options,
-            **self.request_options,
-            **download_options,
-        )
+        with open(target, "wb"):  # Clear existing file
+            pass
+
+        robust_download = multiurl.robust(self._download, **self.retry_options)
+        robust_download(url, target)
         self._check_size(target)
         return target
 
