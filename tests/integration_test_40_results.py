@@ -106,3 +106,5 @@ def test_results_override(api_anon_client: ApiClient, tmp_path: pathlib.Path) ->
     assert target.read_bytes() == target_1.read_bytes()
     api_anon_client.retrieve("test-adaptor-dummy", size=2, target=str(target))
     assert target.read_bytes() == target_2.read_bytes()
+    api_anon_client.retrieve("test-adaptor-dummy", size=1, target=str(target))
+    assert target.read_bytes() == target_1.read_bytes()
