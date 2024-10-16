@@ -387,6 +387,7 @@ class Remote:
 
     def __attrs_post_init__(self) -> None:
         self.log_start_time = None
+        self.last_status = None
         self.info(f"Request ID is {self.request_uid}")
 
     @property
@@ -466,7 +467,12 @@ class Remote:
         """
         reply = self.json
         self._log_metadata(reply.get("metadata", {}))
-        return str(reply["status"])
+
+        status = reply["status"]
+        if self.last_status != status:
+            self.info(f"status has been updated to {status}")
+        self.last_status = status
+        return str(status)
 
     @property
     def creation_datetime(self) -> datetime.datetime:
@@ -502,34 +508,30 @@ class Remote:
 
     def _wait_on_results(self) -> None:
         sleep = 1.0
-        status = None
-        while True:
-            if status != (status := self.status):
-                self.info(f"status has been updated to {status}")
-            if self.results_available():
-                break
-            else:
-                sleep = min(sleep * 1.5, self.sleep_max)
+        while not self.results_ready:
             self.debug(f"results not ready, waiting for {sleep} seconds")
             time.sleep(sleep)
+            sleep = min(sleep * 1.5, self.sleep_max)
 
-    def results_available(self) -> bool:
-        """Check if results are available to download.
+    @property
+    def results_ready(self) -> bool:
+        """Check if results are ready.
 
         Returns
         -------
         bool
         """
-        if self.status == "successful":
+        status = self.status
+        if status == "successful":
             return True
-        if self.status in ("accepted", "running"):
+        if status in ("accepted", "running"):
             return False
-        if self.status == "failed":
+        if status == "failed":
             results = self.make_results(wait=False)
             raise ProcessingFailedError(error_json_to_message(results.json))
-        if self.status in ("dismissed", "deleted"):
-            raise ProcessingFailedError(f"API state {self.status!r}")
-        raise ProcessingFailedError(f"Unknown API state {self.status!r}")
+        if status in ("dismissed", "deleted"):
+            raise ProcessingFailedError(f"API state {status!r}")
+        raise ProcessingFailedError(f"Unknown API state {status!r}")
 
     def make_results(self, wait: bool = True) -> Results:
         if wait:

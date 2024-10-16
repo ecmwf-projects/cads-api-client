@@ -95,6 +95,7 @@ def test_remote_datetimes(api_anon_client: ApiClient) -> None:
         elapsed=1,
         _timestamp=datetime.datetime.now().isoformat(),
     )
+    assert remote.results_ready is False
     assert isinstance(remote.creation_datetime, datetime.datetime)
     assert remote.end_datetime is None
 
