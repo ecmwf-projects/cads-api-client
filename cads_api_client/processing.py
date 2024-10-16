@@ -506,19 +506,30 @@ class Remote:
         while True:
             if status != (status := self.status):
                 self.info(f"status has been updated to {status}")
-            if status == "successful":
+            if self.results_available():
                 break
-            elif status == "failed":
-                results = self.make_results(wait=False)
-                raise ProcessingFailedError(error_json_to_message(results.json))
-            elif status in ("accepted", "running"):
-                sleep = min(sleep * 1.5, self.sleep_max)
-            elif status in ("dismissed", "deleted"):
-                raise ProcessingFailedError(f"API state {status!r}")
             else:
-                raise ProcessingFailedError(f"Unknown API state {status!r}")
+                sleep = min(sleep * 1.5, self.sleep_max)
             self.debug(f"results not ready, waiting for {sleep} seconds")
             time.sleep(sleep)
+
+    def results_available(self) -> bool:
+        """Check if results are available to download.
+
+        Returns
+        -------
+        bool
+        """
+        if self.status == "successful":
+            return True
+        if self.status in ("accepted", "running"):
+            return False
+        if self.status == "failed":
+            results = self.make_results(wait=False)
+            raise ProcessingFailedError(error_json_to_message(results.json))
+        if self.status in ("dismissed", "deleted"):
+            raise ProcessingFailedError(f"API state {self.status!r}")
+        raise ProcessingFailedError(f"Unknown API state {self.status!r}")
 
     def make_results(self, wait: bool = True) -> Results:
         if wait:
