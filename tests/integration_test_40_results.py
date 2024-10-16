@@ -57,7 +57,7 @@ def test_results_progress(
     "maximum_tries,raises",
     [
         (500, does_not_raise()),
-        (1, pytest.raises(requests.exceptions.ConnectionError, match="Random error.")),
+        (1, pytest.raises(requests.ConnectionError, match="Random error.")),
     ],
 )
 def test_results_robust_download(
@@ -73,7 +73,7 @@ def test_results_robust_download(
     def patched_iter_content(self, *args, **kwargs):  # type: ignore
         for chunk in self.iter_content(chunk_size=1):
             if random.choice([True, False]):
-                raise requests.exceptions.ConnectionError("Random error.")
+                raise requests.ConnectionError("Random error.")
             yield chunk
 
     def make_stream(self):  # type: ignore
