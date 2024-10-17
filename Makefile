@@ -9,7 +9,7 @@ qa:
 	pre-commit run --all-files
 
 unit-tests:
-	python -m pytest -vv --cov=. --cov-report=$(COV_REPORT)
+	python -m pytest -x -vv --cov=. --cov-report=$(COV_REPORT)
 
 type-check:
 	python -m mypy .
@@ -34,13 +34,13 @@ docs-build:
 # DO NOT EDIT ABOVE THIS LINE, ADD COMMANDS BELOW
 
 integration-tests:
-	python -m pytest -vv --cov=. --cov-report=$(COV_REPORT) tests/integration*.py
+	python -m pytest -x -vv --cov=. --cov-report=$(COV_REPORT) tests/integration*.py
 
 legacy-tests:
-	python -m pytest -vv --cov=. --cov-report=$(COV_REPORT) tests/integration_test_*legacy*.py
+	python -m pytest -x -vv --cov=. --cov-report=$(COV_REPORT) tests/integration_test_*legacy*.py
 
 doc-tests:
-	python -m pytest -vv --doctest-glob='*.md' README.md
+	python -m pytest -x -vv --doctest-glob='*.md' README.md
 
 all-tests: unit-tests integration-tests doc-tests
 
