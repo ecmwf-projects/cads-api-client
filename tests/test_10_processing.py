@@ -379,6 +379,7 @@ def test_submit(cat: catalogue.Catalogue) -> None:
     remote = collection.submit(variable="temperature", year="2022")
     assert remote.url == JOB_SUCCESSFUL_URL
     assert remote.status == "successful"
+    assert remote.results_ready is True
 
     assert remote.creation_datetime.isoformat() == "2022-09-02T17:30:48.201213"
     assert remote.start_datetime is not None
