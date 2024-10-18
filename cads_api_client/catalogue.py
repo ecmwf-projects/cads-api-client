@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import warnings
 from typing import Any, Callable
 
 import attrs
@@ -88,17 +89,11 @@ class Collection(ApiResponse):
         return cads_api_client.Process.from_request("get", url, **self._request_kwargs)
 
     def submit(self, **request: Any) -> cads_api_client.Remote:
-        """Submit a request.
-
-        Parameters
-        ----------
-        **request: Any
-            Request parameters.
-
-        Returns
-        -------
-        cads_api_client.Remote
-        """
+        warnings.warn(
+            "`.submit` has been deprecated, and in the future will raise an error."
+            " Please use `.process.submit` from now on.",
+            DeprecationWarning,
+        )
         return self.process.submit(**request)
 
 

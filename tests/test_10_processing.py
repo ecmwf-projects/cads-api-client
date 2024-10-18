@@ -376,7 +376,7 @@ def test_submit(cat: catalogue.Catalogue) -> None:
     remote = collection.process.submit(variable="temperature", year="2022")
     assert remote.json == JOB_SUCCESSFUL_JSON
 
-    remote = collection.submit(variable="temperature", year="2022")
+    remote = collection.process.submit(variable="temperature", year="2022")
     assert remote.url == JOB_SUCCESSFUL_URL
     assert remote.status == "successful"
     assert remote.results_ready is True
@@ -393,7 +393,7 @@ def test_wait_on_result(cat: catalogue.Catalogue) -> None:
     responses_add()
 
     collection = cat.get_collection(COLLECTION_ID)
-    remote = collection.submit(variable="temperature", year="2022")
+    remote = collection.process.submit(variable="temperature", year="2022")
     remote._wait_on_results()
 
 
@@ -402,7 +402,7 @@ def test_wait_on_result_failed(cat: catalogue.Catalogue) -> None:
     responses_add()
 
     collection = cat.get_collection(COLLECTION_ID)
-    remote = collection.submit(variable="temperature", year="0000")
+    remote = collection.process.submit(variable="temperature", year="0000")
     with pytest.raises(
         processing.ProcessingFailedError,
         match="job failed\nThis is a traceback",
@@ -425,7 +425,7 @@ def test_remote_logs(
     collection = cat.get_collection(COLLECTION_ID)
 
     with caplog.at_level(logging.DEBUG, logger="cads_api_client.processing"):
-        remote = collection.submit(variable="temperature", year="2022")
+        remote = collection.process.submit(variable="temperature", year="2022")
         remote._wait_on_results()
 
     assert caplog.record_tuples == [
