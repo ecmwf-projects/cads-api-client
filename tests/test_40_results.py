@@ -7,24 +7,23 @@ import responses
 from cads_api_client import Results
 
 RESULTS_URL = "http://localhost:8080/api/retrieve/v1/jobs/bcfc677f-2a4e-4e83-91da-7d1c0340f407/results"
-RESULTS_JSON = {
-    "asset": {
-        "value": {
-            "type": "application/x-grib",
-            "href": "http://httpbin.org/bytes/1",
-            "file:size": 1,
+
+
+def make_results(size: int = 1) -> Results:
+    results_json = {
+        "asset": {
+            "value": {
+                "type": "application/x-grib",
+                "href": f"http://httpbin.org/bytes/{size}",
+                "file:size": size,
+            }
         }
     }
-}
-
-
-@pytest.fixture
-def results() -> Results:
     with responses.RequestsMock() as rsps:
         rsps.add(
             responses.GET,
             RESULTS_URL,
-            json=RESULTS_JSON,
+            json=results_json,
             status=200,
             content_type="application/json",
         )
@@ -43,14 +42,25 @@ def results() -> Results:
     return results
 
 
-def test_results_download(results: Results, tmp_path: pathlib.Path) -> None:
-    expected = str(tmp_path / "test.grib")
-    actual = results.download(target=expected)
-    assert actual == expected
-    assert os.path.getsize(actual) == 1
+@pytest.fixture
+def results() -> Results:
+    return make_results()
 
 
-def test_results_assert(results: Results) -> None:
+@pytest.mark.parametrize("target", ("dummy.grib", None))
+def test_results_download(
+    monkeypatch: pytest.MonkeyPatch,
+    results: Results,
+    tmp_path: pathlib.Path,
+    target: str | None,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    actual_target = results.download(target=target)
+    assert (actual_target != target) if target is None else (actual_target == target)
+    assert os.path.getsize(actual_target) == 1
+
+
+def test_results_asset(results: Results) -> None:
     assert results.asset == {
         "file:size": 1,
         "href": "http://httpbin.org/bytes/1",
@@ -67,7 +77,15 @@ def test_results_content_type(results: Results) -> None:
 
 
 def test_results_json(results: Results) -> None:
-    assert results.json == RESULTS_JSON
+    assert results.json == {
+        "asset": {
+            "value": {
+                "type": "application/x-grib",
+                "href": "http://httpbin.org/bytes/1",
+                "file:size": 1,
+            }
+        }
+    }
 
 
 def test_results_location(results: Results) -> None:
