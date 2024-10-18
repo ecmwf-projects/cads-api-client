@@ -45,17 +45,24 @@ def results() -> Results:
     return results
 
 
-@pytest.mark.parametrize("target", ("dummy.grib", None))
+@pytest.mark.parametrize(
+    "target,expected",
+    [
+        ("dummy.grib", "dummy.grib"),
+        (None, "1"),
+    ],
+)
 def test_results_download(
     monkeypatch: pytest.MonkeyPatch,
     results: Results,
     tmp_path: pathlib.Path,
     target: str | None,
+    expected: str,
 ) -> None:
     monkeypatch.chdir(tmp_path)
-    actual_target = results.download(target=target)
-    assert actual_target == target or "1"
-    assert os.path.getsize(actual_target) == 1
+    actual = results.download(target=target)
+    assert actual == expected
+    assert os.path.getsize(actual) == 1
 
 
 def test_results_asset(results: Results) -> None:
