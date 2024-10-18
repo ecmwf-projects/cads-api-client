@@ -134,9 +134,7 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
 
     @classmethod
     def raise_not_implemented_error(self) -> None:
-        raise NotImplementedError(
-            "This functionality is no longer supported."
-        )
+        raise NotImplementedError("This functionality is no longer supported.")
 
     @overload
     def retrieve(self, name: str, request: dict[str, Any], target: str) -> str: ...
