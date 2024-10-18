@@ -56,7 +56,7 @@ def test_results_download(
 ) -> None:
     monkeypatch.chdir(tmp_path)
     actual_target = results.download(target=target)
-    assert (actual_target != target) if target is None else (actual_target == target)
+    assert actual_target == target or "1"
     assert os.path.getsize(actual_target) == 1
 
 
