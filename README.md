@@ -28,7 +28,10 @@ Instantiate the API client and verify the authentication:
 ```python
 >>> import os
 >>> from cads_api_client import ApiClient
->>> client = ApiClient(url=os.getenv("CADS_API_URL"), key=os.getenv("CADS_API_KEY"))
+>>> client = ApiClient(
+...     url=os.getenv("CADS_API_URL"),
+...     key=os.getenv("CADS_API_KEY"),
+... )
 >>> client.check_authentication()
 {...}
 
