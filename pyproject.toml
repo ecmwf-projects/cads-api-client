@@ -38,6 +38,7 @@ module = ["cdsapi.*", "multiurl.*", "py.*"]
 # Same as Black.
 indent-width = 4
 line-length = 88
+target-version = "py38"
 
 [tool.ruff.lint]
 ignore = [
@@ -53,7 +54,9 @@ select = [
   # isort
   "I",
   # pydocstyle
-  "D"
+  "D",
+  # flake8-future-annotations
+  "FA"
 ]
 
 [tool.ruff.lint.pycodestyle]
