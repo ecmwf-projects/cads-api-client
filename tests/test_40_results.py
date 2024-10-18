@@ -21,28 +21,27 @@ RESULTS_JSON = {
 
 
 @pytest.fixture
+@responses.activate
 def results() -> Results:
-    with responses.RequestsMock() as rsps:
-        rsps.add(
-            responses.GET,
-            RESULTS_URL,
-            json=RESULTS_JSON,
-            status=200,
-            content_type="application/json",
-        )
-        results = Results.from_request(
-            "get",
-            RESULTS_URL,
-            headers={},
-            session=None,
-            retry_options={"maximum_tries": 1},
-            request_options={},
-            download_options={},
-            sleep_max=120,
-            cleanup=False,
-            log_callback=None,
-        )
-    return results
+    responses.add(
+        responses.GET,
+        RESULTS_URL,
+        json=RESULTS_JSON,
+        status=200,
+        content_type="application/json",
+    )
+    return Results.from_request(
+        "get",
+        RESULTS_URL,
+        headers={},
+        session=None,
+        retry_options={"maximum_tries": 1},
+        request_options={},
+        download_options={},
+        sleep_max=120,
+        cleanup=False,
+        log_callback=None,
+    )
 
 
 @pytest.mark.parametrize(
