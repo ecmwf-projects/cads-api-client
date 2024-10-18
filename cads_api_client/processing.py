@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import datetime
 import functools
 import logging
 import os
 import time
 import urllib.parse
 import warnings
-from typing import Any, Type, TypedDict, TypeVar
+from typing import Any, Callable, Type, TypedDict, TypeVar
 
 try:
     from typing import Self
@@ -45,6 +46,7 @@ class RequestKwargs(TypedDict):
     download_options: dict[str, Any]
     sleep_max: float
     cleanup: bool
+    log_callback: Callable[..., None] | None
 
 
 class ProcessingFailedError(RuntimeError):
@@ -95,6 +97,13 @@ def get_level_and_message(message: str) -> tuple[int, str]:
     return level, message
 
 
+def log(*args: Any, callback: Callable[..., None] | None = None, **kwargs: Any) -> None:
+    if callback is None:
+        LOGGER.log(*args, **kwargs)
+    else:
+        callback(*args, **kwargs)
+
+
 @attrs.define(slots=False)
 class ApiResponse:
     response: requests.Response
@@ -105,6 +114,7 @@ class ApiResponse:
     download_options: dict[str, Any]
     sleep_max: float
     cleanup: bool
+    log_callback: Callable[..., None] | None
 
     @property
     def _request_kwargs(self) -> RequestKwargs:
@@ -116,6 +126,7 @@ class ApiResponse:
             download_options=self.download_options,
             sleep_max=self.sleep_max,
             cleanup=self.cleanup,
+            log_callback=self.log_callback,
         )
 
     @classmethod
@@ -130,6 +141,7 @@ class ApiResponse:
         download_options: dict[str, Any],
         sleep_max: float,
         cleanup: bool,
+        log_callback: Callable[..., None] | None,
         log_messages: bool = True,
         **kwargs: Any,
     ) -> T_ApiResponse:
@@ -138,11 +150,15 @@ class ApiResponse:
         robust_request = multiurl.robust(session.request, **retry_options)
 
         inputs = kwargs.get("json", {}).get("inputs", {})
-        LOGGER.debug(f"{method.upper()} {url} {inputs or ''}".strip())
+        log(
+            logging.DEBUG,
+            f"{method.upper()} {url} {inputs or ''}".strip(),
+            callback=log_callback,
+        )
         response = robust_request(
             method, url, headers=headers, **request_options, **kwargs
         )
-        LOGGER.debug(f"REPLY {response.text}")
+        log(logging.DEBUG, f"REPLY {response.text}", callback=log_callback)
 
         cads_raise_for_status(response)
 
@@ -155,6 +171,7 @@ class ApiResponse:
             download_options=download_options,
             sleep_max=sleep_max,
             cleanup=cleanup,
+            log_callback=log_callback,
         )
         if log_messages:
             self.log_messages()
@@ -223,7 +240,7 @@ class ApiResponse:
         return out
 
     def log(self, *args: Any, **kwargs: Any) -> None:
-        LOGGER.log(*args, **kwargs)
+        log(*args, callback=self.log_callback, **kwargs)
 
     def info(self, *args: Any, **kwargs: Any) -> None:
         self.log(logging.INFO, *args, **kwargs)
@@ -366,9 +383,11 @@ class Remote:
     download_options: dict[str, Any]
     sleep_max: float
     cleanup: bool
+    log_callback: Callable[..., None] | None
 
     def __attrs_post_init__(self) -> None:
         self.log_start_time = None
+        self.last_status = None
         self.info(f"Request ID is {self.request_uid}")
 
     @property
@@ -381,6 +400,7 @@ class Remote:
             download_options=self.download_options,
             sleep_max=self.sleep_max,
             cleanup=self.cleanup,
+            log_callback=self.log_callback,
         )
 
     def _log_metadata(self, metadata: dict[str, Any]) -> None:
@@ -447,28 +467,71 @@ class Remote:
         """
         reply = self.json
         self._log_metadata(reply.get("metadata", {}))
-        status: str = reply["status"]
-        return status
+
+        status = reply["status"]
+        if self.last_status != status:
+            self.info(f"status has been updated to {status}")
+        self.last_status = status
+        return str(status)
+
+    @property
+    def creation_datetime(self) -> datetime.datetime:
+        """Creation datetime of the job.
+
+        Returns
+        -------
+        datetime.datetime
+        """
+        return datetime.datetime.fromisoformat(self.json["created"])
+
+    @property
+    def start_datetime(self) -> datetime.datetime | None:
+        """Start datetime of the job. If None, job has not started.
+
+        Returns
+        -------
+        datetime.datetime or None
+        """
+        value = self.json.get("started")
+        return value if value is None else datetime.datetime.fromisoformat(value)
+
+    @property
+    def end_datetime(self) -> datetime.datetime | None:
+        """End datetime of the job. If None, job has not finished.
+
+        Returns
+        -------
+        datetime.datetime or None
+        """
+        value = self.json.get("finished")
+        return value if value is None else datetime.datetime.fromisoformat(value)
 
     def _wait_on_results(self) -> None:
         sleep = 1.0
-        status = None
-        while True:
-            if status != (status := self.status):
-                self.info(f"status has been updated to {status}")
-            if status == "successful":
-                break
-            elif status == "failed":
-                results = self.make_results(wait=False)
-                raise ProcessingFailedError(error_json_to_message(results.json))
-            elif status in ("accepted", "running"):
-                sleep = min(sleep * 1.5, self.sleep_max)
-            elif status in ("dismissed", "deleted"):
-                raise ProcessingFailedError(f"API state {status!r}")
-            else:
-                raise ProcessingFailedError(f"Unknown API state {status!r}")
+        while not self.results_ready:
             self.debug(f"results not ready, waiting for {sleep} seconds")
             time.sleep(sleep)
+            sleep = min(sleep * 1.5, self.sleep_max)
+
+    @property
+    def results_ready(self) -> bool:
+        """Check if results are ready.
+
+        Returns
+        -------
+        bool
+        """
+        status = self.status
+        if status == "successful":
+            return True
+        if status in ("accepted", "running"):
+            return False
+        if status == "failed":
+            results = self.make_results(wait=False)
+            raise ProcessingFailedError(error_json_to_message(results.json))
+        if status in ("dismissed", "deleted"):
+            raise ProcessingFailedError(f"API state {status!r}")
+        raise ProcessingFailedError(f"Unknown API state {status!r}")
 
     def make_results(self, wait: bool = True) -> Results:
         if wait:
@@ -548,7 +611,7 @@ class Remote:
         return reply
 
     def log(self, *args: Any, **kwargs: Any) -> None:
-        LOGGER.log(*args, **kwargs)
+        log(*args, callback=self.log_callback, **kwargs)
 
     def info(self, *args: Any, **kwargs: Any) -> None:
         self.log(logging.INFO, *args, **kwargs)
@@ -615,6 +678,18 @@ class Results(ApiResponse):
         """
         return dict(self.json["asset"]["value"])
 
+    def _download(self, url: str, target: str) -> requests.Response:
+        download_options = {"stream": True, "resume_transfers": True}
+        download_options.update(self.download_options)
+        multiurl.download(
+            url,
+            target=target,
+            **self.retry_options,
+            **self.request_options,
+            **download_options,
+        )
+        return requests.Response()  # mutliurl robust needs a response
+
     def download(
         self,
         target: str | None = None,
@@ -636,15 +711,11 @@ class Results(ApiResponse):
             parts = urllib.parse.urlparse(url)
             target = parts.path.strip("/").split("/")[-1]
 
-        download_options = {"stream": True}
-        download_options.update(self.download_options)
-        multiurl.download(
-            url,
-            target=target,
-            **self.retry_options,
-            **self.request_options,
-            **download_options,
-        )
+        if os.path.exists(target):
+            os.remove(target)
+
+        robust_download = multiurl.robust(self._download, **self.retry_options)
+        robust_download(url, target)
         self._check_size(target)
         return target
 
@@ -690,6 +761,7 @@ class Processing:
     download_options: dict[str, Any]
     sleep_max: float
     cleanup: bool
+    log_callback: Callable[..., None] | None
     force_exact_url: bool = False
 
     def __attrs_post_init__(self) -> None:
@@ -706,6 +778,7 @@ class Processing:
             download_options=self.download_options,
             sleep_max=self.sleep_max,
             cleanup=self.cleanup,
+            log_callback=self.log_callback,
         )
 
     def get_processes(self, **params: Any) -> Processes:

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import datetime
-from typing import Any
+import warnings
+from typing import Any, Callable
 
 import attrs
 import requests
@@ -32,33 +33,28 @@ class Collection(ApiResponse):
     """A class to interact with a catalogue collection."""
 
     @property
-    def _temporal_interval(self) -> tuple[str, str]:
-        begin, end = map(str, self.json["extent"]["temporal"]["interval"][0])
-        return (begin, end)
-
-    @property
-    def begin_datetime(self) -> datetime.datetime:
+    def begin_datetime(self) -> datetime.datetime | None:
         """Begin datetime of the collection.
 
         Returns
         -------
-        datetime.datetime
+        datetime.datetime or None
         """
-        return datetime.datetime.fromisoformat(
-            self._temporal_interval[0].replace("Z", "+00:00")
-        )
+        if (value := self.json["extent"]["temporal"]["interval"][0][0]) is None:
+            return value
+        return datetime.datetime.fromisoformat(value.replace("Z", "+00:00"))
 
     @property
-    def end_datetime(self) -> datetime.datetime:
+    def end_datetime(self) -> datetime.datetime | None:
         """End datetime of the collection.
 
         Returns
         -------
-        datetime.datetime
+        datetime.datetime or None
         """
-        return datetime.datetime.fromisoformat(
-            self._temporal_interval[1].replace("Z", "+00:00")
-        )
+        if (value := self.json["extent"]["temporal"]["interval"][0][1]) is None:
+            return value
+        return datetime.datetime.fromisoformat(value.replace("Z", "+00:00"))
 
     @property
     def bbox(self) -> tuple[float, float, float, float]:
@@ -93,17 +89,11 @@ class Collection(ApiResponse):
         return cads_api_client.Process.from_request("get", url, **self._request_kwargs)
 
     def submit(self, **request: Any) -> cads_api_client.Remote:
-        """Submit a request.
-
-        Parameters
-        ----------
-        **request: Any
-            Request parameters.
-
-        Returns
-        -------
-        cads_api_client.Remote
-        """
+        warnings.warn(
+            "`.submit` has been deprecated, and in the future will raise an error."
+            " Please use `.process.submit` from now on.",
+            DeprecationWarning,
+        )
         return self.process.submit(**request)
 
 
@@ -117,6 +107,7 @@ class Catalogue:
     download_options: dict[str, Any]
     sleep_max: float
     cleanup: bool
+    log_callback: Callable[..., None] | None
     force_exact_url: bool = False
 
     def __attrs_post_init__(self) -> None:
@@ -133,6 +124,7 @@ class Catalogue:
             download_options=self.download_options,
             sleep_max=self.sleep_max,
             cleanup=self.cleanup,
+            log_callback=self.log_callback,
         )
 
     def get_collections(self, **params: Any) -> Collections:

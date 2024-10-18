@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import logging
 import os
 import pathlib
 import time
@@ -199,25 +200,32 @@ def test_legacy_api_client_kwargs(api_root_url: str, api_anon_key: str) -> None:
     assert client.client.session is session
 
 
-def test_legacy_api_client_error(
+def test_legacy_api_client_logging(
+    caplog: pytest.LogCaptureFixture,
     api_root_url: str,
     api_anon_key: str,
 ) -> None:
-    with pytest.raises(ValueError, match="Wrong parameters: {'foo'}"):
-        LegacyApiClient(url=api_root_url, key=api_anon_key, foo="bar")
-
-
-def test_legacy_api_client_logging(
-    caplog: pytest.LogCaptureFixture, legacy_client: LegacyApiClient
-) -> None:
-    legacy_client.info("Info message")
-    legacy_client.warning("Warning message")
-    legacy_client.error("Error message")
-    assert caplog.record_tuples == [
-        ("cads_api_client.legacy_api_client", 20, "Info message"),
-        ("cads_api_client.legacy_api_client", 30, "Warning message"),
-        ("cads_api_client.legacy_api_client", 40, "Error message"),
-    ]
+    logger = logging.getLogger("foo")
+    client = LegacyApiClient(
+        url=api_root_url,
+        key=api_anon_key,
+        info_callback=logger.info,
+        warning_callback=logger.warning,
+        error_callback=logger.error,
+        debug_callback=logger.debug,
+    )
+    caplog.clear()
+    with caplog.at_level(logging.DEBUG):
+        client.debug("Debug message")
+        client.info("Info message")
+        client.warning("Warning message")
+        client.error("Error message")
+        assert caplog.record_tuples == [
+            ("foo", 10, "Debug message"),
+            ("foo", 20, "Info message"),
+            ("foo", 30, "Warning message"),
+            ("foo", 40, "Error message"),
+        ]
 
 
 def test_legacy_api_client_download(
@@ -280,3 +288,20 @@ def test_legacy_api_client_remote(
     actual_target = remote.download(target)
     assert target == actual_target
     assert os.path.getsize(target) == 1
+
+
+def test_legacy_api_client_warning(
+    api_root_url: str,
+    api_anon_key: str,
+) -> None:
+    with pytest.warns(
+        UserWarning,
+        match="deprecated: {'full_stack': 'a', 'metadata': 'b', 'forget': 'c'}",
+    ):
+        LegacyApiClient(
+            url=api_root_url,
+            key=api_anon_key,
+            full_stack="a",  # type: ignore[arg-type]
+            metadata="b",  # type: ignore[arg-type]
+            forget="c",  # type: ignore[arg-type]
+        )

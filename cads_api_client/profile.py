@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Callable
 
 import attrs
 import requests
@@ -18,6 +18,7 @@ class Profile:
     download_options: dict[str, Any]
     sleep_max: float
     cleanup: bool
+    log_callback: Callable[..., None] | None
     force_exact_url: bool = False
 
     def __attrs_post_init__(self) -> None:
@@ -34,6 +35,7 @@ class Profile:
             download_options=self.download_options,
             sleep_max=self.sleep_max,
             cleanup=self.cleanup,
+            log_callback=self.log_callback,
         )
 
     def _get_api_response(

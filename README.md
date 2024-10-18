@@ -13,18 +13,30 @@ $ cat $HOME/.cads-api-client.json
 
 It is possible (though not recommended) to use the API key of one of the test users, `00112233-4455-6677-c899-aabbccddeeff`. This key is used for anonymous tests and is designed to be the least performant option for accessing the system.
 
-Draft Python API:
+## Quick Start
+
+Configure the logging level to display INFO messages:
 
 ```python
 >>> import logging
->>> import os
-
->>> from cads_api_client import ApiClient
 >>> logging.basicConfig(level="INFO")
+
+```
+
+Instantiate the API client and verify the authentication:
+
+```python
+>>> import os
+>>> from cads_api_client import ApiClient
 >>> client = ApiClient(url=os.getenv("CADS_API_URL"), key=os.getenv("CADS_API_KEY"))
 >>> client.check_authentication()
 {...}
 
+```
+
+Explore a collection:
+
+```python
 >>> collection_id = "reanalysis-era5-pressure-levels"
 >>> collection = client.get_collection(collection_id)
 >>> collection.end_datetime
@@ -36,9 +48,17 @@ datetime.datetime(...)
 ...     "year": "2022",
 ...     "month": "01",
 ...     "day": "01",
-...     "level": "1000",
+...     "pressure_level": "1000",
 ...     "time": "00:00",
 ... }
+>>> collection.process.apply_constraints(**request)
+{...}
+
+```
+
+Retrieve data:
+
+```python
 >>> client.retrieve(collection_id, **request, target="tmp1-era5.grib")  # blocks
 'tmp1-era5.grib'
 
@@ -49,6 +69,14 @@ datetime.datetime(...)
 '...'
 >>> remote.download("tmp2-era5.grib")  # blocks
 'tmp2-era5.grib'
+
+```
+
+Interact with a previously submitted job:
+
+```python
+>>> client.get_remote(remote.request_uid)
+Remote(...)
 
 ```
 
