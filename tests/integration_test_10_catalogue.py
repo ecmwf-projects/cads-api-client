@@ -1,6 +1,6 @@
 import pytest
 
-from cads_api_client import ApiClient, Collection, Remote, processing
+from cads_api_client import ApiClient, Collection, processing
 
 
 @pytest.fixture
@@ -39,13 +39,6 @@ def test_catalogue_collections_query(api_anon_client: ApiClient) -> None:
 def test_catalogue_collections_keywords(api_anon_client: ApiClient) -> None:
     collections = api_anon_client.get_collections(keywords=["Product type: Reanalysis"])
     assert collections.collection_ids
-
-
-def test_catalogue_collection_submit(collection: Collection) -> None:
-    remote = collection.submit(date="1990-01-01")
-    assert isinstance(remote, Remote)
-    assert remote.collection_id == "test-adaptor-mars"
-    assert remote.request == {"date": "1990-01-01"}
 
 
 def test_catalogue_collection_begin_datetime(collection: Collection) -> None:
