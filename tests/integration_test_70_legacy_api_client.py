@@ -305,3 +305,10 @@ def test_legacy_api_client_warning(
             metadata="b",  # type: ignore[arg-type]
             forget="c",  # type: ignore[arg-type]
         )
+
+
+def test_legacy_api_client_toolbox(legacy_client: LegacyApiClient) -> None:
+    with pytest.raises(NotImplementedError):
+        legacy_client.service("service")
+    with pytest.raises(NotImplementedError):
+        legacy_client.workflow("workflow")
