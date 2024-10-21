@@ -133,8 +133,11 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
             )
 
     @classmethod
-    def raise_not_implemented_error(self) -> None:
-        raise NotImplementedError("This functionality is no longer supported.")
+    def raise_toolbox_error(self) -> None:
+        raise NotImplementedError(
+            "Legacy CDS Toolbox is now discontinued."
+            " Watch for announcements/updates on new CDS improved capabilities on our Forum (https://forum.ecmwf.int/)."
+        )
 
     @overload
     def retrieve(self, name: str, request: dict[str, Any], target: str) -> str: ...
@@ -188,11 +191,13 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
     def debug(self, *args: Any, **kwargs: Any) -> None:
         self.log(logging.DEBUG, *args, **kwargs)
 
-    def service(self, name, *args, **kwargs):  # type: ignore
-        self.raise_not_implemented_error()
+    @typing.no_type_check
+    def service(self, name, *args, **kwargs):
+        self.raise_toolbox_error()
 
-    def workflow(self, code, *args, **kwargs):  # type: ignore
-        self.raise_not_implemented_error()
+    @typing.no_type_check
+    def workflow(self, code, *args, **kwargs):
+        self.raise_toolbox_error()
 
     def status(self, context: Any = None) -> dict[str, list[str]]:
         status = collections.defaultdict(list)
