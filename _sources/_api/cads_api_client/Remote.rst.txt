@@ -75,6 +75,14 @@ cads_api_client.Remote
       :rtype: :class:`str`
 
 
+   .. py:property:: results_ready
+      :type: bool
+
+      Check if results are ready.
+
+      :rtype: :class:`bool`
+
+
    .. py:property:: start_datetime
       :type: datetime.datetime | None
 

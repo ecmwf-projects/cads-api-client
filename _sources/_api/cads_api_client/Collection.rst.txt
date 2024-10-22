@@ -9,17 +9,6 @@ cads_api_client.Collection
    A class to interact with a catalogue collection.
 
 
-   .. py:method:: submit(**request)
-
-      Submit a request.
-
-      :param \*\*request: Request parameters.
-      :type \*\*request: :class:`Any`
-
-      :rtype: :class:`cads_api_client.Remote`
-
-
-
    .. py:property:: bbox
       :type: tuple[float, float, float, float]
 
