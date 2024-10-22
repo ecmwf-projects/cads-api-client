@@ -9,6 +9,8 @@ channels:
 # DO NOT EDIT ABOVE THIS LINE, ADD DEPENDENCIES BELOW AS SHOWN IN THE EXAMPLE
 dependencies:
 - attrs
-- multiurl
+- pip
 - requests
 - typing-extensions
+- pip:
+  - multiurl
