@@ -15,9 +15,15 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Topic :: Scientific/Engineering"
 ]
-dependencies = ["attrs", "multiurl", "requests", "typing-extensions"]
+dependencies = [
+  "attrs",
+  "multiurl >= 0.3.2",
+  "requests",
+  "typing-extensions"
+]
 description = "CADS API Python client"
 dynamic = ["version"]
 license = {file = "LICENSE"}
