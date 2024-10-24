@@ -31,6 +31,7 @@ def test_api_client_get_remote(api_anon_client: ApiClient) -> None:
     request_uid = api_anon_client.submit("test-adaptor-dummy").request_uid
     remote = api_anon_client.get_remote(request_uid)
     assert remote.request_uid == request_uid
+    assert set(remote.headers) == {"User-Agent", "PRIVATE-TOKEN"}
 
 
 def test_api_client_get_results(api_anon_client: ApiClient) -> None:
@@ -54,13 +55,11 @@ def test_api_client_retrieve(
 def test_api_client_submit(api_anon_client: ApiClient) -> None:
     remote = api_anon_client.submit("test-adaptor-dummy")
     assert isinstance(remote, Remote)
-    assert set(remote.headers) == {"User-Agent", "PRIVATE-TOKEN"}
 
 
 def test_api_client_submit_and_wait_on_results(api_anon_client: ApiClient) -> None:
     results = api_anon_client.submit_and_wait_on_results("test-adaptor-dummy")
     assert isinstance(results, Results)
-    assert set(results.headers) == {"User-Agent", "PRIVATE-TOKEN"}
 
 
 def test_api_client_verify(api_root_url: str, api_anon_key: str) -> None:
