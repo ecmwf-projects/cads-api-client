@@ -78,8 +78,9 @@ Retrieve data:
 Interact with a previously submitted job:
 
 ```python
->>> client.get_remote(remote.request_uid)
-Remote(...)
+>>> remote = client.get_remote(remote.request_uid)
+>>> remote.delete()
+{...}
 
 ```
 
