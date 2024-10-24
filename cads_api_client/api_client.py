@@ -10,7 +10,7 @@ import requests
 
 import cads_api_client
 
-from . import catalogue, config, processing, profile
+from . import __version__, catalogue, config, processing, profile
 
 
 @attrs.define(slots=False)
@@ -69,11 +69,12 @@ class ApiClient:
             warnings.warn(str(exc), UserWarning)
 
     def _get_headers(self, key_is_mandatory: bool = True) -> dict[str, str]:
-        if self.key is None:
-            if key_is_mandatory:
-                raise ValueError("The API key is needed to access this resource")
-            return {}
-        return {"PRIVATE-TOKEN": self.key}
+        headers = {"User-Agent": f"cads-api-client/{__version__}"}
+        if self.key is not None:
+            headers["PRIVATE-TOKEN"] = self.key
+        elif key_is_mandatory:
+            raise ValueError("The API key is needed to access this resource")
+        return headers
 
     @property
     def _retry_options(self) -> dict[str, Any]:
@@ -99,10 +100,10 @@ class ApiClient:
         }
 
     def _get_request_kwargs(
-        self, mandatory_key: bool = True
+        self, key_is_mandatory: bool = True
     ) -> processing.RequestKwargs:
         return processing.RequestKwargs(
-            headers=self._get_headers(key_is_mandatory=mandatory_key),
+            headers=self._get_headers(key_is_mandatory=key_is_mandatory),
             session=self.session,
             retry_options=self._retry_options,
             request_options=self._request_options,
@@ -116,7 +117,7 @@ class ApiClient:
     def _catalogue_api(self) -> catalogue.Catalogue:
         return catalogue.Catalogue(
             f"{self.url}/catalogue",
-            **self._get_request_kwargs(mandatory_key=False),
+            **self._get_request_kwargs(key_is_mandatory=False),
         )
 
     @functools.cached_property

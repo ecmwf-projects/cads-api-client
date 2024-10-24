@@ -24,12 +24,14 @@ def test_api_client_get_process(api_anon_client: ApiClient) -> None:
     process = api_anon_client.get_process("test-adaptor-dummy")
     assert isinstance(process, processing.Process)
     assert process.id == "test-adaptor-dummy"
+    assert set(process.headers) == {"User-Agent", "PRIVATE-TOKEN"}
 
 
 def test_api_client_get_remote(api_anon_client: ApiClient) -> None:
     request_uid = api_anon_client.submit("test-adaptor-dummy").request_uid
     remote = api_anon_client.get_remote(request_uid)
     assert remote.request_uid == request_uid
+    assert set(remote.headers) == {"User-Agent", "PRIVATE-TOKEN"}
 
 
 def test_api_client_get_results(api_anon_client: ApiClient) -> None:
