@@ -12,7 +12,9 @@ $ cat $HOME/.cads-api-client.json
 ```
 
 It is possible (though not recommended) to use the API key of one of the test users:
-`00112233-4455-6677-c899-aabbccddeeff`
+```
+00112233-4455-6677-c899-aabbccddeeff
+```
 This key is used for anonymous tests and is designed to be the least performant option for accessing the system.
 
 ## Quick Start
