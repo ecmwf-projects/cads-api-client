@@ -62,12 +62,14 @@ def test_processing_get_jobs_status(api_anon_client: ApiClient) -> None:
     request_uid = remote.request_uid
     with pytest.raises(HTTPError, match="400 Client Error: Bad Request"):
         remote.make_results()
-    assert request_uid in api_anon_client.get_jobs(status="failed").job_ids
-    assert request_uid not in api_anon_client.get_jobs(status="successful").job_ids
+    assert request_uid in api_anon_client.get_jobs(status="failed").request_uids
+    assert request_uid not in api_anon_client.get_jobs(status="successful").request_uids
 
 
 def test_processing_get_jobs_sortby(api_anon_client: ApiClient) -> None:
     uid1 = api_anon_client.submit("test-adaptor-dummy").request_uid
     uid2 = api_anon_client.submit("test-adaptor-dummy").request_uid
-    assert [uid2, uid1] == api_anon_client.get_jobs(sortby="-created", limit=2).job_ids
-    assert [uid2] != api_anon_client.get_jobs(sortby="created", limit=1).job_ids
+    assert [uid2, uid1] == api_anon_client.get_jobs(
+        sortby="-created", limit=2
+    ).request_uids
+    assert [uid2] != api_anon_client.get_jobs(sortby="created", limit=1).request_uids
