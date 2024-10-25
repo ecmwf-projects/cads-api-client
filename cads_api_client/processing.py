@@ -648,14 +648,23 @@ class Jobs(ApiResponsePaginated):
     """A class to interact with submitted jobs."""
 
     @property
-    def job_ids(self) -> list[str]:
-        """List of job IDs.
+    def request_uids(self) -> list[str]:
+        """List of request UIDs.
 
         Returns
         -------
         list[str]
         """
         return [job["jobID"] for job in self.json["jobs"]]
+
+    @property
+    def job_ids(self) -> list[str]:
+        warnings.warn(
+            "`.job_ids` has been deprecated, and in the future will raise an error."
+            " Please use `.request_uids` from now on.",
+            DeprecationWarning,
+        )
+        return self.request_uids
 
 
 @attrs.define
