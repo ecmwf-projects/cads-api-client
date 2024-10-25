@@ -68,7 +68,7 @@ datetime.datetime(...)
 Retrieve data:
 
 ```python
->>> client.retrieve(collection_id, **request, target="tmp1-era5.grib")  # blocks
+>>> client.retrieve(collection_id, target="tmp1-era5.grib", **request)  # blocks
 'tmp1-era5.grib'
 
 >>> remote = client.submit(collection_id, **request)  # doesn't block
