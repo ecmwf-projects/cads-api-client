@@ -47,6 +47,7 @@ cads_api_client.Process
    .. py:property:: id
       :type: str
 
+
       Process ID.
 
       :rtype: :class:`str`
@@ -55,6 +56,7 @@ cads_api_client.Process
    .. py:property:: json
       :type: dict[str, Any]
 
+
       Content of the response.
 
       :rtype: :class:`dict[str,Any]`
@@ -62,6 +64,7 @@ cads_api_client.Process
 
    .. py:property:: url
       :type: str
+
 
       URL.
 

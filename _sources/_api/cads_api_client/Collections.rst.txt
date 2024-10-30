@@ -12,6 +12,7 @@ cads_api_client.Collections
    .. py:property:: collection_ids
       :type: list[str]
 
+
       List of collection IDs.
 
       :rtype: :class:`list[str]`
@@ -19,6 +20,7 @@ cads_api_client.Collections
 
    .. py:property:: json
       :type: dict[str, Any]
+
 
       Content of the response.
 
@@ -28,6 +30,7 @@ cads_api_client.Collections
    .. py:property:: next
       :type: Self | None
 
+
       Next page.
 
       :rtype: :class:`Self` or :obj:`None`
@@ -36,6 +39,7 @@ cads_api_client.Collections
    .. py:property:: prev
       :type: Self | None
 
+
       Previous page.
 
       :rtype: :class:`Self` or :obj:`None`
@@ -43,6 +47,7 @@ cads_api_client.Collections
 
    .. py:property:: url
       :type: str
+
 
       URL.
 

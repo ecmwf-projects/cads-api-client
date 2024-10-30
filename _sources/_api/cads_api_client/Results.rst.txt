@@ -24,6 +24,7 @@ cads_api_client.Results
    .. py:property:: asset
       :type: dict[str, Any]
 
+
       Asset dictionary.
 
       :rtype: :class:`dict[str,Any]`
@@ -31,6 +32,7 @@ cads_api_client.Results
 
    .. py:property:: content_length
       :type: int
+
 
       File size in Bytes.
 
@@ -40,6 +42,7 @@ cads_api_client.Results
    .. py:property:: content_type
       :type: str
 
+
       File MIME type.
 
       :rtype: :class:`int`
@@ -47,6 +50,7 @@ cads_api_client.Results
 
    .. py:property:: json
       :type: dict[str, Any]
+
 
       Content of the response.
 
@@ -56,6 +60,7 @@ cads_api_client.Results
    .. py:property:: location
       :type: str
 
+
       File location.
 
       :rtype: :class:`str`
@@ -63,6 +68,7 @@ cads_api_client.Results
 
    .. py:property:: url
       :type: str
+
 
       URL.
 

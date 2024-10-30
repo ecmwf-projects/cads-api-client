@@ -12,6 +12,7 @@ cads_api_client.Collection
    .. py:property:: bbox
       :type: tuple[float, float, float, float]
 
+
       Bounding box of the collection (W, S, E, N).
 
       :rtype: :class:`tuple[float,float,float,float]`
@@ -19,6 +20,7 @@ cads_api_client.Collection
 
    .. py:property:: begin_datetime
       :type: datetime.datetime | None
+
 
       Begin datetime of the collection.
 
@@ -28,6 +30,7 @@ cads_api_client.Collection
    .. py:property:: end_datetime
       :type: datetime.datetime | None
 
+
       End datetime of the collection.
 
       :rtype: :class:`datetime.datetime` or :obj:`None`
@@ -35,6 +38,7 @@ cads_api_client.Collection
 
    .. py:property:: id
       :type: str
+
 
       Collection ID.
 
@@ -44,6 +48,7 @@ cads_api_client.Collection
    .. py:property:: json
       :type: dict[str, Any]
 
+
       Content of the response.
 
       :rtype: :class:`dict[str,Any]`
@@ -52,6 +57,7 @@ cads_api_client.Collection
    .. py:property:: process
       :type: cads_api_client.Process
 
+
       Collection process.
 
       :rtype: :class:`cads_api_client.Process`
@@ -59,6 +65,7 @@ cads_api_client.Collection
 
    .. py:property:: url
       :type: str
+
 
       URL.
 
