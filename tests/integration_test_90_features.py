@@ -72,7 +72,10 @@ def test_features_mars_cds_adaptor_format(
     assert os.path.getsize(result)
 
 
-def test_features_upload_big_file(api_anon_client: ApiClient, tmp_path: pathlib.Path) -> None:
+def test_features_upload_big_file(
+    api_anon_client: ApiClient, tmp_path: pathlib.Path
+) -> None:
+    # See: https://github.com/fsspec/s3fs/pull/910
     target = str(tmp_path / "test.grib")
     size = 1_048_576_000 + 1
     api_anon_client.retrieve(
