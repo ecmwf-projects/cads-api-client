@@ -64,12 +64,12 @@ class Profile:
 
     def accept_licence(self, licence_id: str, revision: int) -> dict[str, Any]:
         url = f"{self.url}/account/licences/{licence_id}"
-        return self._get_api_response("put", url, json={"revision": revision}).json
+        return self._get_api_response("put", url, json={"revision": revision}).json_dict
 
     def accepted_licences(self, **params: Any) -> dict[str, Any]:
         url = f"{self.url}/account/licences"
-        return self._get_api_response("get", url, params=params).json
+        return self._get_api_response("get", url, params=params).json_dict
 
     def check_authentication(self) -> dict[str, Any]:
         url = f"{self.url}/account/verification/pat"
-        return self._get_api_response("post", url).json
+        return self._get_api_response("post", url).json_dict

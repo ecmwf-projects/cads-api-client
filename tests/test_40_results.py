@@ -81,7 +81,7 @@ def test_results_content_type(results: Results) -> None:
 
 
 def test_results_json(results: Results) -> None:
-    assert results.json == RESULTS_JSON
+    assert results.json_dict == RESULTS_JSON
 
 
 def test_results_location(results: Results) -> None:

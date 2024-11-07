@@ -215,7 +215,9 @@ class LegacyApiClient(cdsapi.api.Client):  # type: ignore[misc]
 
     def status(self, context: Any = None) -> dict[str, list[str]]:
         status = collections.defaultdict(list)
-        for message in self.client._catalogue_api.messages.json.get("messages", []):
+        for message in self.client._catalogue_api.messages.json_dict.get(
+            "messages", []
+        ):
             status[message["severity"]].append(message["content"])
         return dict(status)
 

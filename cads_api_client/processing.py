@@ -202,23 +202,35 @@ class ApiResponse:
         return str(self.response.request.url)
 
     @property
-    def json(self) -> dict[str, Any]:
+    def json(self) -> Any:
         """Content of the response.
 
         Returns
         -------
-        dict[str,Any]
+        Any
         """
-        return dict(self.response.json())
+        return self.response.json()
+
+    @property
+    def json_dict(self) -> dict[str, Any]:
+        assert isinstance(content := self.json, dict)
+        return content
+
+    @property
+    def json_list(self) -> list[dict[str, Any]]:
+        assert isinstance(content := self.json, list)
+        return content
 
     def log_messages(self) -> None:
-        if message_str := self.json.get("message"):
+        if message_str := self.json_dict.get("message"):
             level, message_str = get_level_and_message(message_str)
             self.log(level, message_str)
 
-        messages = self.json.get("messages", [])
+        messages = self.json_dict.get("messages", [])
         dataset_messages = (
-            self.json.get("metadata", {}).get("datasetMetadata", {}).get("messages", [])
+            self.json_dict.get("metadata", {})
+            .get("datasetMetadata", {})
+            .get("messages", [])
         )
         for message_dict in messages + dataset_messages:
             if not (content := message_dict.get("content")):
@@ -231,7 +243,7 @@ class ApiResponse:
 
     def _get_links(self, rel: str | None = None) -> list[dict[str, str]]:
         links = []
-        for link in self.json.get("links", []):
+        for link in self.json_dict.get("links", []):
             if rel is not None and link.get("rel") == rel:
                 links.append(link)
         return links
@@ -304,7 +316,7 @@ class Processes(ApiResponsePaginated):
         -------
         list[str]
         """
-        return [proc["id"] for proc in self.json["processes"]]
+        return [proc["id"] for proc in self.json_dict["processes"]]
 
 
 @attrs.define
@@ -319,7 +331,7 @@ class Process(ApiResponse):
         -------
         str
         """
-        process_id: str = self.json["id"]
+        process_id: str = self.json_dict["id"]
         return process_id
 
     def submit(self, **request: Any) -> cads_api_client.Remote:
@@ -361,7 +373,7 @@ class Process(ApiResponse):
             json={"inputs": request},
             **self._request_kwargs,
         )
-        return response.json
+        return response.json_dict
 
     def estimate_costs(self, **request: Any) -> dict[str, Any]:
         """Estimate costs of the parameters in a request.
@@ -382,7 +394,7 @@ class Process(ApiResponse):
             json={"inputs": request},
             **self._request_kwargs,
         )
-        return response.json
+        return response.json_dict
 
 
 @attrs.define(slots=False)
@@ -449,7 +461,7 @@ class Remote:
         params = {"log": True, "request": True}
         if self.log_start_time:
             params["logStartTime"] = self.log_start_time
-        return self._get_api_response("get", params=params).json
+        return self._get_api_response("get", params=params).json_dict
 
     @property
     def collection_id(self) -> str:
@@ -542,7 +554,7 @@ class Remote:
             return False
         if status == "failed":
             results = self.make_results(wait=False)
-            raise ProcessingFailedError(error_json_to_message(results.json))
+            raise ProcessingFailedError(error_json_to_message(results.json_dict))
         if status in ("dismissed", "deleted"):
             raise ProcessingFailedError(f"API state {status!r}")
         raise ProcessingFailedError(f"Unknown API state {status!r}")
@@ -584,7 +596,7 @@ class Remote:
         """
         response = self._get_api_response("delete")
         self.cleanup = False
-        return response.json
+        return response.json_dict
 
     def _warn(self) -> None:
         message = (
@@ -669,7 +681,7 @@ class Jobs(ApiResponsePaginated):
         -------
         list[str]
         """
-        return [job["jobID"] for job in self.json["jobs"]]
+        return [job["jobID"] for job in self.json_dict["jobs"]]
 
     @property
     def job_ids(self) -> list[str]:
@@ -699,7 +711,7 @@ class Results(ApiResponse):
         -------
         dict[str,Any]
         """
-        return dict(self.json["asset"]["value"])
+        return dict(self.json_dict["asset"]["value"])
 
     def _download(self, url: str, target: str) -> requests.Response:
         download_options = {"stream": True, "resume_transfers": True}
