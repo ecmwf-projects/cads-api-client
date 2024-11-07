@@ -359,7 +359,7 @@ def responses_add() -> None:
 @responses.activate
 def test_catalogue_collections(cat: catalogue.Catalogue) -> None:
     responses_add()
-    assert cat.get_collections().json_dict == COLLECTIONS_JSON
+    assert cat.get_collections().json == COLLECTIONS_JSON
 
     collection = cat.get_collection(COLLECTION_ID)
     assert collection.response.json() == COLLECTION_JSON

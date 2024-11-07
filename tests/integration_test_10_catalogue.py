@@ -13,7 +13,7 @@ def test_catalogue_collections(api_anon_client: ApiClient) -> None:
     assert collections.next is not None
 
     collection_ids = list(collections.collection_ids)
-    while len(collection_ids) != collections.json_dict["numberMatched"]:
+    while len(collection_ids) != collections.json["numberMatched"]:
         assert (next_collections := collections.next) is not None
         collections = next_collections
         collection_ids.extend(collections.collection_ids)
@@ -60,7 +60,7 @@ def test_catalogue_collection_id(collection: Collection) -> None:
 
 
 def test_catalogue_collection_json(collection: Collection) -> None:
-    assert isinstance(collection.json_dict, dict)
+    assert isinstance(collection.json, dict)
 
 
 def test_catalogue_collection_process(collection: Collection) -> None:
