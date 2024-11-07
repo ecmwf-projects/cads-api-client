@@ -39,7 +39,7 @@ class Collections(ApiResponsePaginated):
         ------
         list[str]
         """
-        return [collection["id"] for collection in self.json["collections"]]
+        return [collection["id"] for collection in self._json_dict["collections"]]
 
 
 @attrs.define
@@ -54,7 +54,7 @@ class Collection(ApiResponse):
         -------
         datetime.datetime or None
         """
-        if (value := self.json["extent"]["temporal"]["interval"][0][0]) is None:
+        if (value := self._json_dict["extent"]["temporal"]["interval"][0][0]) is None:
             return value
         return datetime.datetime.fromisoformat(value.replace("Z", "+00:00"))
 
@@ -66,7 +66,7 @@ class Collection(ApiResponse):
         -------
         datetime.datetime or None
         """
-        if (value := self.json["extent"]["temporal"]["interval"][0][1]) is None:
+        if (value := self._json_dict["extent"]["temporal"]["interval"][0][1]) is None:
             return value
         return datetime.datetime.fromisoformat(value.replace("Z", "+00:00"))
 
@@ -78,7 +78,7 @@ class Collection(ApiResponse):
         -------
         tuple[float,float,float,float]
         """
-        return tuple(self.json["extent"]["spatial"]["bbox"][0])
+        return tuple(self._json_dict["extent"]["spatial"]["bbox"][0])
 
     @property
     def id(self) -> str:
@@ -88,7 +88,7 @@ class Collection(ApiResponse):
         -------
         str
         """
-        return str(self.json["id"])
+        return str(self._json_dict["id"])
 
     @property
     def process(self) -> cads_api_client.Process:
@@ -101,6 +101,34 @@ class Collection(ApiResponse):
         """
         url = self._get_link_href(rel="retrieve")
         return cads_api_client.Process.from_request("get", url, **self._request_kwargs)
+
+    @property
+    def form(self) -> list[dict[str, Any]]:
+        """
+        Form JSON.
+
+        Returns
+        -------
+        list[dict[str,Any]]
+        """
+        url = f"{self.url}/form.json"
+        return ApiResponse.from_request(
+            "get", url, log_messages=False, **self._request_kwargs
+        )._json_list
+
+    @property
+    def constraints(self) -> list[dict[str, Any]]:
+        """
+        Constraints JSON.
+
+        Returns
+        -------
+        list[dict[str,Any]]
+        """
+        url = f"{self.url}/constraints.json"
+        return ApiResponse.from_request(
+            "get", url, log_messages=False, **self._request_kwargs
+        )._json_list
 
     def submit(self, **request: Any) -> cads_api_client.Remote:
         warnings.warn(
@@ -156,7 +184,7 @@ class Catalogue:
         response = ApiResponse.from_request(
             "get", url, params=params, **self._request_kwargs
         )
-        return response.json
+        return response._json_dict
 
     @property
     def messages(self) -> ApiResponse:

@@ -81,3 +81,28 @@ def test_catalogue_get_licences(api_anon_client: ApiClient) -> None:
     assert portal_licences
     for portal_licence in portal_licences:
         assert portal_licence in all_licences
+
+
+def test_catalogue_form(collection: Collection) -> None:
+    assert set(collection.form[0]) == {
+        "css",
+        "default",
+        "details",
+        "help",
+        "id",
+        "label",
+        "name",
+        "required",
+        "type",
+    }
+
+
+def test_catalogue_constraints(collection: Collection) -> None:
+    assert set(collection.constraints[0]) == {
+        "day",
+        "month",
+        "product_type",
+        "time",
+        "variable",
+        "year",
+    }
