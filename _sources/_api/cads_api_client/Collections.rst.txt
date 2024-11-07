@@ -19,12 +19,12 @@ cads_api_client.Collections
 
 
    .. py:property:: json
-      :type: dict[str, Any]
+      :type: Any
 
 
       Content of the response.
 
-      :rtype: :class:`dict[str,Any]`
+      :rtype: :class:`Any`
 
 
    .. py:property:: next

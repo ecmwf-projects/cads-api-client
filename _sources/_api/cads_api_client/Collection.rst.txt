@@ -27,6 +27,15 @@ cads_api_client.Collection
       :rtype: :class:`datetime.datetime` or :obj:`None`
 
 
+   .. py:property:: constraints
+      :type: list[dict[str, Any]]
+
+
+      Constraints JSON.
+
+      :rtype: :class:`list[dict[str,Any]]`
+
+
    .. py:property:: end_datetime
       :type: datetime.datetime | None
 
@@ -34,6 +43,15 @@ cads_api_client.Collection
       End datetime of the collection.
 
       :rtype: :class:`datetime.datetime` or :obj:`None`
+
+
+   .. py:property:: form
+      :type: list[dict[str, Any]]
+
+
+      Form JSON.
+
+      :rtype: :class:`list[dict[str,Any]]`
 
 
    .. py:property:: id
@@ -46,12 +64,12 @@ cads_api_client.Collection
 
 
    .. py:property:: json
-      :type: dict[str, Any]
+      :type: Any
 
 
       Content of the response.
 
-      :rtype: :class:`dict[str,Any]`
+      :rtype: :class:`Any`
 
 
    .. py:property:: process
