@@ -212,23 +212,23 @@ class ApiResponse:
         return self.response.json()
 
     @property
-    def json_dict(self) -> dict[str, Any]:
+    def _json_dict(self) -> dict[str, Any]:
         assert isinstance(content := self.json, dict)
         return content
 
     @property
-    def json_list(self) -> list[dict[str, Any]]:
+    def _json_list(self) -> list[dict[str, Any]]:
         assert isinstance(content := self.json, list)
         return content
 
     def log_messages(self) -> None:
-        if message_str := self.json_dict.get("message"):
+        if message_str := self._json_dict.get("message"):
             level, message_str = get_level_and_message(message_str)
             self.log(level, message_str)
 
-        messages = self.json_dict.get("messages", [])
+        messages = self._json_dict.get("messages", [])
         dataset_messages = (
-            self.json_dict.get("metadata", {})
+            self._json_dict.get("metadata", {})
             .get("datasetMetadata", {})
             .get("messages", [])
         )
@@ -243,7 +243,7 @@ class ApiResponse:
 
     def _get_links(self, rel: str | None = None) -> list[dict[str, str]]:
         links = []
-        for link in self.json_dict.get("links", []):
+        for link in self._json_dict.get("links", []):
             if rel is not None and link.get("rel") == rel:
                 links.append(link)
         return links
@@ -316,7 +316,7 @@ class Processes(ApiResponsePaginated):
         -------
         list[str]
         """
-        return [proc["id"] for proc in self.json_dict["processes"]]
+        return [proc["id"] for proc in self._json_dict["processes"]]
 
 
 @attrs.define
@@ -331,7 +331,7 @@ class Process(ApiResponse):
         -------
         str
         """
-        process_id: str = self.json_dict["id"]
+        process_id: str = self._json_dict["id"]
         return process_id
 
     def submit(self, **request: Any) -> cads_api_client.Remote:
@@ -373,7 +373,7 @@ class Process(ApiResponse):
             json={"inputs": request},
             **self._request_kwargs,
         )
-        return response.json_dict
+        return response._json_dict
 
     def estimate_costs(self, **request: Any) -> dict[str, Any]:
         """Estimate costs of the parameters in a request.
@@ -394,7 +394,7 @@ class Process(ApiResponse):
             json={"inputs": request},
             **self._request_kwargs,
         )
-        return response.json_dict
+        return response._json_dict
 
 
 @attrs.define(slots=False)
@@ -461,7 +461,7 @@ class Remote:
         params = {"log": True, "request": True}
         if self.log_start_time:
             params["logStartTime"] = self.log_start_time
-        return self._get_api_response("get", params=params).json_dict
+        return self._get_api_response("get", params=params)._json_dict
 
     @property
     def collection_id(self) -> str:
@@ -554,7 +554,7 @@ class Remote:
             return False
         if status == "failed":
             results = self.make_results(wait=False)
-            raise ProcessingFailedError(error_json_to_message(results.json_dict))
+            raise ProcessingFailedError(error_json_to_message(results._json_dict))
         if status in ("dismissed", "deleted"):
             raise ProcessingFailedError(f"API state {status!r}")
         raise ProcessingFailedError(f"Unknown API state {status!r}")
@@ -596,7 +596,7 @@ class Remote:
         """
         response = self._get_api_response("delete")
         self.cleanup = False
-        return response.json_dict
+        return response._json_dict
 
     def _warn(self) -> None:
         message = (
@@ -681,7 +681,7 @@ class Jobs(ApiResponsePaginated):
         -------
         list[str]
         """
-        return [job["jobID"] for job in self.json_dict["jobs"]]
+        return [job["jobID"] for job in self._json_dict["jobs"]]
 
     @property
     def job_ids(self) -> list[str]:
@@ -711,7 +711,7 @@ class Results(ApiResponse):
         -------
         dict[str,Any]
         """
-        return dict(self.json_dict["asset"]["value"])
+        return dict(self._json_dict["asset"]["value"])
 
     def _download(self, url: str, target: str) -> requests.Response:
         download_options = {"stream": True, "resume_transfers": True}
