@@ -15,16 +15,12 @@ cads_api_client.Jobs
 
       Content of the response.
 
-      :rtype: :class:`Any`
-
 
    .. py:property:: next
       :type: Self | None
 
 
       Next page.
-
-      :rtype: :class:`Self` or :obj:`None`
 
 
    .. py:property:: prev
@@ -33,8 +29,6 @@ cads_api_client.Jobs
 
       Previous page.
 
-      :rtype: :class:`Self` or :obj:`None`
-
 
    .. py:property:: request_uids
       :type: list[str]
@@ -42,14 +36,10 @@ cads_api_client.Jobs
 
       List of request UIDs.
 
-      :rtype: :class:`list[str]`
-
 
    .. py:property:: url
       :type: str
 
 
       URL.
-
-      :rtype: :class:`str`
 

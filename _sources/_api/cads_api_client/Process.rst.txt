@@ -50,8 +50,6 @@ cads_api_client.Process
 
       Process ID.
 
-      :rtype: :class:`str`
-
 
    .. py:property:: json
       :type: Any
@@ -59,14 +57,10 @@ cads_api_client.Process
 
       Content of the response.
 
-      :rtype: :class:`Any`
-
 
    .. py:property:: url
       :type: str
 
 
       URL.
-
-      :rtype: :class:`str`
 

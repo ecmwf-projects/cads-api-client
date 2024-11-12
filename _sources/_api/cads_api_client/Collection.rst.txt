@@ -15,16 +15,12 @@ cads_api_client.Collection
 
       Bounding box of the collection (W, S, E, N).
 
-      :rtype: :class:`tuple[float,float,float,float]`
-
 
    .. py:property:: begin_datetime
       :type: datetime.datetime | None
 
 
       Begin datetime of the collection.
-
-      :rtype: :class:`datetime.datetime` or :obj:`None`
 
 
    .. py:property:: constraints
@@ -33,16 +29,12 @@ cads_api_client.Collection
 
       Constraints JSON.
 
-      :rtype: :class:`list[dict[str,Any]]`
-
 
    .. py:property:: end_datetime
       :type: datetime.datetime | None
 
 
       End datetime of the collection.
-
-      :rtype: :class:`datetime.datetime` or :obj:`None`
 
 
    .. py:property:: form
@@ -51,16 +43,12 @@ cads_api_client.Collection
 
       Form JSON.
 
-      :rtype: :class:`list[dict[str,Any]]`
-
 
    .. py:property:: id
       :type: str
 
 
       Collection ID.
-
-      :rtype: :class:`str`
 
 
    .. py:property:: json
@@ -69,8 +57,6 @@ cads_api_client.Collection
 
       Content of the response.
 
-      :rtype: :class:`Any`
-
 
    .. py:property:: process
       :type: cads_api_client.Process
@@ -78,14 +64,10 @@ cads_api_client.Collection
 
       Collection process.
 
-      :rtype: :class:`cads_api_client.Process`
-
 
    .. py:property:: url
       :type: str
 
 
       URL.
-
-      :rtype: :class:`str`
 

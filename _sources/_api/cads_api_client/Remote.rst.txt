@@ -33,16 +33,12 @@ cads_api_client.Remote
 
       Collection ID.
 
-      :rtype: :class:`str`
-
 
    .. py:property:: creation_datetime
       :type: datetime.datetime
 
 
       Creation datetime of the job.
-
-      :rtype: :class:`datetime.datetime`
 
 
    .. py:property:: end_datetime
@@ -51,16 +47,12 @@ cads_api_client.Remote
 
       End datetime of the job. If None, job has not finished.
 
-      :rtype: :class:`datetime.datetime` or :obj:`None`
-
 
    .. py:property:: json
       :type: dict[str, Any]
 
 
       Content of the response.
-
-      :rtype: :class:`dict[str,Any]`
 
 
    .. py:property:: request
@@ -69,16 +61,12 @@ cads_api_client.Remote
 
       Request parameters.
 
-      :rtype: :class:`dict[str,Any]`
-
 
    .. py:property:: request_uid
       :type: str
 
 
       Request UID.
-
-      :rtype: :class:`str`
 
 
    .. py:property:: results_ready
@@ -87,8 +75,6 @@ cads_api_client.Remote
 
       Check if results are ready.
 
-      :rtype: :class:`bool`
-
 
    .. py:property:: start_datetime
       :type: datetime.datetime | None
@@ -96,14 +82,10 @@ cads_api_client.Remote
 
       Start datetime of the job. If None, job has not started.
 
-      :rtype: :class:`datetime.datetime` or :obj:`None`
-
 
    .. py:property:: status
       :type: str
 
 
       Request status.
-
-      :rtype: :class:`str`
 
