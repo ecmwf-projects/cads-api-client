@@ -62,12 +62,7 @@ class Collection(ApiResponse):
 
     @property
     def id(self) -> str:
-        """Collection ID.
-
-        Returns
-        -------
-        str
-        """
+        """Collection ID."""
         return str(self._json_dict["id"])
 
     @property
