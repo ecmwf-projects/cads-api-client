@@ -33,12 +33,7 @@ class Collections(ApiResponsePaginated):
 
     @property
     def collection_ids(self) -> list[str]:
-        """List of collection IDs.
-
-        Return
-        ------
-        list[str]
-        """
+        """List of collection IDs."""
         return [collection["id"] for collection in self._json_dict["collections"]]
 
 
@@ -48,36 +43,21 @@ class Collection(ApiResponse):
 
     @property
     def begin_datetime(self) -> datetime.datetime | None:
-        """Begin datetime of the collection.
-
-        Returns
-        -------
-        datetime.datetime or None
-        """
+        """Begin datetime of the collection."""
         if (value := self._json_dict["extent"]["temporal"]["interval"][0][0]) is None:
             return value
         return datetime.datetime.fromisoformat(value.replace("Z", "+00:00"))
 
     @property
     def end_datetime(self) -> datetime.datetime | None:
-        """End datetime of the collection.
-
-        Returns
-        -------
-        datetime.datetime or None
-        """
+        """End datetime of the collection."""
         if (value := self._json_dict["extent"]["temporal"]["interval"][0][1]) is None:
             return value
         return datetime.datetime.fromisoformat(value.replace("Z", "+00:00"))
 
     @property
     def bbox(self) -> tuple[float, float, float, float]:
-        """Bounding box of the collection (W, S, E, N).
-
-        Returns
-        -------
-        tuple[float,float,float,float]
-        """
+        """Bounding box of the collection (W, S, E, N)."""
         return tuple(self._json_dict["extent"]["spatial"]["bbox"][0])
 
     @property
@@ -92,25 +72,13 @@ class Collection(ApiResponse):
 
     @property
     def process(self) -> cads_api_client.Process:
-        """
-        Collection process.
-
-        Returns
-        -------
-        cads_api_client.Process
-        """
+        """Collection process."""
         url = self._get_link_href(rel="retrieve")
         return cads_api_client.Process.from_request("get", url, **self._request_kwargs)
 
     @property
     def form(self) -> list[dict[str, Any]]:
-        """
-        Form JSON.
-
-        Returns
-        -------
-        list[dict[str,Any]]
-        """
+        """Form JSON."""
         url = f"{self.url}/form.json"
         return ApiResponse.from_request(
             "get", url, log_messages=False, **self._request_kwargs
@@ -118,13 +86,7 @@ class Collection(ApiResponse):
 
     @property
     def constraints(self) -> list[dict[str, Any]]:
-        """
-        Constraints JSON.
-
-        Returns
-        -------
-        list[dict[str,Any]]
-        """
+        """Constraints JSON."""
         url = f"{self.url}/constraints.json"
         return ApiResponse.from_request(
             "get", url, log_messages=False, **self._request_kwargs
