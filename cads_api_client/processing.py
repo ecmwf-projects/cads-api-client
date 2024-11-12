@@ -193,22 +193,12 @@ class ApiResponse:
 
     @property
     def url(self) -> str:
-        """URL.
-
-        Returns
-        -------
-        str
-        """
+        """URL."""
         return str(self.response.request.url)
 
     @property
     def json(self) -> Any:
-        """Content of the response.
-
-        Returns
-        -------
-        Any
-        """
+        """Content of the response."""
         return self.response.json()
 
     @property
@@ -285,22 +275,12 @@ class ApiResponse:
 class ApiResponsePaginated(ApiResponse):
     @property
     def next(self) -> Self | None:
-        """Next page.
-
-        Returns
-        -------
-        Self or None
-        """
+        """Next page."""
         return self._from_rel_href(rel="next")
 
     @property
     def prev(self) -> Self | None:
-        """Previous page.
-
-        Returns
-        -------
-        Self or None
-        """
+        """Previous page."""
         return self._from_rel_href(rel="prev")
 
 
@@ -310,12 +290,7 @@ class Processes(ApiResponsePaginated):
 
     @property
     def process_ids(self) -> list[str]:
-        """Available process IDs.
-
-        Returns
-        -------
-        list[str]
-        """
+        """Available process IDs."""
         return [proc["id"] for proc in self._json_dict["processes"]]
 
 
@@ -325,12 +300,7 @@ class Process(ApiResponse):
 
     @property
     def id(self) -> str:
-        """Process ID.
-
-        Returns
-        -------
-        str
-        """
+        """Process ID."""
         process_id: str = self._json_dict["id"]
         return process_id
 
@@ -442,22 +412,12 @@ class Remote:
 
     @property
     def request_uid(self) -> str:
-        """Request UID.
-
-        Returns
-        -------
-        str
-        """
+        """Request UID."""
         return self.url.rpartition("/")[2]
 
     @property
     def json(self) -> dict[str, Any]:
-        """Content of the response.
-
-        Returns
-        -------
-        dict[str,Any]
-        """
+        """Content of the response."""
         params = {"log": True, "request": True}
         if self.log_start_time:
             params["logStartTime"] = self.log_start_time
@@ -465,32 +425,17 @@ class Remote:
 
     @property
     def collection_id(self) -> str:
-        """Collection ID.
-
-        Returns
-        -------
-        str
-        """
+        """Collection ID."""
         return str(self.json["processID"])
 
     @property
     def request(self) -> dict[str, Any]:
-        """Request parameters.
-
-        Returns
-        -------
-        dict[str,Any]
-        """
+        """Request parameters."""
         return dict(self.json["metadata"]["request"]["ids"])
 
     @property
     def status(self) -> str:
-        """Request status.
-
-        Returns
-        -------
-        str
-        """
+        """Request status."""
         reply = self.json
         self._log_metadata(reply.get("metadata", {}))
 
@@ -502,33 +447,18 @@ class Remote:
 
     @property
     def creation_datetime(self) -> datetime.datetime:
-        """Creation datetime of the job.
-
-        Returns
-        -------
-        datetime.datetime
-        """
+        """Creation datetime of the job."""
         return datetime.datetime.fromisoformat(self.json["created"])
 
     @property
     def start_datetime(self) -> datetime.datetime | None:
-        """Start datetime of the job. If None, job has not started.
-
-        Returns
-        -------
-        datetime.datetime or None
-        """
+        """Start datetime of the job. If None, job has not started."""
         value = self.json.get("started")
         return value if value is None else datetime.datetime.fromisoformat(value)
 
     @property
     def end_datetime(self) -> datetime.datetime | None:
-        """End datetime of the job. If None, job has not finished.
-
-        Returns
-        -------
-        datetime.datetime or None
-        """
+        """End datetime of the job. If None, job has not finished."""
         value = self.json.get("finished")
         return value if value is None else datetime.datetime.fromisoformat(value)
 
@@ -541,12 +471,7 @@ class Remote:
 
     @property
     def results_ready(self) -> bool:
-        """Check if results are ready.
-
-        Returns
-        -------
-        bool
-        """
+        """Check if results are ready."""
         status = self.status
         if status == "successful":
             return True
@@ -675,12 +600,7 @@ class Jobs(ApiResponsePaginated):
 
     @property
     def request_uids(self) -> list[str]:
-        """List of request UIDs.
-
-        Returns
-        -------
-        list[str]
-        """
+        """List of request UIDs."""
         return [job["jobID"] for job in self._json_dict["jobs"]]
 
     @property
@@ -705,12 +625,7 @@ class Results(ApiResponse):
 
     @property
     def asset(self) -> dict[str, Any]:
-        """Asset dictionary.
-
-        Returns
-        -------
-        dict[str,Any]
-        """
+        """Asset dictionary."""
         return dict(self._json_dict["asset"]["value"])
 
     def _download(self, url: str, target: str) -> requests.Response:
@@ -756,33 +671,18 @@ class Results(ApiResponse):
 
     @property
     def location(self) -> str:
-        """File location.
-
-        Returns
-        -------
-        str
-        """
+        """File location."""
         result_href = self.asset["href"]
         return urllib.parse.urljoin(self.response.url, result_href)
 
     @property
     def content_length(self) -> int:
-        """File size in Bytes.
-
-        Returns
-        -------
-        int
-        """
+        """File size in Bytes."""
         return int(self.asset["file:size"])
 
     @property
     def content_type(self) -> str:
-        """File MIME type.
-
-        Returns
-        -------
-        int
-        """
+        """File MIME type."""
         return str(self.asset["type"])
 
 
