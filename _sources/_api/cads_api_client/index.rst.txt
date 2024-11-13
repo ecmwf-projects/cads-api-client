@@ -20,7 +20,6 @@ Classes
    /_api/cads_api_client/Collections
    /_api/cads_api_client/Jobs
    /_api/cads_api_client/Process
-   /_api/cads_api_client/Processes
    /_api/cads_api_client/Remote
    /_api/cads_api_client/Results
 
@@ -31,7 +30,6 @@ Classes
    cads_api_client.Collections
    cads_api_client.Jobs
    cads_api_client.Process
-   cads_api_client.Processes
    cads_api_client.Remote
    cads_api_client.Results
 

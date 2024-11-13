@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>cads_api_client.ApiClient &#8212; cads_api_client 1.5.3 documentation</title>
+    <title>cads_api_client.ApiClient &#8212; cads_api_client 1.5.4 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
 
-    <script src="../../_static/documentation_options.js?v=d75fd82e"></script>
+    <script src="../../_static/documentation_options.js?v=1cd648e3"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_api/cads_api_client/ApiClient';</script>
@@ -49,7 +49,7 @@
     <link rel="prev" title="cads_api_client" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="1.5.3" />
+  <meta name="docsearch:version" content="1.5.4" />
   </head>
   
   
@@ -111,7 +111,7 @@
   
   
   
-    <p class="title logo__title">cads_api_client 1.5.3 documentation</p>
+    <p class="title logo__title">cads_api_client 1.5.4 documentation</p>
   
 </a></div>
     
@@ -257,7 +257,6 @@
 <li class="toctree-l1"><a class="reference internal" href="Collections.html">cads_api_client.Collections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Jobs.html">cads_api_client.Jobs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Process.html">cads_api_client.Process</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Processes.html">cads_api_client.Processes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Remote.html">cads_api_client.Remote</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Results.html">cads_api_client.Results</a></li>
 </ul>
@@ -534,23 +533,6 @@
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cads_api_client.ApiClient.get_processes">
-<span class="sig-name descname"><span class="pre">get_processes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sortby</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cads_api_client.ApiClient.get_processes" title="Link to this definition">#</a></dt>
-<dd><p>Retrieve available processes.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>limit</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>) – Number of processes per page.</p></li>
-<li><p><strong>sortby</strong> (<code class="docutils literal notranslate"><span class="pre">{None,</span> <span class="pre">'id',</span> <span class="pre">'-id'}</span></code>) – Field to sort results by.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="Processes.html#cads_api_client.Processes" title="cads_api_client.Processes"><code class="xref py py-class docutils literal notranslate"><span class="pre">cads_api_client.Processes</span></code></a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="cads_api_client.ApiClient.get_remote">
 <span class="sig-name descname"><span class="pre">get_remote</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request_uid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cads_api_client.ApiClient.get_remote" title="Link to this definition">#</a></dt>
 <dd><p>Retrieve the remote object of a request.</p>
@@ -696,7 +678,6 @@
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.get_jobs"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.get_jobs()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.get_licences"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.get_licences()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.get_process"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.get_process()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.get_processes"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.get_processes()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.get_remote"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.get_remote()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.get_results"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.get_results()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cads_api_client.ApiClient.retrieve"><code class="docutils literal notranslate"><span class="pre">cads_api_client.ApiClient.retrieve()</span></code></a></li>

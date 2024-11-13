@@ -172,19 +172,6 @@ cads_api_client.ApiClient
 
 
 
-   .. py:method:: get_processes(limit = None, sortby = None)
-
-      Retrieve available processes.
-
-      :param limit: Number of processes per page.
-      :type limit: :class:`int` or :obj:`None`
-      :param sortby: Field to sort results by.
-      :type sortby: ``{None, 'id', '-id'}``
-
-      :rtype: :class:`cads_api_client.Processes`
-
-
-
    .. py:method:: get_remote(request_uid)
 
       Retrieve the remote object of a request.
