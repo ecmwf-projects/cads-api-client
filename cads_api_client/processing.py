@@ -286,12 +286,19 @@ class ApiResponsePaginated(ApiResponse):
 
 @attrs.define
 class Processes(ApiResponsePaginated):
-    """A class to interact with available processes."""
+    @property
+    def collection_ids(self) -> list[str]:
+        """Available collection IDs."""
+        return [proc["id"] for proc in self._json_dict["processes"]]
 
     @property
     def process_ids(self) -> list[str]:
-        """Available process IDs."""
-        return [proc["id"] for proc in self._json_dict["processes"]]
+        warnings.warn(
+            "`.process_ids` has been deprecated, and in the future will raise an error."
+            " Please use `.collection_ids` from now on.",
+            DeprecationWarning,
+        )
+        return self.collection_ids
 
 
 @attrs.define

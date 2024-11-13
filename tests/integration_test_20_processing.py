@@ -9,7 +9,7 @@ from cads_api_client import ApiClient, Process, Processes, Remote
 def test_processig_processes_limit(api_anon_client: ApiClient) -> None:
     processes = api_anon_client.get_processes(limit=1)
     assert isinstance(processes, Processes)
-    assert len(processes.process_ids) == 1
+    assert len(processes.collection_ids) == 1
     next_processes = processes.next
     assert next_processes is not None
     assert len(next_processes.process_ids) == 1
@@ -17,11 +17,11 @@ def test_processig_processes_limit(api_anon_client: ApiClient) -> None:
 
 def test_processing_processes_sortby(api_anon_client: ApiClient) -> None:
     processes = api_anon_client.get_processes(sortby="id")
-    assert len(processes.process_ids) > 1
-    assert processes.process_ids == sorted(processes.process_ids)
+    assert len(processes.collection_ids) > 1
+    assert processes.collection_ids == sorted(processes.collection_ids)
 
     processes = api_anon_client.get_processes(sortby="-id")
-    assert processes.process_ids == sorted(processes.process_ids, reverse=True)
+    assert processes.collection_ids == sorted(processes.collection_ids, reverse=True)
 
 
 def test_processing_process(
