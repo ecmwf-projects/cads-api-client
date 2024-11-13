@@ -364,19 +364,6 @@ class ApiClient:
         limit: int | None = None,
         sortby: Literal[None, "id", "-id"] = None,
     ) -> cads_api_client.Processes:
-        """Retrieve available processes.
-
-        Parameters
-        ----------
-        limit: int or None
-            Number of processes per page.
-        sortby: {None, 'id', '-id'}
-            Field to sort results by.
-
-        Returns
-        -------
-        cads_api_client.Processes
-        """
         params = {
             k: v for k, v in zip(["limit", "sortby"], [limit, sortby]) if v is not None
         }
