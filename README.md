@@ -2,7 +2,9 @@
 
 CADS API Python client
 
-Documentation: https://ecmwf-projects.github.io/cads-api-client/
+Technical documentation: https://ecmwf-projects.github.io/cads-api-client/
+
+## Configuration
 
 The `ApiClient` requires the `url` to the API root and a valid API `key`. You can also set the `CADS_API_URL` and `CADS_API_KEY` environment variables, or use a configuration file. The configuration file must be located at `~/.cads-api-client.json`, or at the path specified by the `CADS_API_RC` environment variable.
 
