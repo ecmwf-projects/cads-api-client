@@ -3,7 +3,7 @@
 CADS API Python client
 
 > \[!WARNING\]
-> Deprecated in favor of https://github.com/ecmwf-projects/datapi
+> Deprecated in favour of https://github.com/ecmwf-projects/datapi
 
 ## Configuration
 
