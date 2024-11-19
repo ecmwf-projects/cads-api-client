@@ -2,7 +2,8 @@
 
 CADS API Python client
 
-Technical documentation: https://ecmwf-projects.github.io/cads-api-client/
+> \[!WARNING\]
+> Deprecated in favor of https://github.com/ecmwf-projects/datapi
 
 ## Configuration
 
